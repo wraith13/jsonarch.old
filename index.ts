@@ -1,6 +1,7 @@
 module Jsonarch
 {
     // const isConsoleMode = (typeof window !== 'undefined');
+    export const schema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#";
     export type JsonableValue = null | boolean | number | string;
     export interface JsonableObject
     {

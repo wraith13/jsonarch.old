@@ -1,5 +1,7 @@
 var Jsonarch;
 (function (Jsonarch) {
+    // const isConsoleMode = (typeof window !== 'undefined');
+    Jsonarch.schema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#";
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.isJsonarch = function (template) {
