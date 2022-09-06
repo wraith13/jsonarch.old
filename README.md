@@ -1,6 +1,6 @@
-# plastic-json
+# jsonarch
 
-plastic-json is JSON to JSON preprocessor.
+jsonarch is JSON to JSON preprocessor.
 
 🚧 UNDER CONSTRUCTION 🚧
 

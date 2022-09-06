@@ -1,8 +1,8 @@
 {
-  "name": "plastic-json",
+  "name": "jsonarch",
   "version": "0.0.1",
   "preview": true,
-  "description": "",
+  "description": "jsonarch is JSON to JSON preprocessor.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

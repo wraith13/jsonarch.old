@@ -1,4 +1,4 @@
-module PlasticJson
+module Jsonarch
 {
     // const isConsoleMode = (typeof window !== 'undefined');
     export type JsonableValue = null | boolean | number | string;
@@ -10,25 +10,25 @@ module PlasticJson
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
     export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
     export const objectKeys = <T extends JsonableObject>(target: T) => Object.keys(target) as (keyof T & string)[];
-    interface PlasticJsonBase extends JsonableObject
+    interface JsonarchBase extends JsonableObject
     {
-        $plastic: string;
+        $arch: string;
     }
-    export const isPlasticJson = (template: Jsonable): template is PlasticJsonBase =>
+    export const isJsonarch = (template: Jsonable): template is JsonarchBase =>
         null !== template &&
         "object" === typeof template &&
-        "$plastic" in template &&
-        "string" === typeof template.$plastic;
-    interface Cache extends PlasticJsonBase
+        "$arch" in template &&
+        "string" === typeof template.$arch;
+    interface Cache extends JsonarchBase
     {
-        $plastic: "cache";
+        $arch: "cache";
         json?: { [key: string]: Jsonable };
         values?: { [key: string]: Jsonable; };
         templates?: { [key: string]: Jsonable; };
     }
-    interface Setting extends PlasticJsonBase
+    interface Setting extends JsonarchBase
     {
-        $plastic: "setting";
+        $arch: "setting";
         language?: string;
         indent?: "minify" | "tab" | number;
         timeout?: number;
@@ -39,9 +39,9 @@ module PlasticJson
         callGraph?: boolean;
         cache?: Cache;
     }
-    interface Result extends PlasticJsonBase
+    interface Result extends JsonarchBase
     {
-        $plastic: "result";
+        $arch: "result";
         output: Jsonable;
         profile?: any;
         trace?: any;
@@ -50,14 +50,14 @@ module PlasticJson
         callGraph?: any;
         cache?: Cache;
     }
-    interface StaticTemplate extends PlasticJsonBase
+    interface StaticTemplate extends JsonarchBase
     {
-        $plastic: "static";
+        $arch: "static";
         return: Jsonable;
     }
-    export const isStaticTemplate = (template: PlasticJsonBase): template is StaticTemplate =>
-        "static" === template.$plastic;
-    export const evaluate = (template: PlasticJsonBase, _parameter?:Jsonable, _setting?: Setting): Jsonable =>
+    export const isStaticTemplate = (template: JsonarchBase): template is StaticTemplate =>
+        "static" === template.$arch;
+    export const evaluate = (template: JsonarchBase, _parameter?:Jsonable, _setting?: Setting): Jsonable =>
     {
         if (isStaticTemplate(template))
         {
@@ -72,7 +72,7 @@ module PlasticJson
             return template;
         }
         else
-        if (isPlasticJson(template))
+        if (isJsonarch(template))
         {
             return evaluate(template, parameter, setting);
         }
@@ -91,12 +91,12 @@ module PlasticJson
             return result;
         }
     };
-    export const compile = (template: Jsonable, parameter: Jsonable = { }, settings: Setting = { $plastic: "setting", }):Result =>
+    export const compile = (template: Jsonable, parameter: Jsonable = { }, settings: Setting = { $arch: "setting", }):Result =>
     {
         const output = apply(template, parameter, settings);
         const result: Result =
         {
-            $plastic: "result",
+            $arch: "result",
             output,
             cache: settings.cache,
         };
