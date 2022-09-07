@@ -40,6 +40,18 @@ module Jsonarch
         callGraph?: boolean;
         cache?: Cache;
     }
+    interface IoHandler
+    {
+    }
+    interface EvaluateEntry<TemplateType>
+    {
+        template: TemplateType;
+        parameter:Jsonable;
+        setting: Setting;
+        handler: IoHandler;
+    }
+    export const isEvaluateEntryBase = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> => isJsonarch(entry.template);
+    export const isEvaluateEntry = <Type extends JsonarchBase>(type: Type["$arch"]) => ((entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<Type> => isJsonarch(entry.template) && type === entry.template.$arch);
     interface Result extends JsonarchBase
     {
         $arch: "result";
@@ -56,50 +68,79 @@ module Jsonarch
         $arch: "static";
         return: Jsonable;
     }
-    export const isStaticTemplate = (template: JsonarchBase): template is StaticTemplate =>
-        "static" === template.$arch;
-    export const evaluate = (template: JsonarchBase, _parameter?:Jsonable, _setting?: Setting): Jsonable =>
+    export const isStaticData = isEvaluateEntry<StaticTemplate>("static");
+    interface IncludeStaticJsonTemplate extends JsonarchBase
     {
-        if (isStaticTemplate(template))
+        $arch: "include-static-json";
+        path: string;
+    }
+    export const isIncludeStaticJsonData = isEvaluateEntry<IncludeStaticJsonTemplate>("include-static-json");
+    export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Jsonable =>
+        entry.template.return;
+    export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Jsonable =>
+    {
+        if (isStaticData(entry))
         {
-            return template.return;
+            return evaluateStatic(entry);
         }
-        return template;
+        if (isIncludeStaticJsonData(entry))
+        {
+            return entry.template.path;
+        }
+        return entry.template;
     };
-    export const apply = (template: Jsonable, parameter?:Jsonable, setting?: Setting): Jsonable =>
+    export const apply = (entry: EvaluateEntry<Jsonable>): Jsonable =>
     {
-        if (null === template || "object" !== typeof template)
+        if (null === entry.template || "object" !== typeof entry.template)
         {
-            return template;
+            return entry.template;
         }
         else
-        if (isJsonarch(template))
+        if (isEvaluateEntryBase(entry))
         {
-            return evaluate(template, parameter, setting);
+            return evaluate(entry);
         }
         else
-        if (Array.isArray(template))
+        if (Array.isArray(entry.template))
         {
-            return template.map(i => apply(i, parameter, setting));
+            return entry.template.map
+            (
+                i => apply
+                ({
+                    ...entry,
+                    ...
+                    {
+                        template: i,
+                    }
+                })
+            );
         }
         else
         {
             const result: JsonableObject = { };
+            const template = entry.template;
             objectKeys(template).forEach
             (
-                key => result[key] = apply(template, parameter, setting)
+                key => result[key] = apply
+                ({
+                    ...entry,
+                    ...
+                    {
+                        template: template[key] as Jsonable,
+                    }
+                })
             );
             return result;
         }
     };
-    export const compile = (template: Jsonable, parameter: Jsonable = { }, settings: Setting = { $arch: "setting", }):Result =>
+    export const compile = async (data: EvaluateEntry<Jsonable>):Promise<Result> =>
     {
-        const output = apply(template, parameter, settings);
+        const output = apply(data);
         const result: Result =
         {
             $arch: "result",
             output,
-            cache: settings.cache,
+            cache: data.setting.cache,
         };
         return result;
     };

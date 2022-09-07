@@ -1,0 +1,172 @@
+{
+    "id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "oneOf": [
+        {
+            "type": "string"
+        },
+        {
+            "$ref": "#/definitions/Arch"
+        },
+        {
+            "$ref": "#/definitions/Json"
+        }
+    ],
+    "definitions": {
+        "PathValue": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "replace": {
+                    "type": "object",
+                    "properties": {
+                        "match": {
+                            "type": "string"
+                        },
+                        "text": {
+                            "$ref": "#/definitions/Value"
+                        }
+                    },
+                    "required": [
+                        "match",
+                        "text"
+                    ]
+                }
+            },
+            "required": [
+                "path"
+            ]
+        },
+        "JsonValue": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "json": {
+                    "type": "string"
+                },
+                "key": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "json"
+            ]
+        },
+        "CallValue": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "call": {
+                    "type": "string",
+                    "enum": [
+                        "command",
+                        "command_options",
+                        "timestamp",
+                        "timestamp_tick"
+                    ]
+                }
+            },
+            "required": [
+                "call"
+            ]
+        },
+        "ResourceValue": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "resource": {
+                    "type": "string"
+                },
+                "base": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "resource"
+            ]
+        },
+        "Arch": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/PathValue"
+                },
+                {
+                    "$ref": "#/definitions/JsonValue"
+                },
+                {
+                    "$ref": "#/definitions/CallValue"
+                },
+                {
+                    "$ref": "#/definitions/ResourceValue"
+                }
+            ]
+        },
+        "Mode": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "base": {
+                    "type": "string"
+                },
+                "template": {
+                    "$ref": "#/definitions/Value"
+                },
+                "output": {
+                    "$ref": "#/definitions/PathValue"
+                },
+                "preprocesses": {
+                    "type": "array",
+                    "items":
+                    {
+                        "type": "string"
+                    }
+                },
+                "parameters": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/Value"
+                    }
+                }
+            },
+            "required": [
+            ]
+        },
+        "Json": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "$arch": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "$ref": "#/definitions/Mode"
+                        }
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/definitions/Mode"
+                    },
+                    "required": [
+                    ]
+                }
+            },
+            "required": [
+            ]
+        }
+    }
+}
