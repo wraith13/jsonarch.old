@@ -8,5 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "wraith13",
-  "license": "BSL-1.0"
+  "license": "BSL-1.0",
+  "devDependencies": {
+    "@types/node": "^18.7.16",
+    "typescript": "^4.8.2"
+  }
 }
