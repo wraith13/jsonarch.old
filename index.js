@@ -52,59 +52,114 @@ var Jsonarch;
     Jsonarch.schema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#";
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
-    Jsonarch.isJsonarch = function (template) {
+    Jsonarch.isJsonarchBase = function (template) {
         return null !== template &&
             "object" === typeof template &&
             "$arch" in template &&
             "string" === typeof template.$arch;
     };
-    Jsonarch.isEvaluateEntryBase = function (entry) { return Jsonarch.isJsonarch(entry.template); };
-    Jsonarch.isEvaluateEntry = function (type) { return (function (entry) { return Jsonarch.isJsonarch(entry.template) && type === entry.template.$arch; }); };
-    Jsonarch.isStaticData = Jsonarch.isEvaluateEntry("static");
-    Jsonarch.isIncludeStaticJsonData = Jsonarch.isEvaluateEntry("include-static-json");
-    Jsonarch.evaluateStatic = function (entry) {
-        return entry.template.return;
+    Jsonarch.isEvaluateTargetEntry = function (entry) {
+        return Jsonarch.isJsonarchBase(entry.template);
     };
-    Jsonarch.evaluate = function (entry) {
-        if (Jsonarch.isStaticData(entry)) {
-            return Jsonarch.evaluateStatic(entry);
-        }
-        if (Jsonarch.isIncludeStaticJsonData(entry)) {
-            return entry.template.path;
-        }
-        return entry.template;
+    Jsonarch.isJsonarch = function (type) {
+        return (function (template) {
+            return Jsonarch.isJsonarchBase(template) && type === template.$arch;
+        });
     };
-    Jsonarch.apply = function (entry) {
-        if (null === entry.template || "object" !== typeof entry.template) {
-            return entry.template;
-        }
-        else if (Jsonarch.isEvaluateEntryBase(entry)) {
-            return Jsonarch.evaluate(entry);
-        }
-        else if (Array.isArray(entry.template)) {
-            return entry.template.map(function (i) { return Jsonarch.apply(__assign(__assign({}, entry), {
-                template: i,
-            })); });
-        }
-        else {
-            var result_1 = {};
-            var template_1 = entry.template;
-            Jsonarch.objectKeys(template_1).forEach(function (key) { return result_1[key] = Jsonarch.apply(__assign(__assign({}, entry), {
-                template: template_1[key],
-            })); });
-            return result_1;
-        }
-    };
+    Jsonarch.isStaticData = Jsonarch.isJsonarch("static");
+    Jsonarch.evaluateStatic = function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/, Jsonarch.isStaticData(entry.template) ? entry.template.return : undefined];
+    }); }); };
+    Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
+    Jsonarch.evaluateIncludeStaticJson = function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/, Jsonarch.isIncludeStaticJsonData(entry.template) ? entry.template.path : undefined];
+    }); }); };
+    Jsonarch.evaluate = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+        var evaluatorList, _a, _b, _i, i, result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    evaluatorList = [
+                        Jsonarch.evaluateStatic,
+                        Jsonarch.evaluateIncludeStaticJson,
+                    ];
+                    _a = [];
+                    for (_b in evaluatorList)
+                        _a.push(_b);
+                    _i = 0;
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    i = _a[_i];
+                    return [4 /*yield*/, evaluatorList[i](entry)];
+                case 2:
+                    result = _c.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    _c.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, entry.template];
+            }
+        });
+    }); };
+    Jsonarch.apply = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+        var result_1, template_1;
+        var _this = this;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
+                    return [2 /*return*/, entry.template];
+                case 1:
+                    if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 3];
+                    return [4 /*yield*/, Jsonarch.evaluate(entry)];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    if (!Array.isArray(entry.template)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, Promise.all(entry.template.map(function (i) { return Jsonarch.apply(__assign(__assign({}, entry), {
+                            template: i,
+                        })); }))];
+                case 4: return [2 /*return*/, _a.sent()];
+                case 5:
+                    result_1 = {};
+                    template_1 = entry.template;
+                    return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
+                            var _a, _b;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0:
+                                        _a = result_1;
+                                        _b = key;
+                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), {
+                                                template: template_1[key],
+                                            }))];
+                                    case 1: return [2 /*return*/, _a[_b] = _c.sent()];
+                                }
+                            });
+                        }); }))];
+                case 6:
+                    _a.sent();
+                    return [2 /*return*/, result_1];
+            }
+        });
+    }); };
     Jsonarch.compile = function (data) { return __awaiter(_this, void 0, void 0, function () {
         var output, result;
         return __generator(this, function (_a) {
-            output = Jsonarch.apply(data);
-            result = {
-                $arch: "result",
-                output: output,
-                cache: data.setting.cache,
-            };
-            return [2 /*return*/, result];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, Jsonarch.apply(data)];
+                case 1:
+                    output = _a.sent();
+                    result = {
+                        $arch: "result",
+                        output: output,
+                        cache: data.setting.cache,
+                    };
+                    return [2 /*return*/, result];
+            }
         });
     }); };
 })(Jsonarch || (Jsonarch = {}));

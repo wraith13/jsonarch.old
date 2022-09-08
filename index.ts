@@ -15,7 +15,7 @@ module Jsonarch
     {
         $arch: string;
     }
-    export const isJsonarch = (template: Jsonable): template is JsonarchBase =>
+    export const isJsonarchBase = (template: Jsonable): template is JsonarchBase =>
         null !== template &&
         "object" === typeof template &&
         "$arch" in template &&
@@ -50,8 +50,11 @@ module Jsonarch
         setting: Setting;
         handler: IoHandler;
     }
-    export const isEvaluateEntryBase = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> => isJsonarch(entry.template);
-    export const isEvaluateEntry = <Type extends JsonarchBase>(type: Type["$arch"]) => ((entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<Type> => isJsonarch(entry.template) && type === entry.template.$arch);
+    export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> =>
+        isJsonarchBase(entry.template);
+    export const isJsonarch = <Type extends JsonarchBase>(type: Type["$arch"]) =>
+        ((template: Jsonable): template is Type =>
+            isJsonarchBase(template) && type === template.$arch);
     interface Result extends JsonarchBase
     {
         $arch: "result";
@@ -68,74 +71,87 @@ module Jsonarch
         $arch: "static";
         return: Jsonable;
     }
-    export const isStaticData = isEvaluateEntry<StaticTemplate>("static");
+    export const isStaticData = isJsonarch<StaticTemplate>("static");
+    export const evaluateStatic = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
+        isStaticData(entry.template) ? entry.template.return: undefined;
     interface IncludeStaticJsonTemplate extends JsonarchBase
     {
         $arch: "include-static-json";
         path: string;
     }
-    export const isIncludeStaticJsonData = isEvaluateEntry<IncludeStaticJsonTemplate>("include-static-json");
-    export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Jsonable =>
-        entry.template.return;
-    export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Jsonable =>
+    export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
+    export const evaluateIncludeStaticJson = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
+        isIncludeStaticJsonData(entry.template) ? entry.template.path: undefined;
+    export const evaluate = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> =>
     {
-        if (isStaticData(entry))
+        const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
+        [
+            evaluateStatic,
+            evaluateIncludeStaticJson,
+        ];
+        for(const i in evaluatorList)
         {
-            return evaluateStatic(entry);
-        }
-        if (isIncludeStaticJsonData(entry))
-        {
-            return entry.template.path;
+            const result = await evaluatorList[i](entry);
+            if (undefined !== result)
+            {
+                return result;
+            }
         }
         return entry.template;
     };
-    export const apply = (entry: EvaluateEntry<Jsonable>): Jsonable =>
+    export const apply = async (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> =>
     {
         if (null === entry.template || "object" !== typeof entry.template)
         {
             return entry.template;
         }
         else
-        if (isEvaluateEntryBase(entry))
+        if (isEvaluateTargetEntry(entry))
         {
-            return evaluate(entry);
+            return await evaluate(entry);
         }
         else
         if (Array.isArray(entry.template))
         {
-            return entry.template.map
+            return await Promise.all
             (
-                i => apply
-                ({
-                    ...entry,
-                    ...
-                    {
-                        template: i,
-                    }
-                })
+                entry.template.map
+                (
+                    i => apply
+                    ({
+                        ...entry,
+                        ...
+                        {
+                            template: i,
+                        }
+                    })
+                )
             );
         }
         else
         {
             const result: JsonableObject = { };
             const template = entry.template;
-            objectKeys(template).forEach
+            await Promise.all
             (
-                key => result[key] = apply
-                ({
-                    ...entry,
-                    ...
-                    {
-                        template: template[key] as Jsonable,
-                    }
-                })
+                objectKeys(template).map
+                (
+                    async key => result[key] = await apply
+                    ({
+                        ...entry,
+                        ...
+                        {
+                            template: template[key] as Jsonable,
+                        }
+                    })
+                )
             );
             return result;
         }
     };
     export const compile = async (data: EvaluateEntry<Jsonable>):Promise<Result> =>
     {
-        const output = apply(data);
+        const output = await apply(data);
         const result: Result =
         {
             $arch: "result",
