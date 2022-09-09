@@ -1,5 +1,5 @@
 {
-    "id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#",
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$ref": "#/definitions/Setting",
     "definitions": {
@@ -22,7 +22,7 @@
                 }
             ]
         },
-        "Root": {
+        "Setting": {
             "type": "object",
             "properties": {
                 "$schema": {
@@ -39,6 +39,12 @@
                 "indent":
                 {
                     "$ref": "#/definitions/Indent"
+                },
+                "timeout":
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "timeout(milliseconds)"
                 }
             },
             "required": [

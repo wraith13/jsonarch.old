@@ -1,6 +1,6 @@
 # jsonarch
 
-jsonarch is JSON to JSON preprocessor.
+jsonarch is JSON to JSON processor.
 
 🚧 UNDER CONSTRUCTION 🚧
 

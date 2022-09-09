@@ -2,8 +2,8 @@ module Jsonarch
 {
     const isConsoleMode = typeof window !== 'undefined';
     const fs = isConsoleMode ? require("fs"): undefined;
-    export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#";
-    export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/setting-json-schema.json#";
+    export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
+    export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     export type JsonableValue = null | boolean | number | string;
     export interface JsonableObject
     {
@@ -46,7 +46,7 @@ module Jsonarch
     export interface Context
     {
         template: FileContext;
-        paremter?: FileContext;
+        parameter?: FileContext;
         setting: FileContext<Setting>;
     }
     export interface Cache extends JsonarchBase
@@ -279,26 +279,13 @@ module Jsonarch
             return result;
         }
     };
-    export const compile = async (entry: CompileEntry):Promise<Result> =>
+    export const applyRoot = async (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting): Promise<Result> =>
     {
         const handler = entry.handler;
-        const setting = await load({ setting: bootSettingJson, handler, file: entry.setting});
-        const template = await load({ setting, handler, file: entry.setting});
-        const parameterResult = entry.paremter ?
-            (
-                await compile
-                ({
-                    template: entry.paremter,
-                    setting: entry.setting,
-                    handler
-                })
-            ):
-            undefined;
-        const parameter = parameterResult?.output ?? null;
         const context =
         {
             template: entry.template,
-            paremter: entry.paremter,
+            paremter: entry.parameter,
             setting: entry.setting,
         };
         const rootEvaluateEntry: EvaluateEntry<Jsonable> =
@@ -318,5 +305,37 @@ module Jsonarch
             cache,
         };
         return result;
+    };
+    export const compile = async (entry: CompileEntry):Promise<Result> =>
+    {
+        const handler = entry.handler;
+        const settingResult = await applyRoot
+        (
+            {
+                handler,
+                template: entry.setting,
+                setting: { category: "none", data: bootSettingJson, }
+            },
+            await load({ setting: bootSettingJson, handler, file: entry.setting}),
+            null,
+            bootSettingJson
+        );
+        const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
+        const parameterResult = entry.parameter ?
+            await applyRoot
+            (
+                {
+                    handler,
+                    template: entry.parameter,
+                    setting: entry.setting,
+                },
+                await load({ setting, handler, file: entry.parameter }),
+                null,
+                setting
+            ):
+            undefined;
+        const parameter = parameterResult?.output ?? null;
+        const template = await load({ setting, handler, file: entry.template});
+        return applyRoot(entry, template, parameter, setting);
     };
 }
