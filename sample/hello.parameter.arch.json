@@ -1,0 +1,25 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "template",
+    "return":
+    {
+        "message":
+        {
+            "$arch": "call",
+            "targe": "string.join",
+            "values":
+            [
+                "Hello, ",
+                {
+                    "$arch": "refer",
+                    "target":
+                    [
+                        "parameter",
+                        "name"
+                    ]
+                },
+                "!"
+            ]
+        }
+    }
+}

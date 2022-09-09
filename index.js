@@ -1,3 +1,4 @@
+"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -50,7 +51,8 @@ var Jsonarch;
     var _this = this;
     var isConsoleMode = typeof window !== 'undefined';
     var fs = isConsoleMode ? require("fs") : undefined;
-    Jsonarch.schema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#";
+    Jsonarch.templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#";
+    Jsonarch.settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/setting-json-schema.json#";
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
@@ -63,6 +65,10 @@ var Jsonarch;
     Jsonarch.isNoneFileContext = function (file) { return "none" === file.category; };
     Jsonarch.isNetFileContext = function (file) { return "net" === file.category; };
     Jsonarch.isLocalFileContext = function (file) { return "local" === file.category; };
+    var bootSettingJson = {
+        "$schema": Jsonarch.settingSchema,
+        "$arch": "setting"
+    };
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
@@ -126,7 +132,7 @@ var Jsonarch;
             switch (_c.label) {
                 case 0:
                     if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 1];
-                    return [2 /*return*/, Jsonarch.jsonParse(entry.file.data)];
+                    return [2 /*return*/, entry.file.data];
                 case 1:
                     if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 3];
                     cache = (_b = (_a = entry.setting.cache) === null || _a === void 0 ? void 0 : _a.json) === null || _b === void 0 ? void 0 : _b[entry.file.path];
@@ -234,9 +240,9 @@ var Jsonarch;
             switch (_a.label) {
                 case 0:
                     handler = entry.handler;
-                    return [4 /*yield*/, Jsonarch.load({ setting: { "$arch": "setting", }, handler: entry.handler, file: entry.setting })];
+                    return [4 /*yield*/, Jsonarch.load({ setting: bootSettingJson, handler: handler, file: entry.setting })];
                 case 1:
-                    setting = (_a.sent());
+                    setting = _a.sent();
                     return [4 /*yield*/, Jsonarch.load({ setting: setting, handler: handler, file: entry.setting })];
                 case 2:
                     template = _a.sent();

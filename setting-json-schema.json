@@ -1,0 +1,50 @@
+{
+    "id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/Setting",
+    "definitions": {
+        "Language":
+        {
+            "type": "string",
+            "enum": [ "en", "ja" ]
+        },
+        "Indent":
+        {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "enum": [ "minify", "tab" ]
+                },
+                {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 32
+                }
+            ]
+        },
+        "Root": {
+            "type": "object",
+            "properties": {
+                "$schema": {
+                    "type": "string"
+                },
+                "$arch": {
+                    "type": "string",
+                    "enum": [ "setting" ]
+                },
+                "language":
+                {
+                    "$ref": "#/definitions/Language"
+                },
+                "indent":
+                {
+                    "$ref": "#/definitions/Indent"
+                }
+            },
+            "required": [
+                "$arch"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "strict": true,
         "moduleResolution": "node",
         "declaration": false,
         "target": "es5",
@@ -15,17 +16,13 @@
         "noImplicitThis": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "noImplicitUseStrict": false,
         "sourceMap": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
-        "traceResolution": false,
-        "listFiles": false,
         "stripInternal": true,
         "skipDefaultLibCheck": true,
         "skipLibCheck": false,
-        "pretty": false,
         "noEmitOnError": true,
         "outFile": "index.js"
     },

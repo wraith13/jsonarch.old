@@ -2,7 +2,8 @@ module Jsonarch
 {
     const isConsoleMode = typeof window !== 'undefined';
     const fs = isConsoleMode ? require("fs"): undefined;
-    export const schema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#";
+    export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#";
+    export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/setting-json-schema.json#";
     export type JsonableValue = null | boolean | number | string;
     export interface JsonableObject
     {
@@ -23,10 +24,10 @@ module Jsonarch
         "$arch" in template &&
         "string" === typeof template.$arch;
     export type FilePathCategory = "none" | "net" | "local";
-    export interface NoneFileContext
+    export interface NoneFileContext<DataType extends Jsonable = Jsonable>
     {
         category: "none";
-        data: string;
+        data: DataType;
     }
     export interface NetFileContext
     {
@@ -38,15 +39,15 @@ module Jsonarch
         category: "local";
         path: string;
     }
-    export type FileContext = NoneFileContext | NetFileContext | LocalFileContext;
-    export const isNoneFileContext = (file: FileContext): file is NoneFileContext => "none" === file.category;
+    export type FileContext<DataType extends Jsonable = Jsonable> = NoneFileContext<DataType> | NetFileContext | LocalFileContext;
+    export const isNoneFileContext = <DataType extends Jsonable = Jsonable>(file: FileContext): file is NoneFileContext<DataType> => "none" === file.category;
     export const isNetFileContext = (file: FileContext): file is NetFileContext => "net" === file.category;
     export const isLocalFileContext = (file: FileContext): file is LocalFileContext => "local" === file.category;
     export interface Context
     {
         template: FileContext;
         paremter: FileContext;
-        setting: FileContext;
+        setting: FileContext<Setting>;
     }
     export interface Cache extends JsonarchBase
     {
@@ -61,20 +62,25 @@ module Jsonarch
         language?: string;
         indent?: "minify" | "tab" | number;
         timeout?: number;
-        profile?: boolean;
         trace?: "stdout" | "stderr" | boolean;
+        profile?: false | "template" | "parameter" | "both";
         originMap?: false | "template" | "parameter" | "both";
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
         cache?: Cache;
     }
+    const bootSettingJson: Setting =
+    {
+        "$schema": settingSchema,
+        "$arch": "setting"
+    };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         setting: Setting;
         handler: Handler;
         file: ContextType;
     }
-    export const isNoneFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NoneFileContext> => isNoneFileContext(entry.file);
+    export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
     export const isNetFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NetFileContext> => isNetFileContext(entry.file);
     export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isNetFileContext(entry.file);
     interface Handler
@@ -162,11 +168,11 @@ module Jsonarch
         }
         throw new Error("never");
     };
-    export const load = async (entry: LoadEntry): Promise<Jsonable> =>
+    export const load = async <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>): Promise<DataType> =>
     {
         if (isNoneFileLoadEntry(entry))
         {
-            return jsonParse(entry.file.data);
+            return entry.file.data;
         }
         else
         if (isNetFileLoadEntry(entry) || isLocalFileLoadEntry(entry))
@@ -174,7 +180,7 @@ module Jsonarch
             const cache = entry.setting.cache?.json?.[entry.file.path];
             if (undefined !== cache)
             {
-                return cache;
+                return cache as DataType;
             }
             const result = await loadFile(entry);
             if ( ! entry.setting.cache)
@@ -186,7 +192,7 @@ module Jsonarch
                 entry.setting.cache.json = { };
             }
             entry.setting.cache.json[entry.file.path] = result;
-            return result;
+            return result as DataType;
         }
         throw new Error("never");
     };
@@ -276,7 +282,7 @@ module Jsonarch
     export const compile = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
-        const setting = (await load({ setting: { "$arch": "setting", }, handler: entry.handler, file: entry.setting})) as Setting;
+        const setting = await load({ setting: bootSettingJson, handler, file: entry.setting});
         const template = await load({ setting, handler, file: entry.setting});
         const parameter = await load({ setting, handler, file: entry.setting});
         const context =

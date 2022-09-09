@@ -1,5 +1,5 @@
 {
-    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema.json#",
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
     "$arch": "template",
     "return":
     {
