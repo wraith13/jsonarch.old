@@ -235,20 +235,33 @@ var Jsonarch;
         });
     }); };
     Jsonarch.compile = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, setting, template, parameter, context, rootEvaluateEntry, output, cache, result;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var handler, setting, template, parameterResult, _a, parameter, context, rootEvaluateEntry, output, cache, result;
+        var _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     handler = entry.handler;
                     return [4 /*yield*/, Jsonarch.load({ setting: bootSettingJson, handler: handler, file: entry.setting })];
                 case 1:
-                    setting = _a.sent();
+                    setting = _c.sent();
                     return [4 /*yield*/, Jsonarch.load({ setting: setting, handler: handler, file: entry.setting })];
                 case 2:
-                    template = _a.sent();
-                    return [4 /*yield*/, Jsonarch.load({ setting: setting, handler: handler, file: entry.setting })];
+                    template = _c.sent();
+                    if (!entry.paremter) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.compile({
+                            template: entry.paremter,
+                            setting: entry.setting,
+                            handler: handler
+                        })];
                 case 3:
-                    parameter = _a.sent();
+                    _a = (_c.sent());
+                    return [3 /*break*/, 5];
+                case 4:
+                    _a = undefined;
+                    _c.label = 5;
+                case 5:
+                    parameterResult = _a;
+                    parameter = (_b = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output) !== null && _b !== void 0 ? _b : null;
                     context = {
                         template: entry.template,
                         paremter: entry.paremter,
@@ -262,8 +275,8 @@ var Jsonarch;
                         handler: handler,
                     };
                     return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
-                case 4:
-                    output = _a.sent();
+                case 6:
+                    output = _c.sent();
                     cache = rootEvaluateEntry.setting.cache;
                     result = {
                         $arch: "result",

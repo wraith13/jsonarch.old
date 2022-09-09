@@ -23,7 +23,6 @@ module Jsonarch
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
-    export type FilePathCategory = "none" | "net" | "local";
     export interface NoneFileContext<DataType extends Jsonable = Jsonable>
     {
         category: "none";
@@ -39,6 +38,7 @@ module Jsonarch
         category: "local";
         path: string;
     }
+    export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
     export type FileContext<DataType extends Jsonable = Jsonable> = NoneFileContext<DataType> | NetFileContext | LocalFileContext;
     export const isNoneFileContext = <DataType extends Jsonable = Jsonable>(file: FileContext): file is NoneFileContext<DataType> => "none" === file.category;
     export const isNetFileContext = (file: FileContext): file is NetFileContext => "net" === file.category;
@@ -46,7 +46,7 @@ module Jsonarch
     export interface Context
     {
         template: FileContext;
-        paremter: FileContext;
+        paremter?: FileContext;
         setting: FileContext<Setting>;
     }
     export interface Cache extends JsonarchBase
@@ -284,7 +284,17 @@ module Jsonarch
         const handler = entry.handler;
         const setting = await load({ setting: bootSettingJson, handler, file: entry.setting});
         const template = await load({ setting, handler, file: entry.setting});
-        const parameter = await load({ setting, handler, file: entry.setting});
+        const parameterResult = entry.paremter ?
+            (
+                await compile
+                ({
+                    template: entry.paremter,
+                    setting: entry.setting,
+                    handler
+                })
+            ):
+            undefined;
+        const parameter = parameterResult?.output ?? null;
         const context =
         {
             template: entry.template,

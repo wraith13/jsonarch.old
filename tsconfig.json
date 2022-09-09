@@ -24,10 +24,10 @@
         "skipDefaultLibCheck": true,
         "skipLibCheck": false,
         "noEmitOnError": true,
-        "outFile": "index.js"
+        "outFile": "library/index.js"
     },
     "files": [
-        "index.ts"
+        "source/index.ts"
     ],
     "exclude": [
     ]
