@@ -65,6 +65,49 @@ var Jsonarch;
     Jsonarch.isNoneFileContext = function (file) { return "none" === file.category; };
     Jsonarch.isNetFileContext = function (file) { return "net" === file.category; };
     Jsonarch.isLocalFileContext = function (file) { return "local" === file.category; };
+    Jsonarch.makeFullPath = function (contextOrEntry, path) {
+        var context = Jsonarch.getContext(contextOrEntry);
+        if (/^\.\.?\//.test(path)) {
+            if (Jsonarch.isNoneFileContext(context.template)) {
+                throw new Error("makeFullPath({ templte:{ category: none }, },...)");
+            }
+            else {
+                var parent_1 = context.template.path
+                    .replace(/#.*/, "")
+                    .replace(/\/[^/]*$/, "");
+                var current = path.replace(/^\.\//, "");
+                while (/^\.\.\//.test(current)) {
+                    parent_1 = parent_1.replace(/\/[^/]*$/, "");
+                    current = current.replace(/^\.\.\//, "");
+                }
+                return "".concat(parent_1, "/").concat(current);
+            }
+        }
+        else if (!isConsoleMode && /^\//.test(path)) {
+            if (Jsonarch.isNoneFileContext(context.template)) {
+                throw new Error("makeFullPath({ templte:{ category: none }, },...)");
+            }
+            else {
+                return context.template.path.replace(/^(https?\:\/\/[^/]+\/).*$/, "$1") + path;
+            }
+        }
+        else {
+            return path;
+        }
+    };
+    Jsonarch.pathToFileContext = function (contextOrEntry, path) {
+        return (!isConsoleMode) || /^https?\:\/\//.test(path) ?
+            { category: "net", path: Jsonarch.makeFullPath(contextOrEntry, path), } :
+            { category: "local", path: Jsonarch.makeFullPath(contextOrEntry, path) };
+    };
+    Jsonarch.commandLineArgumentToFileContext = function (argument) {
+        return /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
+            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
+                { category: "local", path: argument };
+    };
+    Jsonarch.getContext = function (contextOrEntry) {
+        return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
+    };
     var bootSettingJson = {
         "$schema": Jsonarch.settingSchema,
         "$arch": "setting"
@@ -80,7 +123,56 @@ var Jsonarch;
             return Jsonarch.isJsonarchBase(template) && type === template.$arch;
         });
     };
-    Jsonarch.loadNetFile = function (entry) { return new Promise(function (resolve, reject) {
+    Jsonarch.getTicks = function () { return new Date().getTime(); };
+    var beginProfileScope = function (context, name) {
+        var _a, _b;
+        var result = {
+            name: name,
+            startTicks: 0,
+            childrenTicks: 0,
+        };
+        if ((_a = context.profile) === null || _a === void 0 ? void 0 : _a.isProfiling) {
+            result.startTicks = Jsonarch.getTicks();
+            (_b = context.profile) === null || _b === void 0 ? void 0 : _b.stack.push(result);
+        }
+        return result;
+    };
+    var endProfileScope = function (context, entry) {
+        var _a, _b;
+        var profileScore = (_a = context.profile) === null || _a === void 0 ? void 0 : _a.score;
+        var entryStack = (_b = context.profile) === null || _b === void 0 ? void 0 : _b.stack;
+        if (0 !== entry.startTicks && profileScore && entryStack) {
+            var wholeTicks = Jsonarch.getTicks() - entry.startTicks;
+            if (undefined === profileScore[entry.name]) {
+                profileScore[entry.name] = 0;
+            }
+            profileScore[entry.name] += wholeTicks - entry.childrenTicks;
+            entryStack.pop();
+            if (0 < entryStack.length) {
+                entryStack[entryStack.length - 1].childrenTicks += wholeTicks;
+            }
+        }
+    };
+    Jsonarch.profile = function (contextOrEntry, name, target) { return __awaiter(_this, void 0, void 0, function () {
+        var context, entry;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    context = Jsonarch.getContext(contextOrEntry);
+                    entry = beginProfileScope(context, name);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, , 3, 4]);
+                    return [4 /*yield*/, target()];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    endProfileScope(context, entry);
+                    return [7 /*endfinally*/];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); };
+    Jsonarch.loadNetFile = function (entry) { return Jsonarch.profile(entry, "loadNetFile", function () { return new Promise(function (resolve, reject) {
         var request = new XMLHttpRequest();
         request.open('GET', entry.file.path, true);
         request.onreadystatechange = function () {
@@ -94,8 +186,8 @@ var Jsonarch;
             }
         };
         request.send(null);
-    }); };
-    Jsonarch.loadLocalFile = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    }); }); };
+    Jsonarch.loadLocalFile = function (entry) { return Jsonarch.profile(entry, "loadLocalFile", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             if (fs) {
                 return [2 /*return*/, fs.readFileSync(entry.file.path, { encoding: "utf-8" })];
@@ -105,13 +197,15 @@ var Jsonarch;
             }
             return [2 /*return*/];
         });
-    }); };
-    Jsonarch.loadFile = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    }); }); };
+    Jsonarch.loadFile = function (entry) { return Jsonarch.profile(entry, "loadFile", function () { return __awaiter(_this, void 0, void 0, function () {
+        var loardHandler;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!entry.handler.load) return [3 /*break*/, 2];
-                    return [4 /*yield*/, entry.handler.load(entry)];
+                    loardHandler = entry.handler.load;
+                    if (!loardHandler) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.profile(entry, "handler.load", function () { return loardHandler(entry); })];
                 case 1: return [2 /*return*/, _a.sent()];
                 case 2:
                     if (!Jsonarch.isNetFileLoadEntry(entry)) return [3 /*break*/, 4];
@@ -124,8 +218,8 @@ var Jsonarch;
                 case 6: throw new Error("never");
             }
         });
-    }); };
-    Jsonarch.load = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    }); }); };
+    Jsonarch.load = function (entry) { return Jsonarch.profile(entry, "load", function () { return __awaiter(_this, void 0, void 0, function () {
         var cache, result;
         var _a, _b;
         return __generator(this, function (_c) {
@@ -153,14 +247,28 @@ var Jsonarch;
                 case 3: throw new Error("never");
             }
         });
-    }); };
-    Jsonarch.isStaticData = Jsonarch.isJsonarch("static");
-    Jsonarch.evaluateStatic = function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-        return [2 /*return*/, Jsonarch.isStaticData(entry.template) ? entry.template.return : undefined];
     }); }); };
+    Jsonarch.isStaticData = Jsonarch.isJsonarch("static");
+    Jsonarch.evaluateStatic = function (entry) { return Jsonarch.profile(entry, "evaluateStatic", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+        return [2 /*return*/, Jsonarch.isStaticData(entry.template) ? entry.template.return : undefined];
+    }); }); }); };
     Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
-    Jsonarch.evaluateIncludeStaticJson = function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-        return [2 /*return*/, Jsonarch.isIncludeStaticJsonData(entry.template) ? entry.template.path : undefined];
+    Jsonarch.evaluateIncludeStaticJson = function (entry) { return Jsonarch.profile(entry, "evaluateIncludeStaticJson", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!Jsonarch.isIncludeStaticJsonData(entry.template)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
+                case 1:
+                    _a = _b.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    _a = undefined;
+                    _b.label = 3;
+                case 3: return [2 /*return*/, _a];
+            }
+        });
     }); }); };
     Jsonarch.evaluate = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var evaluatorList, _a, _b, _i, i, result;
@@ -278,7 +386,7 @@ var Jsonarch;
                             template: entry.setting,
                             setting: { category: "none", data: bootSettingJson, }
                         }];
-                    return [4 /*yield*/, Jsonarch.load({ setting: bootSettingJson, handler: handler, file: entry.setting })];
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: bootSettingJson, handler: handler, file: entry.setting })];
                 case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_h.sent(), null,
                         bootSettingJson]))];
                 case 2:
@@ -291,7 +399,7 @@ var Jsonarch;
                             template: entry.parameter,
                             setting: entry.setting,
                         }];
-                    return [4 /*yield*/, Jsonarch.load({ setting: setting, handler: handler, file: entry.parameter })];
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.parameter })];
                 case 3: return [4 /*yield*/, _d.apply(void 0, _e.concat([_h.sent(), null,
                         setting]))];
                 case 4:
@@ -303,17 +411,12 @@ var Jsonarch;
                 case 6:
                     parameterResult = _c;
                     parameter = (_g = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output) !== null && _g !== void 0 ? _g : null;
-                    return [4 /*yield*/, Jsonarch.load({ setting: setting, handler: handler, file: entry.template })];
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.template })];
                 case 7:
                     template = _h.sent();
                     return [2 /*return*/, Jsonarch.applyRoot(entry, template, parameter, setting)];
             }
         });
     }); };
-    Jsonarch.commandLineArgumentToFileContext = function (argument) {
-        return /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
-            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
-                { category: "local", path: argument };
-    };
 })(Jsonarch || (Jsonarch = {}));
 //# sourceMappingURL=index.js.map

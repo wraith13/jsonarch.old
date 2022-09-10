@@ -23,6 +23,18 @@ module Jsonarch
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
+    interface Profile
+    {
+        isProfiling: boolean;
+        score: { [scope: string]: number };
+        stack: ProfileEntry[];
+    }
+    interface ProfileEntry
+    {
+        name: string;
+        startTicks: number;
+        childrenTicks: number;
+    }
     export interface NoneFileContext<DataType extends Jsonable = Jsonable>
     {
         category: "none";
@@ -43,12 +55,64 @@ module Jsonarch
     export const isNoneFileContext = <DataType extends Jsonable = Jsonable>(file: FileContext): file is NoneFileContext<DataType> => "none" === file.category;
     export const isNetFileContext = (file: FileContext): file is NetFileContext => "net" === file.category;
     export const isLocalFileContext = (file: FileContext): file is LocalFileContext => "local" === file.category;
+    export const makeFullPath = (contextOrEntry: ContextOrEntry, path: string): string =>
+    {
+        const context = getContext(contextOrEntry);
+        if (/^\.\.?\//.test(path))
+        {
+            if (isNoneFileContext(context.template))
+            {
+                throw new Error("makeFullPath({ templte:{ category: none }, },...)");
+            }
+            else
+            {
+                let parent = context.template.path
+                    .replace(/#.*/, "")
+                    .replace(/\/[^/]*$/, "");
+                let current = path.replace(/^\.\//, "");
+                while(/^\.\.\//.test(current))
+                {
+                    parent = parent.replace(/\/[^/]*$/, "");
+                    current = current.replace(/^\.\.\//, "");
+                }
+                return `${parent}/${current}`;
+            }
+        }
+        else
+        if ( ! isConsoleMode && /^\//.test(path))
+        {
+            if (isNoneFileContext(context.template))
+            {
+                throw new Error("makeFullPath({ templte:{ category: none }, },...)");
+            }
+            else
+            {
+                return context.template.path.replace(/^(https?\:\/\/[^/]+\/).*$/, "$1") +path;
+            }
+        }
+        else
+        {
+            return path;
+        }
+    };
+    export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
+        ( ! isConsoleMode) || /^https?\:\/\//.test(path) ?
+            { category: "net", path: makeFullPath(contextOrEntry, path), }:
+            { category: "local", path: makeFullPath(contextOrEntry, path) };
+    export const commandLineArgumentToFileContext = (argument: string): FileContext =>
+        /^\{.*\}&/.test(argument) ? { category: "none", data: jsonParse(argument), }:
+        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
+        { category: "local", path: argument };
     export interface Context
     {
         template: FileContext;
         parameter?: FileContext;
         setting: FileContext<Setting>;
+        profile?: Profile;
     }
+    export type ContextOrEntry = Context | { context: Context, };
+    export const getContext = (contextOrEntry: ContextOrEntry): Context =>
+        "context" in contextOrEntry ? contextOrEntry.context: contextOrEntry;
     export interface Cache extends JsonarchBase
     {
         $arch: "cache";
@@ -76,6 +140,7 @@ module Jsonarch
     };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
+        context: Context;
         setting: Setting;
         handler: Handler;
         file: ContextType;
@@ -115,103 +180,178 @@ module Jsonarch
         callGraph?: any;
         cache?: Cache;
     }
-    export const loadNetFile = (entry: LoadEntry<NetFileContext>): Promise<string> => new Promise<string>
-    (
-        (resolve, reject) =>
+    export const getTicks = () => new Date().getTime();
+    const beginProfileScope = (context: Context, name: string): ProfileEntry =>
+    {
+        const result: ProfileEntry =
         {
-            const request = new XMLHttpRequest();
-            request.open('GET', entry.file.path, true);
-            request.onreadystatechange = function()
+            name,
+            startTicks: 0,
+            childrenTicks: 0,
+        };
+        if (context.profile?.isProfiling)
+        {
+            result.startTicks = getTicks();
+            context.profile?.stack.push(result);
+        }
+        return result;
+    };
+    const endProfileScope = (context: Context, entry: ProfileEntry) =>
+    {
+        const profileScore = context.profile?.score;
+        const entryStack = context.profile?.stack;
+        if (0 !== entry.startTicks && profileScore && entryStack)
+        {
+            const wholeTicks = getTicks() -entry.startTicks;
+            if (undefined === profileScore[entry.name])
             {
-                if (4 === request.readyState)
+                profileScore[entry.name] = 0;
+            }
+            profileScore[entry.name] += wholeTicks -entry.childrenTicks;
+            entryStack.pop();
+            if (0 < entryStack.length)
+            {
+                entryStack[entryStack.length -1].childrenTicks += wholeTicks;
+            }
+        }
+    };
+    export const profile = async <ResultT>(contextOrEntry: Context | { context: Context, }, name: string, target: () => Promise<ResultT>): Promise<ResultT> =>
+    {
+        const context = getContext(contextOrEntry);
+        const entry = beginProfileScope(context, name);
+        try
+        {
+            return await target();
+        }
+        finally
+        {
+            endProfileScope(context, entry);
+        }
+    };
+    export const loadNetFile = (entry: LoadEntry<NetFileContext>) => profile
+    (
+        entry, "loadNetFile", () => new Promise<string>
+        (
+            (resolve, reject) =>
+            {
+                const request = new XMLHttpRequest();
+                request.open('GET', entry.file.path, true);
+                request.onreadystatechange = function()
                 {
-                    if (200 <= request.status && request.status < 300)
+                    if (4 === request.readyState)
                     {
-                        resolve(request.responseText);
+                        if (200 <= request.status && request.status < 300)
+                        {
+                            resolve(request.responseText);
+                        }
+                        else
+                        {
+                            reject();
+                        }
                     }
-                    else
-                    {
-                        reject();
-                    }
-                }
-            };
-            request.send(null);
+                };
+                request.send(null);
+            }
+        )
+    );
+    export const loadLocalFile = (entry: LoadEntry<LocalFileContext>) => profile
+    (
+        entry, "loadLocalFile", async () =>
+        {
+            if (fs)
+            {
+                return fs.readFileSync(entry.file.path, { encoding: "utf-8" });
+            }
+            else
+            {
+                throw new Error("Not support to load local file on web.");
+            }
         }
     );
-    export const loadLocalFile = async (entry: LoadEntry<LocalFileContext>): Promise<string> =>
-    {
-        if (fs)
+    
+    export const loadFile = (entry: LoadEntry<NetFileContext | LocalFileContext>) => profile
+    (
+        entry, "loadFile", async () =>
         {
-            return fs.readFileSync(entry.file.path, { encoding: "utf-8" });
-        }
-        else
-        {
-            throw new Error("Not support to load local file on web.");
-        }
-    };
-    export const loadFile = async (entry: LoadEntry<NetFileContext | LocalFileContext>): Promise<string> =>
-    {
-        if (entry.handler.load)
-        {
-            return await entry.handler.load(entry);
-        }
-        else
-        {
-            if (isNetFileLoadEntry(entry))
+            const loardHandler = entry.handler.load;
+            if (loardHandler)
             {
-                return await loadNetFile(entry);
+                return await profile(entry, "handler.load", () => loardHandler(entry));
             }
-            if (isLocalFileLoadEntry(entry))
+            else
             {
-                return await loadLocalFile(entry);
+                if (isNetFileLoadEntry(entry))
+                {
+                    return await loadNetFile(entry);
+                }
+                if (isLocalFileLoadEntry(entry))
+                {
+                    return await loadLocalFile(entry);
+                }
             }
+            throw new Error("never");
         }
-        throw new Error("never");
-    };
-    export const load = async <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>): Promise<DataType> =>
-    {
-        if (isNoneFileLoadEntry(entry))
+    );
+    export const load = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>): Promise<DataType> => profile
+    (
+        entry, "load", async () =>
         {
-            return entry.file.data;
+            if (isNoneFileLoadEntry(entry))
+            {
+                return entry.file.data;
+            }
+            else
+            if (isNetFileLoadEntry(entry) || isLocalFileLoadEntry(entry))
+            {
+                const cache = entry.setting.cache?.json?.[entry.file.path];
+                if (undefined !== cache)
+                {
+                    return cache as DataType;
+                }
+                const result = await loadFile(entry);
+                if ( ! entry.setting.cache)
+                {
+                    entry.setting.cache = { $arch: "cache", };
+                }
+                if ( ! entry.setting.cache.json)
+                {
+                    entry.setting.cache.json = { };
+                }
+                entry.setting.cache.json[entry.file.path] = result;
+                return result as DataType;
+            }
+            throw new Error("never");
         }
-        else
-        if (isNetFileLoadEntry(entry) || isLocalFileLoadEntry(entry))
-        {
-            const cache = entry.setting.cache?.json?.[entry.file.path];
-            if (undefined !== cache)
-            {
-                return cache as DataType;
-            }
-            const result = await loadFile(entry);
-            if ( ! entry.setting.cache)
-            {
-                entry.setting.cache = { $arch: "cache", };
-            }
-            if ( ! entry.setting.cache.json)
-            {
-                entry.setting.cache.json = { };
-            }
-            entry.setting.cache.json[entry.file.path] = result;
-            return result as DataType;
-        }
-        throw new Error("never");
-    };
+    )
+    ;
     interface StaticTemplate extends JsonarchBase
     {
         $arch: "static";
         return: Jsonable;
     }
     export const isStaticData = isJsonarch<StaticTemplate>("static");
-    export const evaluateStatic = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
-        isStaticData(entry.template) ? entry.template.return: undefined;
+    export const evaluateStatic = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> => profile
+    (
+        entry, "evaluateStatic", async () =>
+        isStaticData(entry.template) ? entry.template.return: undefined
+    );
     interface IncludeStaticJsonTemplate extends JsonarchBase
     {
         $arch: "include-static-json";
         path: string;
     }
     export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
-    export const evaluateIncludeStaticJson = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
-        isIncludeStaticJsonData(entry.template) ? entry.template.path: undefined;
+    export const evaluateIncludeStaticJson = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> => profile
+    (
+        entry, "evaluateIncludeStaticJson", async () =>
+        isIncludeStaticJsonData(entry.template) ?
+            await loadFile
+            ({
+                ...entry,
+                file: pathToFileContext(entry, entry.template.path)
+            }):
+            undefined
+    );
     export const evaluate = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> =>
     {
         const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
@@ -316,7 +456,7 @@ module Jsonarch
                 template: entry.setting,
                 setting: { category: "none", data: bootSettingJson, }
             },
-            await load({ setting: bootSettingJson, handler, file: entry.setting}),
+            await load({ context: entry, setting: bootSettingJson, handler, file: entry.setting}),
             null,
             bootSettingJson
         );
@@ -329,17 +469,13 @@ module Jsonarch
                     template: entry.parameter,
                     setting: entry.setting,
                 },
-                await load({ setting, handler, file: entry.parameter }),
+                await load({ context: entry, setting, handler, file: entry.parameter }),
                 null,
                 setting
             ):
             undefined;
         const parameter = parameterResult?.output ?? null;
-        const template = await load({ setting, handler, file: entry.template});
+        const template = await load({ context: entry, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, setting);
     };
-    export const commandLineArgumentToFileContext = (argument: string): FileContext =>
-        /^\{.*\}&/.test(argument) ? { category: "none", data: jsonParse(argument), }:
-        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
-        { category: "local", path: argument };
 }

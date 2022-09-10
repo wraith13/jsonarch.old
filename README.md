@@ -10,6 +10,15 @@ requires: [Node.js](https://nodejs.org/), [TypeScript Compiler](https://www.npmj
 
 `tsc -P .` or `tsc -P . -w`
 
+## JSON Schemas
+
+- [template.json JSON Schema](./json-schema/template-json-schema.json)
+- [setting.json JSON Schema](./json-schema/setting-json-schema.json)
+
+## Samples
+
+- [Jsonarch Samples](./sample/index.md)
+
 ## References
 
 - [Jsonarch Reference](./document/reference.md)
@@ -18,4 +27,4 @@ requires: [Node.js](https://nodejs.org/), [TypeScript Compiler](https://www.npmj
 
 ## License
 
-[Boost Software License](LICENSE_1_0.txt)
+- [Boost Software License](LICENSE_1_0.txt)
