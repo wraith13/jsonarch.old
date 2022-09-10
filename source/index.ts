@@ -338,4 +338,8 @@ module Jsonarch
         const template = await load({ setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, setting);
     };
+    export const commandLineArgumentToFileContext = (argument: string): FileContext =>
+        /^\{.*\}&/.test(argument) ? { category: "none", data: jsonParse(argument), }:
+        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
+        { category: "local", path: argument };
 }

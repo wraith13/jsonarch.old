@@ -310,5 +310,10 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.commandLineArgumentToFileContext = function (argument) {
+        return /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
+            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
+                { category: "local", path: argument };
+    };
 })(Jsonarch || (Jsonarch = {}));
 //# sourceMappingURL=index.js.map

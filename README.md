@@ -1,6 +1,6 @@
-# jsonarch
+# Jsonarch
 
-jsonarch is JSON to JSON processor.
+Jsonarch is JSON to JSON processor.
 
 🚧 UNDER CONSTRUCTION 🚧
 
@@ -9,6 +9,12 @@ jsonarch is JSON to JSON processor.
 requires: [Node.js](https://nodejs.org/), [TypeScript Compiler](https://www.npmjs.com/package/typescript)
 
 `tsc -P .` or `tsc -P . -w`
+
+## References
+
+- [Jsonarch Reference](./document/reference.md)
+- [Jsonarch Commandline Tool Reference](./document/commandline.md)
+- [Jsonarch Schema Reference](./document/schema.md)
 
 ## License
 
