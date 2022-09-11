@@ -46,6 +46,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Jsonarch = void 0;
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
@@ -429,5 +431,5 @@ var Jsonarch;
             }
         });
     }); };
-})(Jsonarch || (Jsonarch = {}));
+})(Jsonarch = exports.Jsonarch || (exports.Jsonarch = {}));
 //# sourceMappingURL=index.js.map

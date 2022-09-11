@@ -1,4 +1,4 @@
-module Jsonarch
+export module Jsonarch
 {
     const isConsoleMode = typeof window !== 'undefined';
     const fs = isConsoleMode ? require("fs"): undefined;

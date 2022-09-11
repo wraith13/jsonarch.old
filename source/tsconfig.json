@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "strict": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
+        "module": "CommonJS",
         "declaration": false,
         "target": "es5",
         "lib": [
@@ -24,10 +25,11 @@
         "skipDefaultLibCheck": true,
         "skipLibCheck": false,
         "noEmitOnError": true,
-        "outFile": "library/index.js"
+        "outDir": ".."
     },
     "files": [
-        "source/index.ts"
+        "library/index.ts",
+        "command/index.ts"
     ],
     "exclude": [
     ]

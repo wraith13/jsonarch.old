@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "typescript",
-			"tsconfig": "tsconfig.json",
+			"tsconfig": "source/tsconfig.json",
 			"option": "watch",
 			"problemMatcher": [
 				"$tsc-watch"
@@ -12,7 +12,7 @@
 				"kind": "test",
 				"isDefault": true
 			},
-			"label": "tsc: watch - tsconfig.json",
+			"label": "tsc: watch - source/tsconfig.json",
 			"runOptions": {
 				"runOn": "folderOpen"
 			}
