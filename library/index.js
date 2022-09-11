@@ -172,6 +172,17 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.ErrorJson = function (json) {
+        return new Error("json:".concat(Jsonarch.jsonStringify(json)));
+    };
+    Jsonarch.parseErrorJson = function (error) {
+        if (error.message.startsWith("json:")) {
+            return Jsonarch.jsonParse(error.message.replace(/^json\:/, ""));
+        }
+        else {
+            return error.message;
+        }
+    };
     Jsonarch.loadNetFile = function (entry) { return Jsonarch.profile(entry, "loadNetFile", function () { return new Promise(function (resolve, reject) {
         var request = new XMLHttpRequest();
         request.open('GET', entry.file.path, true);

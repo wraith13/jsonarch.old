@@ -180,6 +180,11 @@ module Jsonarch
         callGraph?: any;
         cache?: Cache;
     }
+    interface JsonarchError extends JsonarchBase
+    {
+        $arch: "error";
+        message: string;
+    }
     export const getTicks = () => new Date().getTime();
     const beginProfileScope = (context: Context, name: string): ProfileEntry =>
     {
@@ -226,6 +231,24 @@ module Jsonarch
         finally
         {
             endProfileScope(context, entry);
+        }
+    };
+    export const ErrorJson = function(json: JsonarchError)
+    {
+        return new Error(`json:${jsonStringify(json)}`);
+    } as {
+        new (json: JsonarchError): Error;
+        (json: JsonarchError): Error;
+    };
+    export const parseErrorJson = (error: Error): JsonarchError | string =>
+    {
+        if (error.message.startsWith("json:"))
+        {
+            return jsonParse(error.message.replace(/^json\:/, ""));
+        }
+        else
+        {
+            return error.message;
         }
     };
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) => profile

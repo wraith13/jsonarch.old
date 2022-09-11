@@ -1,6 +1,6 @@
 # Jsonarch Reference
 
-## basic
+## Basic
 
 ## commanline tool
 
@@ -10,4 +10,8 @@ see [Jsonarch Commandline Tool Reference](./commandline.md)
 
 see [setting.json schema reference](./reference.md#setting.json)
 
-## $arch commands
+## $arch Statements
+
+## Functions
+
+## Types
