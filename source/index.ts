@@ -375,100 +375,109 @@ module Jsonarch
             }):
             undefined
     );
-    export const evaluate = async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> =>
-    {
-        const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
-        [
-            evaluateStatic,
-            evaluateIncludeStaticJson,
-        ];
-        for(const i in evaluatorList)
+    export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> => profile
+    (
+        entry, "evaluate", async () =>
         {
-            const result = await evaluatorList[i](entry);
-            if (undefined !== result)
+            const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
+            [
+                evaluateStatic,
+                evaluateIncludeStaticJson,
+            ];
+            for(const i in evaluatorList)
             {
+                const result = await evaluatorList[i](entry);
+                if (undefined !== result)
+                {
+                    return result;
+                }
+            }
+            return entry.template;
+        }
+    );
+    export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
+    (
+        entry, "apply", async () =>
+        {
+            if (null === entry.template || "object" !== typeof entry.template)
+            {
+                return entry.template;
+            }
+            else
+            if (isEvaluateTargetEntry(entry))
+            {
+                return await evaluate(entry);
+            }
+            else
+            if (Array.isArray(entry.template))
+            {
+                return await Promise.all
+                (
+                    entry.template.map
+                    (
+                        i => apply
+                        ({
+                            ...entry,
+                            ...
+                            {
+                                template: i,
+                            }
+                        })
+                    )
+                );
+            }
+            else
+            {
+                const result: JsonableObject = { };
+                const template = entry.template;
+                await Promise.all
+                (
+                    objectKeys(template).map
+                    (
+                        async key => result[key] = await apply
+                        ({
+                            ...entry,
+                            ...
+                            {
+                                template: template[key] as Jsonable,
+                            }
+                        })
+                    )
+                );
                 return result;
             }
         }
-        return entry.template;
-    };
-    export const apply = async (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> =>
-    {
-        if (null === entry.template || "object" !== typeof entry.template)
+    );
+    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting): Promise<Result> => profile
+    (
+        entry, "applyRoot", async () =>
         {
-            return entry.template;
-        }
-        else
-        if (isEvaluateTargetEntry(entry))
-        {
-            return await evaluate(entry);
-        }
-        else
-        if (Array.isArray(entry.template))
-        {
-            return await Promise.all
-            (
-                entry.template.map
-                (
-                    i => apply
-                    ({
-                        ...entry,
-                        ...
-                        {
-                            template: i,
-                        }
-                    })
-                )
-            );
-        }
-        else
-        {
-            const result: JsonableObject = { };
-            const template = entry.template;
-            await Promise.all
-            (
-                objectKeys(template).map
-                (
-                    async key => result[key] = await apply
-                    ({
-                        ...entry,
-                        ...
-                        {
-                            template: template[key] as Jsonable,
-                        }
-                    })
-                )
-            );
+            const handler = entry.handler;
+            const context =
+            {
+                template: entry.template,
+                paremter: entry.parameter,
+                setting: entry.setting,
+            };
+            const rootEvaluateEntry: EvaluateEntry<Jsonable> =
+            {
+                context,
+                template,
+                parameter,
+                setting,
+                handler,
+            };
+            const output = await apply(rootEvaluateEntry);
+            const cache = rootEvaluateEntry.setting.cache;
+            const result: Result =
+            {
+                $arch: "result",
+                output,
+                cache,
+            };
             return result;
         }
-    };
-    export const applyRoot = async (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting): Promise<Result> =>
-    {
-        const handler = entry.handler;
-        const context =
-        {
-            template: entry.template,
-            paremter: entry.parameter,
-            setting: entry.setting,
-        };
-        const rootEvaluateEntry: EvaluateEntry<Jsonable> =
-        {
-            context,
-            template,
-            parameter,
-            setting,
-            handler,
-        };
-        const output = await apply(rootEvaluateEntry);
-        const cache = rootEvaluateEntry.setting.cache;
-        const result: Result =
-        {
-            $arch: "result",
-            output,
-            cache,
-        };
-        return result;
-    };
+    );
     export const compile = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;

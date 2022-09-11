@@ -281,7 +281,7 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.evaluate = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
         var evaluatorList, _a, _b, _i, i, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -311,8 +311,8 @@ var Jsonarch;
                 case 4: return [2 /*return*/, entry.template];
             }
         });
-    }); };
-    Jsonarch.apply = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    }); }); };
+    Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
         var result_1, template_1;
         var _this = this;
         return __generator(this, function (_a) {
@@ -352,8 +352,8 @@ var Jsonarch;
                     return [2 /*return*/, result_1];
             }
         });
-    }); };
-    Jsonarch.applyRoot = function (entry, template, parameter, setting) { return __awaiter(_this, void 0, void 0, function () {
+    }); }); };
+    Jsonarch.applyRoot = function (entry, template, parameter, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
         var handler, context, rootEvaluateEntry, output, cache, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -383,7 +383,7 @@ var Jsonarch;
                     return [2 /*return*/, result];
             }
         });
-    }); };
+    }); }); };
     Jsonarch.compile = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, settingResult, _a, _b, setting, parameterResult, _c, _d, _e, parameter, template;
         var _f, _g;
