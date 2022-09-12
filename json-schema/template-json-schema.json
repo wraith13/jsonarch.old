@@ -29,16 +29,13 @@
             "required": [
                 "$arch"
             ]
-    },
+        },
         "JsonObject": {
             "type": "object",
-            "additionalProperties": false,
-            "not":
-            {
-                "required": [
-                    "$arch"
-                ]
-            }
+            "properties": {
+                "$arch": false
+            },
+            "additionalProperties": true
         },
         "JsonArray": {
             "type": "array",

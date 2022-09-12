@@ -52,8 +52,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonarch = void 0;
 var setting_json_1 = __importDefault(require("./setting.json"));
-var en_json_1 = __importDefault(require("./lang/en.json"));
-var ja_json_1 = __importDefault(require("./lang/ja.json"));
+var en_json_1 = __importDefault(require("./language/en.json"));
+var ja_json_1 = __importDefault(require("./language/ja.json"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
@@ -456,5 +456,17 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.jsonToString = function (json, setting) {
+        if ("number" === typeof setting.indent) {
+            return Jsonarch.jsonStringify(json, undefined, setting.indent);
+        }
+        else if ("tab" === setting.indent) {
+            return Jsonarch.jsonStringify(json, undefined, "\t");
+        }
+        else {
+            // "minify" === setting.indent
+            return Jsonarch.jsonStringify(json);
+        }
+    };
 })(Jsonarch = exports.Jsonarch || (exports.Jsonarch = {}));
 //# sourceMappingURL=index.js.map

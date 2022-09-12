@@ -1,18 +1,18 @@
 import bootSettingJson from "./setting.json";
-import langEn from "./lang/en.json";
-import langJa from "./lang/ja.json";
+import languageEn from "./language/en.json";
+import languageJa from "./language/ja.json";
 export module Jsonarch
 {
     export module locale
     {
         export const master =
         {
-            en: langEn,
-            ja: langJa,
+            en: languageEn,
+            ja: languageJa,
         };
         export type LocaleKeyType =
-            keyof typeof langEn &
-            keyof typeof langJa;
+            keyof typeof languageEn &
+            keyof typeof languageJa;
         export type LocaleType = keyof typeof master;
         export const locales = Object.keys(master) as LocaleType[];
         let masterKey: LocaleType = 0 <= locales.indexOf(navigator.language as LocaleType) ?
@@ -543,5 +543,22 @@ export module Jsonarch
         const parameter = parameterResult?.output ?? null;
         const template = await load({ context: entry, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, setting);
+    };
+    export const jsonToString = (json: Jsonable, setting: Setting) =>
+    {
+        if ("number" === typeof setting.indent)
+        {
+            return jsonStringify(json, undefined, setting.indent);
+        }
+        else
+        if ("tab" === setting.indent)
+        {
+            return jsonStringify(json, undefined, "\t");
+        }
+        else
+        {
+            // "minify" === setting.indent
+            return jsonStringify(json);
+        }
     };
 }
