@@ -46,11 +46,40 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonarch = void 0;
+var setting_json_1 = __importDefault(require("./setting.json"));
+var en_json_1 = __importDefault(require("./lang/en.json"));
+var ja_json_1 = __importDefault(require("./lang/ja.json"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
+    var locale;
+    (function (locale_1) {
+        locale_1.master = {
+            en: en_json_1.default,
+            ja: ja_json_1.default,
+        };
+        locale_1.locales = Object.keys(locale_1.master);
+        var masterKey = 0 <= locale_1.locales.indexOf(navigator.language) ?
+            navigator.language :
+            locale_1.locales[0];
+        locale_1.getLocaleName = function (locale) { return locale_1.master[locale].$name; };
+        locale_1.setLocale = function (locale) {
+            var key = locale !== null && locale !== void 0 ? locale : navigator.language;
+            if (0 <= locale_1.locales.indexOf(key)) {
+                masterKey = key;
+            }
+        };
+        locale_1.getPrimary = function (key) { return locale_1.master[masterKey][key]; };
+        locale_1.getSecondary = function (key) { return locale_1.master[locale_1.locales.filter(function (locale) { return masterKey !== locale; })[0]][key]; };
+        locale_1.string = function (key) { return locale_1.getPrimary(key) || key; };
+        locale_1.map = function (key) { return locale_1.string(key); };
+        locale_1.parallel = function (key) { return "".concat(locale_1.getPrimary(key), " / ").concat(locale_1.getSecondary(key)); };
+    })(locale = Jsonarch.locale || (Jsonarch.locale = {}));
     var isConsoleMode = typeof window !== 'undefined';
     var fs = isConsoleMode ? require("fs") : undefined;
     Jsonarch.templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
@@ -109,10 +138,6 @@ var Jsonarch;
     };
     Jsonarch.getContext = function (contextOrEntry) {
         return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
-    };
-    var bootSettingJson = {
-        "$schema": Jsonarch.settingSchema,
-        "$arch": "setting"
     };
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
@@ -397,11 +422,11 @@ var Jsonarch;
                     _b = [{
                             handler: handler,
                             template: entry.setting,
-                            setting: { category: "none", data: bootSettingJson, }
+                            setting: { category: "none", data: setting_json_1.default, }
                         }];
-                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: bootSettingJson, handler: handler, file: entry.setting })];
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting_json_1.default, handler: handler, file: entry.setting })];
                 case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_h.sent(), null,
-                        bootSettingJson]))];
+                        setting_json_1.default]))];
                 case 2:
                     settingResult = _h.sent();
                     setting = (_f = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _f !== void 0 ? _f : { "$arch": "setting", };

@@ -1,5 +1,39 @@
+import bootSettingJson from "./setting.json";
+import langEn from "./lang/en.json";
+import langJa from "./lang/ja.json";
 export module Jsonarch
 {
+    export module locale
+    {
+        export const master =
+        {
+            en: langEn,
+            ja: langJa,
+        };
+        export type LocaleKeyType =
+            keyof typeof langEn &
+            keyof typeof langJa;
+        export type LocaleType = keyof typeof master;
+        export const locales = Object.keys(master) as LocaleType[];
+        let masterKey: LocaleType = 0 <= locales.indexOf(navigator.language as LocaleType) ?
+            navigator.language as LocaleType:
+            locales[0];
+        export const getLocaleName = (locale: LocaleType) => master[locale].$name;
+        export const setLocale = (locale: LocaleType | null) =>
+        {
+            const key = locale ?? navigator.language as LocaleType;
+            if (0 <= locales.indexOf(key))
+            {
+                masterKey = key;
+            }
+        };
+        export const getPrimary = (key : LocaleKeyType) => master[masterKey][key];
+        export const getSecondary = (key : LocaleKeyType) => master[locales.filter(locale => masterKey !== locale)[0]][key];
+        export const string = (key : string) : string => getPrimary(key as LocaleKeyType) || key;
+        export const map = (key : LocaleKeyType) : string => string(key);
+        export const parallel = (key : LocaleKeyType) : string => `${getPrimary(key)} / ${getSecondary(key)}`;
+    }
+
     const isConsoleMode = typeof window !== 'undefined';
     const fs = isConsoleMode ? require("fs"): undefined;
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
@@ -133,11 +167,11 @@ export module Jsonarch
         callGraph?: boolean;
         cache?: Cache;
     }
-    const bootSettingJson: Setting =
-    {
-        "$schema": settingSchema,
-        "$arch": "setting"
-    };
+    // const bootSettingJson: Setting =
+    // {
+    //     "$schema": settingSchema,
+    //     "$arch": "setting"
+    // };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
@@ -486,11 +520,11 @@ export module Jsonarch
             {
                 handler,
                 template: entry.setting,
-                setting: { category: "none", data: bootSettingJson, }
+                setting: { category: "none", data: bootSettingJson as Setting, }
             },
-            await load({ context: entry, setting: bootSettingJson, handler, file: entry.setting}),
+            await load({ context: entry, setting: bootSettingJson as Setting, handler, file: entry.setting}),
             null,
-            bootSettingJson
+            bootSettingJson as Setting
         );
         const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
         const parameterResult = entry.parameter ?

@@ -25,6 +25,8 @@
         "skipDefaultLibCheck": true,
         "skipLibCheck": false,
         "noEmitOnError": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
         "outDir": ".."
     },
     "files": [
