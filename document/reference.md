@@ -5,9 +5,9 @@ Jsonarch is JSON to JSON processor.
 ## Feature
 
 - Secure meta programmable JSON
-- Profiler ( systerm + code + data )
-- Origin map ( code + data )
-- Influence map ( code + data )
+- Profiler ( systerm, code, data )
+- Origin map ( code, data )
+- Influence map ( code, data )
 - Call graph ( code )
 
 ## Overview
@@ -28,13 +28,13 @@ graph LR;
     J(Jsonarch)-->O[Output JSON];
 ```
 
-|File|I/O|Decription|
-|---|---|---|
-|Template JSON|Input|Code|
-|Parameter JSON|Input|Data ( optional )|
-|Setting JSON|Input|Settings ( optional )|
-|Result JSON|Output|Output JSON with meta data( profile result, origin map, influence map, call graph, etc )|
-|Output JSON|Output|Generated JSON|
+|File|Description|
+|---|---|
+|Template JSON|Code|
+|Parameter JSON|Data ( optional )|
+|Setting JSON|Settings ( optional )|
+|Result JSON|Output JSON with meta data( profile result, origin map, influence map, call graph, etc )|
+|Output JSON|Generated JSON|
 
 ## commanline tool
 

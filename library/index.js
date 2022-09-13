@@ -414,7 +414,7 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.compile = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, settingResult, _a, _b, setting, parameterResult, _c, _d, _e, parameter, template;
         var _f, _g;
         return __generator(this, function (_h) {

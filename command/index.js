@@ -24,10 +24,30 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseCommandLineParameters = void 0;
 var process = __importStar(require("process"));
 var library_1 = require("../library");
 console.log("Hello, Jsonarch!");
 console.log("template.json JSON Schema: ".concat(library_1.Jsonarch.templateSchema));
 console.log("process.argv: ".concat(JSON.stringify(process.argv)));
 console.log("locale:".concat(library_1.Jsonarch.Locale.getSystemLocale()));
+var parseCommandLineParameters = function (argv) {
+    var result = {};
+    var key = "default";
+    result[key] = [];
+    for (var i in argv) {
+        var current = argv[i];
+        if (current.startsWith("-")) {
+            key = current;
+            result[key] = [];
+        }
+        else {
+            result[key].push(current);
+        }
+    }
+    return result;
+};
+exports.parseCommandLineParameters = parseCommandLineParameters;
+var commandLineParameters = (0, exports.parseCommandLineParameters)(process.argv.filter(function (_i, ix) { return 2 <= ix; }));
+console.log("commandLineParameters: ".concat(JSON.stringify(commandLineParameters)));
 //# sourceMappingURL=index.js.map

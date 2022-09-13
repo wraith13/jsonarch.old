@@ -514,7 +514,7 @@ export module Jsonarch
             return result;
         }
     );
-    export const compile = async (entry: CompileEntry):Promise<Result> =>
+    export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
         const settingResult = await applyRoot

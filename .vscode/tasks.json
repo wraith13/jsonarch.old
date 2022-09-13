@@ -9,7 +9,7 @@
 				"$tsc-watch"
 			],
 			"group": {
-				"kind": "test",
+				"kind": "build",
 				"isDefault": true
 			},
 			"label": "tsc: watch - source/tsconfig.json",

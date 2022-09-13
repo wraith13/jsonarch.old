@@ -3,5 +3,5 @@
 ```ts
 import { Jsonarch } from "jsonarch";
 
-Jsonarch.compile();
+Jsonarch.process();
 ```
