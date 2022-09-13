@@ -4,41 +4,43 @@ Jsonarch is JSON to JSON processor.
 
 ## Feature
 
-- secure meta programmable JSON
-- profiler ( systerm + code + data )
-- origin map ( code + data )
-- influence map ( code + data )
-- call graph ( code )
+- Secure meta programmable JSON
+- Profiler ( systerm + code + data )
+- Origin map ( code + data )
+- Influence map ( code + data )
+- Call graph ( code )
 
 ## Overview
 
 ```mermaid
 graph LR;
-    template.json;
-    parameter.json;
-    setting.json;
-    template.json-->Jsonarch;
-    parameter.json-->Jsonarch;
-    setting.json-->Jsonarch;
-    subgraph result.json
-        output.json;
+    T[Template JSON];
+    P[Parameter JSON];
+    S[Setting JSON];
+    T[Template JSON]-->J(Jsonarch);
+    P[Parameter JSON]-->J(Jsonarch);
+    S[Setting JSON]-->J(Jsonarch);
+    subgraph R[Result JSON]
+        M((Meta data));
+        O[Output JSON];
     end
-    Jsonarch-->output.json
+    J(Jsonarch)-->M((Meta data));
+    J(Jsonarch)-->O[Output JSON];
 ```
 
-|Name|I/O|Decription|
+|File|I/O|Decription|
 |---|---|---|
-|template.json|Input|Code|
-|parameter.json|Input|Data ( optional )|
-|setting.json|Input|Settings ( optional )|
-|result.json|Output|output.json with meta data( profile result, origin map, influence map, call graph, etc )|
-|output.json|Output|Generated JSON|
+|Template JSON|Input|Code|
+|Parameter JSON|Input|Data ( optional )|
+|Setting JSON|Input|Settings ( optional )|
+|Result JSON|Output|Output JSON with meta data( profile result, origin map, influence map, call graph, etc )|
+|Output JSON|Output|Generated JSON|
 
 ## commanline tool
 
 see [Jsonarch Commandline Tool Reference](./commandline.md)
 
-## setting.json
+## Setting JSON
 
 see [setting.json schema reference](./reference.md#setting.json)
 

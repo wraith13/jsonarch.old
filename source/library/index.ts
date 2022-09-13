@@ -3,7 +3,9 @@ import languageEn from "./language/en.json";
 import languageJa from "./language/ja.json";
 export module Jsonarch
 {
-    export module locale
+    const isConsoleMode = typeof window === 'undefined';
+    const fs = isConsoleMode ? require("fs"): undefined;
+    export module Locale
     {
         export const master =
         {
@@ -15,13 +17,16 @@ export module Jsonarch
             keyof typeof languageJa;
         export type LocaleType = keyof typeof master;
         export const locales = Object.keys(master) as LocaleType[];
-        let masterKey: LocaleType = 0 <= locales.indexOf(navigator.language as LocaleType) ?
-            navigator.language as LocaleType:
+        export const getSystemLocale = () => isConsoleMode ?
+            Intl.DateTimeFormat().resolvedOptions().locale as LocaleType:
+            navigator.language as LocaleType;
+        let masterKey: LocaleType = 0 <= locales.indexOf(getSystemLocale()) ?
+            getSystemLocale():
             locales[0];
         export const getLocaleName = (locale: LocaleType) => master[locale].$name;
         export const setLocale = (locale: LocaleType | null) =>
         {
-            const key = locale ?? navigator.language as LocaleType;
+            const key = locale ?? getSystemLocale();
             if (0 <= locales.indexOf(key))
             {
                 masterKey = key;
@@ -33,9 +38,6 @@ export module Jsonarch
         export const map = (key : LocaleKeyType) : string => string(key);
         export const parallel = (key : LocaleKeyType) : string => `${getPrimary(key)} / ${getSecondary(key)}`;
     }
-
-    const isConsoleMode = typeof window !== 'undefined';
-    const fs = isConsoleMode ? require("fs"): undefined;
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     export type JsonableValue = null | boolean | number | string;

@@ -57,31 +57,34 @@ var ja_json_1 = __importDefault(require("./language/ja.json"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
-    var locale;
-    (function (locale_1) {
-        locale_1.master = {
+    var isConsoleMode = typeof window === 'undefined';
+    var fs = isConsoleMode ? require("fs") : undefined;
+    var Locale;
+    (function (Locale) {
+        Locale.master = {
             en: en_json_1.default,
             ja: ja_json_1.default,
         };
-        locale_1.locales = Object.keys(locale_1.master);
-        var masterKey = 0 <= locale_1.locales.indexOf(navigator.language) ?
-            navigator.language :
-            locale_1.locales[0];
-        locale_1.getLocaleName = function (locale) { return locale_1.master[locale].$name; };
-        locale_1.setLocale = function (locale) {
-            var key = locale !== null && locale !== void 0 ? locale : navigator.language;
-            if (0 <= locale_1.locales.indexOf(key)) {
+        Locale.locales = Object.keys(Locale.master);
+        Locale.getSystemLocale = function () { return isConsoleMode ?
+            Intl.DateTimeFormat().resolvedOptions().locale :
+            navigator.language; };
+        var masterKey = 0 <= Locale.locales.indexOf(Locale.getSystemLocale()) ?
+            Locale.getSystemLocale() :
+            Locale.locales[0];
+        Locale.getLocaleName = function (locale) { return Locale.master[locale].$name; };
+        Locale.setLocale = function (locale) {
+            var key = locale !== null && locale !== void 0 ? locale : Locale.getSystemLocale();
+            if (0 <= Locale.locales.indexOf(key)) {
                 masterKey = key;
             }
         };
-        locale_1.getPrimary = function (key) { return locale_1.master[masterKey][key]; };
-        locale_1.getSecondary = function (key) { return locale_1.master[locale_1.locales.filter(function (locale) { return masterKey !== locale; })[0]][key]; };
-        locale_1.string = function (key) { return locale_1.getPrimary(key) || key; };
-        locale_1.map = function (key) { return locale_1.string(key); };
-        locale_1.parallel = function (key) { return "".concat(locale_1.getPrimary(key), " / ").concat(locale_1.getSecondary(key)); };
-    })(locale = Jsonarch.locale || (Jsonarch.locale = {}));
-    var isConsoleMode = typeof window !== 'undefined';
-    var fs = isConsoleMode ? require("fs") : undefined;
+        Locale.getPrimary = function (key) { return Locale.master[masterKey][key]; };
+        Locale.getSecondary = function (key) { return Locale.master[Locale.locales.filter(function (locale) { return masterKey !== locale; })[0]][key]; };
+        Locale.string = function (key) { return Locale.getPrimary(key) || key; };
+        Locale.map = function (key) { return Locale.string(key); };
+        Locale.parallel = function (key) { return "".concat(Locale.getPrimary(key), " / ").concat(Locale.getSecondary(key)); };
+    })(Locale = Jsonarch.Locale || (Jsonarch.Locale = {}));
     Jsonarch.templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     Jsonarch.settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
