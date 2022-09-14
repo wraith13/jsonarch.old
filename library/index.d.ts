@@ -1,6 +1,16 @@
 import languageEn from "./language/en.json";
 import languageJa from "./language/ja.json";
 export declare module Jsonarch {
+    export const packageJson: {
+        name: string;
+        version: string;
+        preview: boolean;
+        description: string;
+        author: string;
+        license: string;
+    };
+    export const name: string;
+    export const version: string;
     export module Locale {
         const master: {
             en: {
@@ -71,6 +81,7 @@ export declare module Jsonarch {
     export const isNetFileContext: (file: FileContext) => file is NetFileContext;
     export const isLocalFileContext: (file: FileContext) => file is LocalFileContext;
     export const makeFullPath: (contextOrEntry: ContextOrEntry, path: string) => string;
+    export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType) => NoneFileContext<DataType>;
     export const pathToFileContext: (contextOrEntry: ContextOrEntry, path: string) => NetFileContext | LocalFileContext;
     export const commandLineArgumentToFileContext: (argument: string) => FileContext;
     export interface Context {
@@ -99,6 +110,7 @@ export declare module Jsonarch {
         $arch: "setting";
         language?: string;
         indent?: "minify" | "tab" | number;
+        textOutput?: boolean;
         timeout?: number;
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
@@ -174,6 +186,6 @@ export declare module Jsonarch {
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
-    export const jsonToString: (json: Jsonable, setting: Setting) => string;
+    export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;
     export {};
 }

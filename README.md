@@ -1,6 +1,8 @@
 # Jsonarch
 
-Jsonarch is JSON to JSON processor.
+Jsonarch is JSON to JSON processor for JavaScript/TypeScript, Commandline.
+
+Requires: [Node.js](https://nodejs.org/)
 
 🚧 UNDER CONSTRUCTION 🚧
 
@@ -40,15 +42,29 @@ graph LR;
 
 See [Jsonarch Reference](./document/reference.md) for details.
 
-## How to use Jsonable as Command
+## How to install for command
 
 ```sh
-jsonarch -t template.json -p parameter.json -s setting.json -r result.json -o output.json
+npm install jsonarch -g
+```
+
+## How to use Jsonable as command
+
+You need to run this command with administrator privileges.
+
+```sh
+jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json
 ```
 
 See [Jsonarch Commandline Tool Reference](./document/commandline.md) for details.
 
-## How to use Jsonable as Module
+## How to install as npm package
+
+```sh
+npm install jsonarch --save
+```
+
+## How to use Jsonable as npm package
 
 ```ts
 import { Jsonarch } from "jsonarch";

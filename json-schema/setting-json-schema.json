@@ -40,6 +40,10 @@
                 {
                     "$ref": "#/definitions/Indent"
                 },
+                "textOutput":
+                {
+                    "type": "boolean"
+                },
                 "timeout":
                 {
                     "type": "number",

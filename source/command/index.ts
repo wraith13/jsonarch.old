@@ -2,11 +2,9 @@
 import * as process from "process";
 import * as fs from "fs";
 import { Jsonarch } from "../library";
-console.log("Hello, Jsonarch!");
-console.log(`template.json JSON Schema: ${Jsonarch.templateSchema}`);
-console.log(`process.argv: ${JSON.stringify(process.argv)}`);
-console.log(`locale:${Jsonarch.Locale.getSystemLocale()}`);
-export const parseCommandLineParameters = (argv: string[]) =>
+// console.log(`process.argv: ${JSON.stringify(process.argv)}`);
+// console.log(`locale:${Jsonarch.Locale.getSystemLocale()}`);
+const parseCommandLineParameters = (argv: string[]) =>
 {
     const result: { [key: string]: string[] } = { };
     let key = "default";
@@ -26,8 +24,6 @@ export const parseCommandLineParameters = (argv: string[]) =>
     }
     return result;
 };
-const commandLineParameters = parseCommandLineParameters(process.argv.filter((_i, ix) => 2 <= ix));
-console.log(`commandLineParameters: ${JSON.stringify(commandLineParameters)}`);
 interface RegulatedCommandLineParameters
 {
     template: string;
@@ -36,24 +32,39 @@ interface RegulatedCommandLineParameters
     result?: string;
     output?: string;
 }
-export const regulateCommandLineParameters = (params: { [key: string]: string[] }): RegulatedCommandLineParameters | null =>
+const showUsage = () =>
 {
-    if (0 === Object.keys(params).length)
+    console.log("usage: jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json");
+    console.log("usage: jsonarch -v");
+    console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
+};
+const showVersion = () =>
+{
+    console.log(`${Jsonarch.name} v${Jsonarch.version}`);
+};
+const regulateCommandLineParameters = (params: { [key: string]: string[] }): RegulatedCommandLineParameters | null =>
+{
+    if (1 === Object.keys(params).length && 0 === params["default"].length)
     {
-        console.log("usage: jsonarch -t template.json -p parameter.json -s setting.json -r result.json -o output.json");
-        console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
+        showUsage();
+        return null;
+    }
+    else
+    if (2 === Object.keys(params).length && 0 === params["default"].length && undefined !== params["-v"])
+    {
+        showVersion();
         return null;
     }
     else
     {
         const errors: string[] = [];
-        const knownParameters = [ "default", "-t", "-p", "-s", "-r", "-o" ];
+        const knownParameters = [ "default", "-p", "-s", "-r", "-o" ];
         const unknownParameters = Object.keys(params).filter(i => knownParameters.indexOf(i) < 0);
-        unknownParameters.concat(params["default"]).forEach(i => errors.push(`"${i}" is unknown option`));
+        unknownParameters.forEach(i => errors.push(`"${i}" is unknown option`));
         const requireParameters = [ "-t" ];
         const lackParameters = requireParameters.filter(i => params[i]?.length <= 0);
         lackParameters.forEach(i => errors.push(`"${i}" option is required.`));
-        const singleParameters = [ "-t", "-p", "-s", "-r", "-o" ];
+        const singleParameters = [ "default", "-p", "-s", "-r", "-o" ];
         const pluralParameters = Object.keys(params).filter(i => 0 < singleParameters.indexOf(i)).filter(i => 2 <= params[i].length);
         pluralParameters.forEach(i => errors.push(`Only one "${i}" option can be specified.`));
         if (0 < errors.length)
@@ -65,7 +76,7 @@ export const regulateCommandLineParameters = (params: { [key: string]: string[] 
         {
             const result: RegulatedCommandLineParameters =
             {
-                template: params["-t"][0],
+                template: params["default"][0],
                 parameter: params["-p"]?.[0],
                 setting: params["-s"]?.[0],
                 result: params["-r"]?.[0],
@@ -75,7 +86,7 @@ export const regulateCommandLineParameters = (params: { [key: string]: string[] 
         }
     }
 };
-export const callJsonarch = async (argv: RegulatedCommandLineParameters) =>
+const callJsonarch = async (argv: RegulatedCommandLineParameters) =>
 {
     const result = await Jsonarch.process
     ({
@@ -91,13 +102,19 @@ export const callJsonarch = async (argv: RegulatedCommandLineParameters) =>
     });
     if (argv.result)
     {
-        fs.writeFileSync(argv.result, Jsonarch.jsonToString(result, result.setting));
+        fs.writeFileSync(argv.result, Jsonarch.jsonToString(result, "result", result.setting));
     }
     if (argv.output)
     {
-        fs.writeFileSync(argv.output, Jsonarch.jsonToString(result.output, result.setting));
+        fs.writeFileSync(argv.output, Jsonarch.jsonToString(result.output, "output", result.setting));
+    }
+    if ( ! (argv.result || argv.output))
+    {
+        console.log(Jsonarch.jsonToString(result.output, "output", result.setting));
     }
 };
+const commandLineParameters = parseCommandLineParameters(process.argv.filter((_i, ix) => 2 <= ix));
+// console.log(`commandLineParameters: ${JSON.stringify(commandLineParameters)}`);
 const argv = regulateCommandLineParameters(commandLineParameters);
 if (argv)
 {

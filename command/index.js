@@ -60,14 +60,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.callJsonarch = exports.regulateCommandLineParameters = exports.parseCommandLineParameters = void 0;
 var process = __importStar(require("process"));
 var fs = __importStar(require("fs"));
 var library_1 = require("../library");
-console.log("Hello, Jsonarch!");
-console.log("template.json JSON Schema: ".concat(library_1.Jsonarch.templateSchema));
-console.log("process.argv: ".concat(JSON.stringify(process.argv)));
-console.log("locale:".concat(library_1.Jsonarch.Locale.getSystemLocale()));
+// console.log(`process.argv: ${JSON.stringify(process.argv)}`);
+// console.log(`locale:${Jsonarch.Locale.getSystemLocale()}`);
 var parseCommandLineParameters = function (argv) {
     var result = {};
     var key = "default";
@@ -84,25 +81,33 @@ var parseCommandLineParameters = function (argv) {
     }
     return result;
 };
-exports.parseCommandLineParameters = parseCommandLineParameters;
-var commandLineParameters = (0, exports.parseCommandLineParameters)(process.argv.filter(function (_i, ix) { return 2 <= ix; }));
-console.log("commandLineParameters: ".concat(JSON.stringify(commandLineParameters)));
+var showUsage = function () {
+    console.log("usage: jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json");
+    console.log("usage: jsonarch -v");
+    console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
+};
+var showVersion = function () {
+    console.log("".concat(library_1.Jsonarch.name, " v").concat(library_1.Jsonarch.version));
+};
 var regulateCommandLineParameters = function (params) {
     var _a, _b, _c, _d;
-    if (0 === Object.keys(params).length) {
-        console.log("usage: jsonarch -t template.json -p parameter.json -s setting.json -r result.json -o output.json");
-        console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
+    if (1 === Object.keys(params).length && 0 === params["default"].length) {
+        showUsage();
+        return null;
+    }
+    else if (2 === Object.keys(params).length && 0 === params["default"].length && undefined !== params["-v"]) {
+        showVersion();
         return null;
     }
     else {
         var errors_1 = [];
-        var knownParameters_1 = ["default", "-t", "-p", "-s", "-r", "-o"];
+        var knownParameters_1 = ["default", "-p", "-s", "-r", "-o"];
         var unknownParameters = Object.keys(params).filter(function (i) { return knownParameters_1.indexOf(i) < 0; });
-        unknownParameters.concat(params["default"]).forEach(function (i) { return errors_1.push("\"".concat(i, "\" is unknown option")); });
+        unknownParameters.forEach(function (i) { return errors_1.push("\"".concat(i, "\" is unknown option")); });
         var requireParameters = ["-t"];
         var lackParameters = requireParameters.filter(function (i) { var _a; return ((_a = params[i]) === null || _a === void 0 ? void 0 : _a.length) <= 0; });
         lackParameters.forEach(function (i) { return errors_1.push("\"".concat(i, "\" option is required.")); });
-        var singleParameters_1 = ["-t", "-p", "-s", "-r", "-o"];
+        var singleParameters_1 = ["default", "-p", "-s", "-r", "-o"];
         var pluralParameters = Object.keys(params).filter(function (i) { return 0 < singleParameters_1.indexOf(i); }).filter(function (i) { return 2 <= params[i].length; });
         pluralParameters.forEach(function (i) { return errors_1.push("Only one \"".concat(i, "\" option can be specified.")); });
         if (0 < errors_1.length) {
@@ -111,7 +116,7 @@ var regulateCommandLineParameters = function (params) {
         }
         else {
             var result = {
-                template: params["-t"][0],
+                template: params["default"][0],
                 parameter: (_a = params["-p"]) === null || _a === void 0 ? void 0 : _a[0],
                 setting: (_b = params["-s"]) === null || _b === void 0 ? void 0 : _b[0],
                 result: (_c = params["-r"]) === null || _c === void 0 ? void 0 : _c[0],
@@ -121,7 +126,6 @@ var regulateCommandLineParameters = function (params) {
         }
     }
 };
-exports.regulateCommandLineParameters = regulateCommandLineParameters;
 var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
     var result;
     return __generator(this, function (_a) {
@@ -140,18 +144,22 @@ var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, fu
             case 1:
                 result = _a.sent();
                 if (argv.result) {
-                    fs.writeFileSync(argv.result, library_1.Jsonarch.jsonToString(result, result.setting));
+                    fs.writeFileSync(argv.result, library_1.Jsonarch.jsonToString(result, "result", result.setting));
                 }
                 if (argv.output) {
-                    fs.writeFileSync(argv.output, library_1.Jsonarch.jsonToString(result.output, result.setting));
+                    fs.writeFileSync(argv.output, library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
+                }
+                if (!(argv.result || argv.output)) {
+                    console.log(library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
                 }
                 return [2 /*return*/];
         }
     });
 }); };
-exports.callJsonarch = callJsonarch;
-var argv = (0, exports.regulateCommandLineParameters)(commandLineParameters);
+var commandLineParameters = parseCommandLineParameters(process.argv.filter(function (_i, ix) { return 2 <= ix; }));
+// console.log(`commandLineParameters: ${JSON.stringify(commandLineParameters)}`);
+var argv = regulateCommandLineParameters(commandLineParameters);
 if (argv) {
-    (0, exports.callJsonarch)(argv);
+    callJsonarch(argv);
 }
 //# sourceMappingURL=index.js.map

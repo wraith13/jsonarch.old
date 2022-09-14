@@ -1,10 +1,23 @@
-import bootSettingJson from "./setting.json";
+import bootSettingJson from "./boot.setting.json";
+import settingJson from "./setting.json";
 import languageEn from "./language/en.json";
 import languageJa from "./language/ja.json";
 export module Jsonarch
 {
+    export const packageJson = require("../package.json") as
+    {
+        name: string;
+        version: string;
+        preview: boolean;
+        description: string;
+        author: string;
+        license: string;
+    };
+    export const name = packageJson.name;
+    export const version = packageJson.version;
     const isConsoleMode = typeof window === 'undefined';
     const fs = isConsoleMode ? require("fs"): undefined;
+    const https = isConsoleMode ? require("https"): undefined;
     export module Locale
     {
         export const master =
@@ -144,6 +157,8 @@ export module Jsonarch
             return path;
         }
     };
+    export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType): NoneFileContext<DataType> =>
+        ({ category: "none", data, });
     export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
         ( ! isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
@@ -174,6 +189,7 @@ export module Jsonarch
         $arch: "setting";
         language?: string;
         indent?: "minify" | "tab" | number;
+        textOutput?: boolean;
         timeout?: number;
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
@@ -306,23 +322,48 @@ export module Jsonarch
         (
             (resolve, reject) =>
             {
-                const request = new XMLHttpRequest();
-                request.open('GET', entry.file.path, true);
-                request.onreadystatechange = function()
+                if (isConsoleMode)
                 {
-                    if (4 === request.readyState)
+                    https.get
+                    (
+                        entry.file.path, (response: any) =>
+                        {
+                            //console.log('statusCode:', response.statusCode);
+                            //console.log('headers:', response.headers);
+                            if (200 <= response.statusCode && response.statusCode < 300)
+                            {
+                                let buffer = "";
+                                response.on("data", (chunk: string) => buffer += chunk);
+                                response.on("end", () => resolve(buffer));
+                            }
+                            else
+                            {
+                                reject();
+                            }
+                        }
+                    )
+                    .on("error", () => reject());
+                }
+                else
+                {
+                    const request = new XMLHttpRequest();
+                    request.open('GET', entry.file.path, true);
+                    request.onreadystatechange = function()
                     {
-                        if (200 <= request.status && request.status < 300)
+                        if (4 === request.readyState)
                         {
-                            resolve(request.responseText);
+                            if (200 <= request.status && request.status < 300)
+                            {
+                                resolve(request.responseText);
+                            }
+                            else
+                            {
+                                reject();
+                            }
                         }
-                        else
-                        {
-                            reject();
-                        }
-                    }
-                };
-                request.send(null);
+                    };
+                    request.send(null);
+                }
             }
         )
     );
@@ -531,19 +572,20 @@ export module Jsonarch
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
-        const settingResult = entry.setting ?
-            await applyRoot
-            (
-                {
-                    handler,
-                    template: entry.setting,
-                    setting: { category: "none", data: bootSettingJson as Setting, }
-                },
-                await load({ context: entry, setting: bootSettingJson as Setting, handler, file: entry.setting}),
-                null,
-                bootSettingJson as Setting
-            ):
-            bootSettingJson as Setting;
+        const settingFileContext =
+            entry.setting ??
+            jsonToFileContext(settingJson as Setting);
+        const settingResult = await applyRoot
+        (
+            {
+                handler,
+                template: settingFileContext,
+                setting: jsonToFileContext(bootSettingJson as Setting),
+            },
+            await load({ context: entry, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
+            null,
+            bootSettingJson as Setting
+        );
         const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
         const parameterResult = entry.parameter ?
             await applyRoot
@@ -551,7 +593,7 @@ export module Jsonarch
                 {
                     handler,
                     template: entry.parameter,
-                    setting: entry.setting,
+                    setting: settingFileContext,
                 },
                 await load({ context: entry, setting, handler, file: entry.parameter }),
                 null,
@@ -562,8 +604,13 @@ export module Jsonarch
         const template = await load({ context: entry, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, setting);
     };
-    export const jsonToString = (json: Jsonable, setting: Setting) =>
+    export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
     {
+        if ("output" === asType && setting.textOutput && "string" === typeof json)
+        {
+            return json;
+        }
+        else
         if ("number" === typeof setting.indent)
         {
             return jsonStringify(json, undefined, setting.indent);

@@ -51,14 +51,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonarch = void 0;
+var boot_setting_json_1 = __importDefault(require("./boot.setting.json"));
 var setting_json_1 = __importDefault(require("./setting.json"));
 var en_json_1 = __importDefault(require("./language/en.json"));
 var ja_json_1 = __importDefault(require("./language/ja.json"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
+    Jsonarch.packageJson = require("../package.json");
+    Jsonarch.name = Jsonarch.packageJson.name;
+    Jsonarch.version = Jsonarch.packageJson.version;
     var isConsoleMode = typeof window === 'undefined';
     var fs = isConsoleMode ? require("fs") : undefined;
+    var https = isConsoleMode ? require("https") : undefined;
     var Locale;
     (function (Locale) {
         Locale.master = {
@@ -138,6 +143,9 @@ var Jsonarch;
         else {
             return path;
         }
+    };
+    Jsonarch.jsonToFileContext = function (data) {
+        return ({ category: "none", data: data, });
     };
     Jsonarch.pathToFileContext = function (contextOrEntry, path) {
         return (!isConsoleMode) || /^https?\:\/\//.test(path) ?
@@ -224,19 +232,36 @@ var Jsonarch;
         }
     };
     Jsonarch.loadNetFile = function (entry) { return Jsonarch.profile(entry, "loadNetFile", function () { return new Promise(function (resolve, reject) {
-        var request = new XMLHttpRequest();
-        request.open('GET', entry.file.path, true);
-        request.onreadystatechange = function () {
-            if (4 === request.readyState) {
-                if (200 <= request.status && request.status < 300) {
-                    resolve(request.responseText);
+        if (isConsoleMode) {
+            https.get(entry.file.path, function (response) {
+                //console.log('statusCode:', response.statusCode);
+                //console.log('headers:', response.headers);
+                if (200 <= response.statusCode && response.statusCode < 300) {
+                    var buffer_1 = "";
+                    response.on("data", function (chunk) { return buffer_1 += chunk; });
+                    response.on("end", function () { return resolve(buffer_1); });
                 }
                 else {
                     reject();
                 }
-            }
-        };
-        request.send(null);
+            })
+                .on("error", function () { return reject(); });
+        }
+        else {
+            var request_1 = new XMLHttpRequest();
+            request_1.open('GET', entry.file.path, true);
+            request_1.onreadystatechange = function () {
+                if (4 === request_1.readyState) {
+                    if (200 <= request_1.status && request_1.status < 300) {
+                        resolve(request_1.responseText);
+                    }
+                    else {
+                        reject();
+                    }
+                }
+            };
+            request_1.send(null);
+        }
     }); }); };
     Jsonarch.loadLocalFile = function (entry) { return Jsonarch.profile(entry, "loadLocalFile", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -426,59 +451,56 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, settingResult, _a, _b, _c, setting, parameterResult, _d, _e, _f, parameter, template;
-        var _g, _h;
+        var handler, settingFileContext, settingResult, _a, _b, setting, parameterResult, _c, _d, _e, parameter, template;
+        var _f, _g, _h;
         return __generator(this, function (_j) {
             switch (_j.label) {
                 case 0:
                     handler = entry.handler;
-                    if (!entry.setting) return [3 /*break*/, 3];
-                    _b = Jsonarch.applyRoot;
-                    _c = [{
+                    settingFileContext = (_f = entry.setting) !== null && _f !== void 0 ? _f : Jsonarch.jsonToFileContext(setting_json_1.default);
+                    _a = Jsonarch.applyRoot;
+                    _b = [{
                             handler: handler,
-                            template: entry.setting,
-                            setting: { category: "none", data: setting_json_1.default, }
+                            template: settingFileContext,
+                            setting: Jsonarch.jsonToFileContext(boot_setting_json_1.default),
                         }];
-                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting_json_1.default, handler: handler, file: entry.setting })];
-                case 1: return [4 /*yield*/, _b.apply(void 0, _c.concat([_j.sent(), null,
-                        setting_json_1.default]))];
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
+                case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_j.sent(), null,
+                        boot_setting_json_1.default]))];
                 case 2:
-                    _a = _j.sent();
-                    return [3 /*break*/, 4];
-                case 3:
-                    _a = setting_json_1.default;
-                    _j.label = 4;
-                case 4:
-                    settingResult = _a;
+                    settingResult = _j.sent();
                     setting = (_g = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _g !== void 0 ? _g : { "$arch": "setting", };
-                    if (!entry.parameter) return [3 /*break*/, 7];
-                    _e = Jsonarch.applyRoot;
-                    _f = [{
+                    if (!entry.parameter) return [3 /*break*/, 5];
+                    _d = Jsonarch.applyRoot;
+                    _e = [{
                             handler: handler,
                             template: entry.parameter,
-                            setting: entry.setting,
+                            setting: settingFileContext,
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.parameter })];
-                case 5: return [4 /*yield*/, _e.apply(void 0, _f.concat([_j.sent(), null,
+                case 3: return [4 /*yield*/, _d.apply(void 0, _e.concat([_j.sent(), null,
                         setting]))];
+                case 4:
+                    _c = _j.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    _c = undefined;
+                    _j.label = 6;
                 case 6:
-                    _d = _j.sent();
-                    return [3 /*break*/, 8];
-                case 7:
-                    _d = undefined;
-                    _j.label = 8;
-                case 8:
-                    parameterResult = _d;
+                    parameterResult = _c;
                     parameter = (_h = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output) !== null && _h !== void 0 ? _h : null;
                     return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.template })];
-                case 9:
+                case 7:
                     template = _j.sent();
                     return [2 /*return*/, Jsonarch.applyRoot(entry, template, parameter, setting)];
             }
         });
     }); };
-    Jsonarch.jsonToString = function (json, setting) {
-        if ("number" === typeof setting.indent) {
+    Jsonarch.jsonToString = function (json, asType, setting) {
+        if ("output" === asType && setting.textOutput && "string" === typeof json) {
+            return json;
+        }
+        else if ("number" === typeof setting.indent) {
             return Jsonarch.jsonStringify(json, undefined, setting.indent);
         }
         else if ("tab" === setting.indent) {

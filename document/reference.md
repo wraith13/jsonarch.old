@@ -1,6 +1,6 @@
 # Jsonarch Reference
 
-Jsonarch is JSON to JSON processor.
+Jsonarch is JSON to JSON processor for JavaScript/TypeScript, Commandline( requires [Node.js](https://nodejs.org/) ).
 
 ## Feature
 
@@ -47,8 +47,8 @@ graph LR;
 ### File Load Sequence
 
 1. Resolve path.
-2. Load from cache if any.
-3. Load by handler if any. ( module only. Handlers cannot be specified on the command line. )
+2. Load from cache, if any.
+3. Load by handler, if any. ( module only. Handlers cannot be specified on the command line. )
 4. Load by `XMLHttpRequest` or `fetch` or `fs`.
 
 ## commandline tool
