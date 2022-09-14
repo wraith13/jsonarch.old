@@ -69,9 +69,19 @@ var Jsonarch;
         Locale.getSystemLocale = function () { return isConsoleMode ?
             Intl.DateTimeFormat().resolvedOptions().locale :
             navigator.language; };
-        var masterKey = 0 <= Locale.locales.indexOf(Locale.getSystemLocale()) ?
-            Locale.getSystemLocale() :
-            Locale.locales[0];
+        Locale.getShortLocale = function (locale) { return locale.replace(/-.*$/, ""); };
+        Locale.getMatchLocaleKey = function (locale) {
+            var index = Locale.locales.indexOf(locale);
+            if (0 < index) {
+                return Locale.locales[index];
+            }
+            var shortIndex = Locale.locales.indexOf(Locale.getShortLocale(locale));
+            if (0 < shortIndex) {
+                return Locale.locales[shortIndex];
+            }
+            return Locale.locales[0];
+        };
+        var masterKey = Locale.getMatchLocaleKey(Locale.getSystemLocale());
         Locale.getLocaleName = function (locale) { return Locale.master[locale].$name; };
         Locale.setLocale = function (locale) {
             var key = locale !== null && locale !== void 0 ? locale : Locale.getSystemLocale();
@@ -409,52 +419,60 @@ var Jsonarch;
                         $arch: "result",
                         output: output,
                         cache: cache,
+                        setting: setting,
                     };
                     return [2 /*return*/, result];
             }
         });
     }); }); };
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, settingResult, _a, _b, setting, parameterResult, _c, _d, _e, parameter, template;
-        var _f, _g;
-        return __generator(this, function (_h) {
-            switch (_h.label) {
+        var handler, settingResult, _a, _b, _c, setting, parameterResult, _d, _e, _f, parameter, template;
+        var _g, _h;
+        return __generator(this, function (_j) {
+            switch (_j.label) {
                 case 0:
                     handler = entry.handler;
-                    _a = Jsonarch.applyRoot;
-                    _b = [{
+                    if (!entry.setting) return [3 /*break*/, 3];
+                    _b = Jsonarch.applyRoot;
+                    _c = [{
                             handler: handler,
                             template: entry.setting,
                             setting: { category: "none", data: setting_json_1.default, }
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting_json_1.default, handler: handler, file: entry.setting })];
-                case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_h.sent(), null,
+                case 1: return [4 /*yield*/, _b.apply(void 0, _c.concat([_j.sent(), null,
                         setting_json_1.default]))];
                 case 2:
-                    settingResult = _h.sent();
-                    setting = (_f = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _f !== void 0 ? _f : { "$arch": "setting", };
-                    if (!entry.parameter) return [3 /*break*/, 5];
-                    _d = Jsonarch.applyRoot;
-                    _e = [{
+                    _a = _j.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    _a = setting_json_1.default;
+                    _j.label = 4;
+                case 4:
+                    settingResult = _a;
+                    setting = (_g = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _g !== void 0 ? _g : { "$arch": "setting", };
+                    if (!entry.parameter) return [3 /*break*/, 7];
+                    _e = Jsonarch.applyRoot;
+                    _f = [{
                             handler: handler,
                             template: entry.parameter,
                             setting: entry.setting,
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.parameter })];
-                case 3: return [4 /*yield*/, _d.apply(void 0, _e.concat([_h.sent(), null,
+                case 5: return [4 /*yield*/, _e.apply(void 0, _f.concat([_j.sent(), null,
                         setting]))];
-                case 4:
-                    _c = _h.sent();
-                    return [3 /*break*/, 6];
-                case 5:
-                    _c = undefined;
-                    _h.label = 6;
                 case 6:
-                    parameterResult = _c;
-                    parameter = (_g = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output) !== null && _g !== void 0 ? _g : null;
-                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.template })];
+                    _d = _j.sent();
+                    return [3 /*break*/, 8];
                 case 7:
-                    template = _h.sent();
+                    _d = undefined;
+                    _j.label = 8;
+                case 8:
+                    parameterResult = _d;
+                    parameter = (_h = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output) !== null && _h !== void 0 ? _h : null;
+                    return [4 /*yield*/, Jsonarch.load({ context: entry, setting: setting, handler: handler, file: entry.template })];
+                case 9:
+                    template = _j.sent();
                     return [2 /*return*/, Jsonarch.applyRoot(entry, template, parameter, setting)];
             }
         });

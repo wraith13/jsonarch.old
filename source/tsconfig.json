@@ -3,7 +3,7 @@
         "strict": true,
         "moduleResolution": "Node",
         "module": "CommonJS",
-        "declaration": false,
+        "declaration": true,
         "target": "es5",
         "lib": [
             "es6",

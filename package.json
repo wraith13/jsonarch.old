@@ -4,7 +4,16 @@
     "preview": true,
     "description": "Jsonarch is JSON to JSON Processor.",
     "main": "libarary/index.js",
+    "types": "library/index.d.ts",
     "bin": "command/index.js",
+    "bugs": {
+        "url": "https://github.com/wraith13/jsonarch/issues"
+    },
+    "homepage": "https://github.com/wraith13/jsonarch",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wraith13/jsonarch.git"
+    },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },

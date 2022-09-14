@@ -20,9 +20,22 @@ export module Jsonarch
         export const getSystemLocale = () => isConsoleMode ?
             Intl.DateTimeFormat().resolvedOptions().locale as LocaleType:
             navigator.language as LocaleType;
-        let masterKey: LocaleType = 0 <= locales.indexOf(getSystemLocale()) ?
-            getSystemLocale():
-            locales[0];
+        export const getShortLocale = (locale: string) => locale.replace(/-.*$/, "");
+        export const getMatchLocaleKey = (locale: string) =>
+        {
+            const index = locales.indexOf(locale as LocaleType);
+            if (0 < index)
+            {
+                return locales[index];
+            }
+            const shortIndex = locales.indexOf(getShortLocale(locale) as LocaleType);
+            if (0 < shortIndex)
+            {
+                return locales[shortIndex];
+            }
+            return locales[0];
+        };
+        let masterKey: LocaleType = getMatchLocaleKey(getSystemLocale());
         export const getLocaleName = (locale: LocaleType) => master[locale].$name;
         export const setLocale = (locale: LocaleType | null) =>
         {
@@ -143,7 +156,7 @@ export module Jsonarch
     {
         template: FileContext;
         parameter?: FileContext;
-        setting: FileContext<Setting>;
+        setting?: FileContext<Setting>;
         profile?: Profile;
     }
     export type ContextOrEntry = Context | { context: Context, };
@@ -156,7 +169,7 @@ export module Jsonarch
         values?: { [key: string]: Jsonable; };
         templates?: { [key: string]: Jsonable; };
     }
-    interface Setting extends JsonarchBase
+    export interface Setting extends JsonarchBase
     {
         $arch: "setting";
         language?: string;
@@ -214,7 +227,7 @@ export module Jsonarch
         originMap?: any;
         influenceMap?: any;
         callGraph?: any;
-        cache?: Cache;
+        setting: Setting;
     }
     interface JsonarchError extends JsonarchBase
     {
@@ -510,6 +523,7 @@ export module Jsonarch
                 $arch: "result",
                 output,
                 cache,
+                setting,
             };
             return result;
         }
@@ -517,17 +531,19 @@ export module Jsonarch
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
-        const settingResult = await applyRoot
-        (
-            {
-                handler,
-                template: entry.setting,
-                setting: { category: "none", data: bootSettingJson as Setting, }
-            },
-            await load({ context: entry, setting: bootSettingJson as Setting, handler, file: entry.setting}),
-            null,
-            bootSettingJson as Setting
-        );
+        const settingResult = entry.setting ?
+            await applyRoot
+            (
+                {
+                    handler,
+                    template: entry.setting,
+                    setting: { category: "none", data: bootSettingJson as Setting, }
+                },
+                await load({ context: entry, setting: bootSettingJson as Setting, handler, file: entry.setting}),
+                null,
+                bootSettingJson as Setting
+            ):
+            bootSettingJson as Setting;
         const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
         const parameterResult = entry.parameter ?
             await applyRoot
