@@ -232,7 +232,7 @@ export module Jsonarch
     export const isSystemFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<SystemFileContext> => isSystemFileContext(entry.file);
     export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
     export const isNetFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NetFileContext> => isNetFileContext(entry.file);
-    export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isNetFileContext(entry.file);
+    export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isLocalFileContext(entry.file);
     interface Handler
     {
         load?: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
@@ -460,7 +460,7 @@ export module Jsonarch
                 {
                     return cache as DataType;
                 }
-                const result = await loadFile(entry);
+                const result = jsonParse(await loadFile(entry));
                 if ( ! entry.setting.cache)
                 {
                     entry.setting.cache = { $arch: "cache", };

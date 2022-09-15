@@ -1,6 +1,6 @@
 # Jsonarch Schema Reference
 
-## template.json
+## Template JSON
 
 ```json
 {
@@ -12,9 +12,10 @@
 
 ## parameter.json
 
+## Cache JSON
 
 
-## setting.json
+### Setting JSON
 
 ### "$schema"
 
@@ -32,7 +33,7 @@
     ...
 }
 
-## result.json
+## Result JSON
 
 ### "$arch": "result"
 

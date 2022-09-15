@@ -16,6 +16,7 @@ Jsonarch is JSON to JSON processor for JavaScript/TypeScript, Commandline( requi
 graph LR;
     T[Template JSON];
     P[Parameter JSON];
+    C[Cache JSON];
     S[Setting JSON];
     T[Template JSON]-->J(Jsonarch);
     P[Parameter JSON]-->J(Jsonarch);
@@ -30,11 +31,26 @@ graph LR;
 
 |File|Description|
 |---|---|
-|Template JSON|Code|
-|Parameter JSON|Data ( optional )|
-|Setting JSON|Settings ( optional )|
-|Result JSON|Output JSON with meta data( profile result, origin map, influence map, call graph, etc )|
-|Output JSON|Generated JSON|
+|[Template JSON](#template-json)|Code.|
+|[Parameter JSON](#parameter-json)|Data ( optional ).|
+|[Cache JSON](#cache-json)|Cache ( optional ).|
+|[Setting JSON](#setting-json)|Settings ( optional ).|
+|[Result JSON](#result-json)|Output JSON with meta data( profile result, origin map, influence map, call graph, etc ).|
+|[Output JSON](#output-json)|Generated JSON.|
+
+## Template JSON
+
+## Parameter JSON
+
+## Cache JSON
+
+## Setting JSON
+
+see [Setting JSON schema reference](./schema.md#setting-json)
+
+## Result JSON
+
+## Output JSON
 
 ## Sequence
 
@@ -54,10 +70,6 @@ graph LR;
 ## commandline tool
 
 see [Jsonarch Commandline Tool Reference](./commandline.md)
-
-## Setting JSON
-
-see [setting.json schema reference](./reference.md#setting.json)
 
 ## $arch Statements
 

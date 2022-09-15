@@ -172,7 +172,7 @@ var Jsonarch;
     Jsonarch.isSystemFileLoadEntry = function (entry) { return Jsonarch.isSystemFileContext(entry.file); };
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
-    Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
+    Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isLocalFileContext(entry.file); };
     Jsonarch.isEvaluateTargetEntry = function (entry) {
         return Jsonarch.isJsonarchBase(entry.template);
     };
@@ -317,26 +317,27 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.load = function (entry) { return Jsonarch.profile(entry, "load", function () { return __awaiter(_this, void 0, void 0, function () {
-        var cache, result;
-        var _a, _b;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var cache, result, _a;
+        var _b, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     if (!Jsonarch.isSystemFileLoadEntry(entry)) return [3 /*break*/, 2];
                     return [4 /*yield*/, Jsonarch.loadSystemJson(entry)];
-                case 1: return [2 /*return*/, _c.sent()];
+                case 1: return [2 /*return*/, _d.sent()];
                 case 2:
                     if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 3];
                     return [2 /*return*/, entry.file.data];
                 case 3:
                     if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 5];
-                    cache = (_b = (_a = entry.setting.cache) === null || _a === void 0 ? void 0 : _a.json) === null || _b === void 0 ? void 0 : _b[entry.file.path];
+                    cache = (_c = (_b = entry.setting.cache) === null || _b === void 0 ? void 0 : _b.json) === null || _c === void 0 ? void 0 : _c[entry.file.path];
                     if (undefined !== cache) {
                         return [2 /*return*/, cache];
                     }
+                    _a = Jsonarch.jsonParse;
                     return [4 /*yield*/, Jsonarch.loadFile(entry)];
                 case 4:
-                    result = _c.sent();
+                    result = _a.apply(void 0, [_d.sent()]);
                     if (!entry.setting.cache) {
                         entry.setting.cache = { $arch: "cache", };
                     }

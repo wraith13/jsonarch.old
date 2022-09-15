@@ -1,4 +1,5 @@
 {
     "$schema": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#",
-    "$arch": "setting"
+    "$arch": "setting",
+    "indent": 4
 }

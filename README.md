@@ -20,6 +20,7 @@ Requires: [Node.js](https://nodejs.org/)
 graph LR;
     T[Template JSON];
     P[Parameter JSON];
+    C[Cache JSON];
     S[Setting JSON];
     T[Template JSON]-->J(Jsonarch);
     P[Parameter JSON]-->J(Jsonarch);
@@ -34,11 +35,12 @@ graph LR;
 
 |File|Description|
 |---|---|
-|Template JSON|Code|
-|Parameter JSON|Data ( optional )|
-|Setting JSON|Settings ( optional )|
-|Result JSON|Output JSON with meta data( profile result, origin map, influence map, call graph, etc )|
-|Output JSON|Generated JSON|
+|[Template JSON](./document/reference.md#template-json)|Code.|
+|[Parameter JSON](./document/reference.md#parameter-json)|Data ( optional ).|
+|[Cache JSON](./document/reference.md#cache-json)|Cache ( optional ).|
+|[Setting JSON](./document/reference.md#setting-json)|Settings ( optional ).|
+|[Result JSON](./document/reference.md#result-json)|Output JSON with meta data( profile result, origin map, influence map, call graph, etc ).|
+|[Output JSON](./document/reference.md#output-json)|Generated JSON.|
 
 See [Jsonarch Reference](./document/reference.md) for details.
 
@@ -53,7 +55,7 @@ npm install jsonarch -g
 You need to run this command with administrator privileges.
 
 ```sh
-jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json
+jsonarch template.json -p parameter.json -c cache.json -s setting.json -r result.json -o output.json
 ```
 
 See [Jsonarch Commandline Tool Reference](./document/commandline.md) for details.
@@ -82,8 +84,8 @@ Requires: [Node.js](https://nodejs.org/), [TypeScript Compiler](https://www.npmj
 
 ## JSON Schemas
 
-- [template.json JSON Schema](./json-schema/template-json-schema.json)
-- [setting.json JSON Schema](./json-schema/setting-json-schema.json)
+- [Template JSON Schema](./json-schema/template-json-schema.json)
+- [Setting JSON Schema](./json-schema/setting-json-schema.json)
 
 ## Samples
 

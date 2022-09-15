@@ -13,16 +13,17 @@ npm install jsonarch -g
 ## Process
 
 ```sh
-jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json
+jsonarch template.json -p parameter.json -c cache.json -s setting.json -r result.json -o output.json
 ```
 
 |Option|File Type|Description|
 |---|---|---|
-|default|Net, Local, JSON, System|Template JSON ( required ).|
-|`-p`|Net, Local, JSON, System|Parameter JSON ( optional ).|
-|`-s`|Net, Local, JSON, System|Setting JSON ( optional ).|
-|`-r`|Local|Result JSON ( optional ). Overwrite existing files without confirmation.|
-|`-o`|Local|Output JSON ( optional ). Overwrite existing files without confirmation.|
+|default|Net, Local, JSON, System|[Template JSON](./reference.md#template-json) ( required ).|
+|`-p`|Net, Local, JSON, System|[Parameter JSON](./reference.md#parameter-json) ( optional ).|
+|`-c`|Local|[Cache JSON](./reference.md#cache-json) ( optional ).|
+|`-s`|Net, Local, JSON, System|[Setting JSON](./reference.md#setting-json) ( optional ).|
+|`-r`|Local|[Result JSON](./reference.md#result-json) ( optional ). Overwrite existing files without confirmation.|
+|`-o`|Local|[Output JSON](./reference.md#output-json) ( optional ). Overwrite existing files without confirmation.|
 
 If both `-r` and `-o` are not specified, Result JSON will be outputed to stdout.
 

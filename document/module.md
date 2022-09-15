@@ -2,13 +2,13 @@
 
 Requires: [Node.js](https://nodejs.org/)
 
-## How to use Jsonarch as command
+## How to install as npm package
 
 ```sh
-jsonarch -t template.json -p parameter.json -s setting.json -r result.json -o output.json
+npm install jsonarch --save
 ```
 
-## xxxx
+## How to use Jsonarch as npm package
 
 ```ts
 import { Jsonarch } from "jsonarch";
