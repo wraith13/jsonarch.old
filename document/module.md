@@ -2,7 +2,7 @@
 
 Requires: [Node.js](https://nodejs.org/)
 
-## How to use Jsonable as command
+## How to use Jsonarch as command
 
 ```sh
 jsonarch -t template.json -p parameter.json -s setting.json -r result.json -o output.json

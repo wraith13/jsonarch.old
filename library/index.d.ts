@@ -63,6 +63,11 @@ export declare module Jsonarch {
         startTicks: number;
         childrenTicks: number;
     }
+    export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export interface SystemFileContext {
+        category: "system";
+        id: SystemFileType;
+    }
     export interface NoneFileContext<DataType extends Jsonable = Jsonable> {
         category: "none";
         data: DataType;
@@ -76,11 +81,13 @@ export declare module Jsonarch {
         path: string;
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
-    export type FileContext<DataType extends Jsonable = Jsonable> = NoneFileContext<DataType> | NetFileContext | LocalFileContext;
+    export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
+    export const isSystemFileContext: (file: FileContext) => file is SystemFileContext;
     export const isNoneFileContext: <DataType extends Jsonable = Jsonable>(file: FileContext) => file is NoneFileContext<DataType>;
     export const isNetFileContext: (file: FileContext) => file is NetFileContext;
     export const isLocalFileContext: (file: FileContext) => file is LocalFileContext;
     export const makeFullPath: (contextOrEntry: ContextOrEntry, path: string) => string;
+    export const getSystemFileContext: (id: SystemFileType) => SystemFileContext;
     export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType) => NoneFileContext<DataType>;
     export const pathToFileContext: (contextOrEntry: ContextOrEntry, path: string) => NetFileContext | LocalFileContext;
     export const commandLineArgumentToFileContext: (argument: string) => FileContext;
@@ -125,6 +132,7 @@ export declare module Jsonarch {
         handler: Handler;
         file: ContextType;
     }
+    export const isSystemFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<SystemFileContext>;
     export const isNoneFileLoadEntry: <DataType extends Jsonable = Jsonable>(entry: LoadEntry) => entry is LoadEntry<NoneFileContext<DataType>>;
     export const isNetFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<NetFileContext>;
     export const isLocalFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<LocalFileContext>;
@@ -166,6 +174,7 @@ export declare module Jsonarch {
         new (json: JsonarchError): Error;
     };
     export const parseErrorJson: (error: Error) => JsonarchError | string;
+    export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<any>;
     export const loadFile: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<any>;

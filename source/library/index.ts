@@ -97,6 +97,12 @@ export module Jsonarch
         startTicks: number;
         childrenTicks: number;
     }
+    export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export interface SystemFileContext
+    {
+        category: "system";
+        id: SystemFileType;
+    }
     export interface NoneFileContext<DataType extends Jsonable = Jsonable>
     {
         category: "none";
@@ -113,7 +119,8 @@ export module Jsonarch
         path: string;
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
-    export type FileContext<DataType extends Jsonable = Jsonable> = NoneFileContext<DataType> | NetFileContext | LocalFileContext;
+    export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
+    export const isSystemFileContext = (file: FileContext): file is SystemFileContext => "system" === file.category;
     export const isNoneFileContext = <DataType extends Jsonable = Jsonable>(file: FileContext): file is NoneFileContext<DataType> => "none" === file.category;
     export const isNetFileContext = (file: FileContext): file is NetFileContext => "net" === file.category;
     export const isLocalFileContext = (file: FileContext): file is LocalFileContext => "local" === file.category;
@@ -122,6 +129,11 @@ export module Jsonarch
         const context = getContext(contextOrEntry);
         if (/^\.\.?\//.test(path))
         {
+            if (isSystemFileContext(context.template))
+            {
+                throw new Error("makeFullPath({ templte:{ category: system }, },...)");
+            }
+            else
             if (isNoneFileContext(context.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
@@ -143,6 +155,11 @@ export module Jsonarch
         else
         if ( ! isConsoleMode && /^\//.test(path))
         {
+            if (isSystemFileContext(context.template))
+            {
+                throw new Error("makeFullPath({ templte:{ category: system }, },...)");
+            }
+            else
             if (isNoneFileContext(context.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
@@ -157,6 +174,7 @@ export module Jsonarch
             return path;
         }
     };
+    export const getSystemFileContext = (id: SystemFileType): SystemFileContext => ({ category: "system", id, });
     export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType): NoneFileContext<DataType> =>
         ({ category: "none", data, });
     export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
@@ -164,6 +182,7 @@ export module Jsonarch
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
             { category: "local", path: makeFullPath(contextOrEntry, path) };
     export const commandLineArgumentToFileContext = (argument: string): FileContext =>
+        /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, }:
         /^\{.*\}&/.test(argument) ? { category: "none", data: jsonParse(argument), }:
         /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
         { category: "local", path: argument };
@@ -210,6 +229,7 @@ export module Jsonarch
         handler: Handler;
         file: ContextType;
     }
+    export const isSystemFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<SystemFileContext> => isSystemFileContext(entry.file);
     export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
     export const isNetFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NetFileContext> => isNetFileContext(entry.file);
     export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isNetFileContext(entry.file);
@@ -316,6 +336,20 @@ export module Jsonarch
             return error.message;
         }
     };
+    export const loadSystemJson = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>): Promise<DataType> => profile
+    (
+        entry, "loadSystemJson", async () =>
+        {
+            switch(entry.file.id)
+            {
+            case "boot-setting.json":
+                return bootSettingJson as any;
+            case "default-setting.json":
+                return settingJson as any;
+            }
+            throw new Error("never");
+        }
+    );
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) => profile
     (
         entry, "loadNetFile", () => new Promise<string>
@@ -409,6 +443,11 @@ export module Jsonarch
     (
         entry, "load", async () =>
         {
+            if (isSystemFileLoadEntry(entry))
+            {
+                return await loadSystemJson(entry) as DataType;
+            }
+            else
             if (isNoneFileLoadEntry(entry))
             {
                 return entry.file.data;
@@ -574,13 +613,13 @@ export module Jsonarch
         const handler = entry.handler;
         const settingFileContext =
             entry.setting ??
-            jsonToFileContext(settingJson as Setting);
+            getSystemFileContext("default-setting.json");
         const settingResult = await applyRoot
         (
             {
                 handler,
                 template: settingFileContext,
-                setting: jsonToFileContext(bootSettingJson as Setting),
+                setting: getSystemFileContext("boot-setting.json"),
             },
             await load({ context: entry, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
             null,

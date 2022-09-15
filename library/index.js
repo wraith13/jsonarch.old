@@ -111,13 +111,17 @@ var Jsonarch;
             "$arch" in template &&
             "string" === typeof template.$arch;
     };
+    Jsonarch.isSystemFileContext = function (file) { return "system" === file.category; };
     Jsonarch.isNoneFileContext = function (file) { return "none" === file.category; };
     Jsonarch.isNetFileContext = function (file) { return "net" === file.category; };
     Jsonarch.isLocalFileContext = function (file) { return "local" === file.category; };
     Jsonarch.makeFullPath = function (contextOrEntry, path) {
         var context = Jsonarch.getContext(contextOrEntry);
         if (/^\.\.?\//.test(path)) {
-            if (Jsonarch.isNoneFileContext(context.template)) {
+            if (Jsonarch.isSystemFileContext(context.template)) {
+                throw new Error("makeFullPath({ templte:{ category: system }, },...)");
+            }
+            else if (Jsonarch.isNoneFileContext(context.template)) {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
             }
             else {
@@ -133,7 +137,10 @@ var Jsonarch;
             }
         }
         else if (!isConsoleMode && /^\//.test(path)) {
-            if (Jsonarch.isNoneFileContext(context.template)) {
+            if (Jsonarch.isSystemFileContext(context.template)) {
+                throw new Error("makeFullPath({ templte:{ category: system }, },...)");
+            }
+            else if (Jsonarch.isNoneFileContext(context.template)) {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
             }
             else {
@@ -144,6 +151,7 @@ var Jsonarch;
             return path;
         }
     };
+    Jsonarch.getSystemFileContext = function (id) { return ({ category: "system", id: id, }); };
     Jsonarch.jsonToFileContext = function (data) {
         return ({ category: "none", data: data, });
     };
@@ -153,13 +161,15 @@ var Jsonarch;
             { category: "local", path: Jsonarch.makeFullPath(contextOrEntry, path) };
     };
     Jsonarch.commandLineArgumentToFileContext = function (argument) {
-        return /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
-            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
-                { category: "local", path: argument };
+        return /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), } :
+            /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
+                /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
+                    { category: "local", path: argument };
     };
     Jsonarch.getContext = function (contextOrEntry) {
         return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
     };
+    Jsonarch.isSystemFileLoadEntry = function (entry) { return Jsonarch.isSystemFileContext(entry.file); };
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
@@ -231,6 +241,17 @@ var Jsonarch;
             return error.message;
         }
     };
+    Jsonarch.loadSystemJson = function (entry) { return Jsonarch.profile(entry, "loadSystemJson", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (entry.file.id) {
+                case "boot-setting.json":
+                    return [2 /*return*/, boot_setting_json_1.default];
+                case "default-setting.json":
+                    return [2 /*return*/, setting_json_1.default];
+            }
+            throw new Error("never");
+        });
+    }); }); };
     Jsonarch.loadNetFile = function (entry) { return Jsonarch.profile(entry, "loadNetFile", function () { return new Promise(function (resolve, reject) {
         if (isConsoleMode) {
             https.get(entry.file.path, function (response) {
@@ -301,16 +322,20 @@ var Jsonarch;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 1];
+                    if (!Jsonarch.isSystemFileLoadEntry(entry)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.loadSystemJson(entry)];
+                case 1: return [2 /*return*/, _c.sent()];
+                case 2:
+                    if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 3];
                     return [2 /*return*/, entry.file.data];
-                case 1:
-                    if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 3];
+                case 3:
+                    if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 5];
                     cache = (_b = (_a = entry.setting.cache) === null || _a === void 0 ? void 0 : _a.json) === null || _b === void 0 ? void 0 : _b[entry.file.path];
                     if (undefined !== cache) {
                         return [2 /*return*/, cache];
                     }
                     return [4 /*yield*/, Jsonarch.loadFile(entry)];
-                case 2:
+                case 4:
                     result = _c.sent();
                     if (!entry.setting.cache) {
                         entry.setting.cache = { $arch: "cache", };
@@ -320,7 +345,7 @@ var Jsonarch;
                     }
                     entry.setting.cache.json[entry.file.path] = result;
                     return [2 /*return*/, result];
-                case 3: throw new Error("never");
+                case 5: throw new Error("never");
             }
         });
     }); }); };
@@ -457,12 +482,12 @@ var Jsonarch;
             switch (_j.label) {
                 case 0:
                     handler = entry.handler;
-                    settingFileContext = (_f = entry.setting) !== null && _f !== void 0 ? _f : Jsonarch.jsonToFileContext(setting_json_1.default);
+                    settingFileContext = (_f = entry.setting) !== null && _f !== void 0 ? _f : Jsonarch.getSystemFileContext("default-setting.json");
                     _a = Jsonarch.applyRoot;
                     _b = [{
                             handler: handler,
                             template: settingFileContext,
-                            setting: Jsonarch.jsonToFileContext(boot_setting_json_1.default),
+                            setting: Jsonarch.getSystemFileContext("boot-setting.json"),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
                 case 1: return [4 /*yield*/, _a.apply(void 0, _b.concat([_j.sent(), null,

@@ -48,7 +48,7 @@ See [Jsonarch Reference](./document/reference.md) for details.
 npm install jsonarch -g
 ```
 
-## How to use Jsonable as command
+## How to use Jsonarch as command
 
 You need to run this command with administrator privileges.
 
@@ -64,7 +64,7 @@ See [Jsonarch Commandline Tool Reference](./document/commandline.md) for details
 npm install jsonarch --save
 ```
 
-## How to use Jsonable as npm package
+## How to use Jsonarch as npm package
 
 ```ts
 import { Jsonarch } from "jsonarch";
