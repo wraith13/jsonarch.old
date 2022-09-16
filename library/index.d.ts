@@ -90,7 +90,7 @@ export declare module Jsonarch {
     export const getSystemFileContext: (id: SystemFileType) => SystemFileContext;
     export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType) => NoneFileContext<DataType>;
     export const pathToFileContext: (contextOrEntry: ContextOrEntry, path: string) => NetFileContext | LocalFileContext;
-    export const commandLineArgumentToFileContext: (argument: string) => FileContext;
+    export const commandLineArgumentToFileContext: <DataType extends Jsonable = Jsonable>(argument: string) => FileContext<DataType>;
     export interface Context {
         template: FileContext;
         parameter?: FileContext;

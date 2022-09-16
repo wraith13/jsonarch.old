@@ -83,7 +83,6 @@ var parseCommandLineParameters = function (argv) {
 };
 var showUsage = function () {
     console.log("usage: jsonarch template.json -p parameter.json -c cache.json -s setting.json -r result.json -o output.json");
-    console.log("usage: jsonarch -v");
     console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
 };
 var showVersion = function () {
@@ -111,14 +110,14 @@ var regulateCommandLineParameters = function (params) {
         var pluralParameters = Object.keys(params).filter(function (i) { return 0 < singleParameters_1.indexOf(i); }).filter(function (i) { return 2 <= params[i].length; });
         pluralParameters.forEach(function (i) { return errors_1.push("Only one \"".concat(i, "\" option can be specified.")); });
         var inputPathParameters = ["default", "-p", "-c", "-s",];
-        if (2 <= inputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:in"); }).length) {
+        if (2 <= inputPathParameters.filter(function (key) { var _a, _b; return 0 <= ((_b = (_a = params[key]) === null || _a === void 0 ? void 0 : _a.indexOf("std:in")) !== null && _b !== void 0 ? _b : -1); }).length) {
             errors_1.push("Only one \"std:in\" can be specified.");
         }
         var outputPathParameters = ["-r", "-o",];
-        if (2 <= outputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:out"); }).length) {
+        if (2 <= outputPathParameters.filter(function (key) { var _a, _b; return 0 <= ((_b = (_a = params[key]) === null || _a === void 0 ? void 0 : _a.indexOf("std:out")) !== null && _b !== void 0 ? _b : -1); }).length) {
             errors_1.push("Only one \"std:out\" can be specified.");
         }
-        if (2 <= outputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:err"); }).length) {
+        if (2 <= outputPathParameters.filter(function (key) { var _a, _b; return 0 <= ((_b = (_a = params[key]) === null || _a === void 0 ? void 0 : _a.indexOf("std:err")) !== null && _b !== void 0 ? _b : -1); }).length) {
             errors_1.push("Only one \"std:err\" can be specified.");
         }
         if (0 < errors_1.length) {
@@ -138,6 +137,41 @@ var regulateCommandLineParameters = function (params) {
         }
     }
 };
+var readOutStdIn = function () { return new Promise(function (resolve) {
+    process.stdin.setEncoding("utf8");
+    var buffer = "";
+    process.stdin.on('readable', function () {
+        var chunk;
+        while (null !== (chunk = process.stdin.read())) {
+            buffer += chunk;
+        }
+    });
+    process.stdin.on("end", function () { return resolve(buffer); });
+}); };
+function commandLineArgumentToFileContext(path) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _a, _b, _c;
+        var _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    _a = path;
+                    switch (_a) {
+                        case undefined: return [3 /*break*/, 1];
+                        case "std:in": return [3 /*break*/, 2];
+                    }
+                    return [3 /*break*/, 4];
+                case 1: return [2 /*return*/, undefined];
+                case 2:
+                    _d = { category: "none" };
+                    _c = (_b = library_1.Jsonarch).jsonParse;
+                    return [4 /*yield*/, readOutStdIn()];
+                case 3: return [2 /*return*/, (_d.data = _c.apply(_b, [_e.sent()]), _d)];
+                case 4: return [2 /*return*/, library_1.Jsonarch.commandLineArgumentToFileContext(path)];
+            }
+        });
+    });
+}
 var writeFile = function (path, data) {
     switch (path) {
         case "std:out":
@@ -152,30 +186,35 @@ var writeFile = function (path, data) {
     }
 };
 var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
-    var result;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, library_1.Jsonarch.process({
-                    template: library_1.Jsonarch.commandLineArgumentToFileContext(argv.template),
-                    parameter: argv.parameter ?
-                        library_1.Jsonarch.commandLineArgumentToFileContext(argv.parameter) :
-                        undefined,
-                    setting: argv.setting ?
-                        library_1.Jsonarch.commandLineArgumentToFileContext(argv.setting) :
-                        undefined,
-                    //profile?: Profile;
-                    handler: {}
-                })];
+    var result, _a, _b;
+    var _c;
+    var _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                _b = (_a = library_1.Jsonarch).process;
+                _c = {};
+                return [4 /*yield*/, commandLineArgumentToFileContext(argv.template)];
             case 1:
-                result = _a.sent();
+                _c.template = _e.sent();
+                return [4 /*yield*/, commandLineArgumentToFileContext(argv.parameter)];
+            case 2:
+                _c.parameter = _e.sent();
+                return [4 /*yield*/, commandLineArgumentToFileContext(argv.cache)];
+            case 3:
+                _c.cache = _e.sent();
+                return [4 /*yield*/, commandLineArgumentToFileContext(argv.setting)];
+            case 4: return [4 /*yield*/, _b.apply(_a, [(_c.setting = _e.sent(),
+                        //profile?: Profile;
+                        _c.handler = {},
+                        _c)])];
+            case 5:
+                result = _e.sent();
                 if (argv.result) {
                     writeFile(argv.result, library_1.Jsonarch.jsonToString(result, "result", result.setting));
                 }
-                if (argv.output) {
-                    writeFile(argv.output, library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
-                }
-                if (!(argv.result || argv.output)) {
-                    writeFile("std:out", library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
+                if (argv.output || !argv.result) {
+                    writeFile((_d = argv.output) !== null && _d !== void 0 ? _d : "std:out", library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
                 }
                 return [2 /*return*/];
         }

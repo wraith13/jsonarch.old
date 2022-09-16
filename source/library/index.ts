@@ -181,7 +181,7 @@ export module Jsonarch
         ( ! isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
             { category: "local", path: makeFullPath(contextOrEntry, path) };
-    export const commandLineArgumentToFileContext = (argument: string): FileContext =>
+    export const commandLineArgumentToFileContext = <DataType extends Jsonarch.Jsonable = Jsonarch.Jsonable>(argument: string): FileContext<DataType> =>
         /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, }:
         /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
         { category: "local", path: argument };
