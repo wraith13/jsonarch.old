@@ -12,14 +12,21 @@ Jsonarch is JSON to JSON processor for JavaScript/TypeScript, Commandline( requi
 
 ## Overview
 
+Minimum processing flow
+
 ```mermaid
 graph LR;
-    T[Template JSON];
-    P[Parameter JSON];
-    C[Cache JSON];
-    S[Setting JSON];
+    T[Template JSON]-->J(Jsonarch);
+    J(Jsonarch)-->O[Output JSON];
+```
+
+Maximum processing flow
+
+```mermaid
+graph LR;
     T[Template JSON]-->J(Jsonarch);
     P[Parameter JSON]-->J(Jsonarch);
+    C[Cache JSON]-->J(Jsonarch);
     S[Setting JSON]-->J(Jsonarch);
     subgraph R[Result JSON]
         M((Meta data));

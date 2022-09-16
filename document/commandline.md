@@ -18,21 +18,24 @@ jsonarch template.json -p parameter.json -c cache.json -s setting.json -r result
 
 |Option|File Type|Description|
 |---|---|---|
-|default|Net, Local, JSON, System|[Template JSON](./reference.md#template-json) ( required ).|
-|`-p`|Net, Local, JSON, System|[Parameter JSON](./reference.md#parameter-json) ( optional ).|
-|`-c`|Local|[Cache JSON](./reference.md#cache-json) ( optional ).|
-|`-s`|Net, Local, JSON, System|[Setting JSON](./reference.md#setting-json) ( optional ).|
-|`-r`|Local|[Result JSON](./reference.md#result-json) ( optional ). Overwrite existing files without confirmation.|
-|`-o`|Local|[Output JSON](./reference.md#output-json) ( optional ). Overwrite existing files without confirmation.|
+|default|net, local, json, system, stdin|[Template JSON](./reference.md#template-json) ( required ).|
+|`-p`|net, local, json, system, stdin|[Parameter JSON](./reference.md#parameter-json) ( optional ).|
+|`-c`|local, stdin|[Cache JSON](./reference.md#cache-json) ( optional ).|
+|`-s`|net, local, JSON, system, stdin|[Setting JSON](./reference.md#setting-json) ( optional ).|
+|`-r`|local, stdout, stderr|[Result JSON](./reference.md#result-json) ( optional ). Overwrite existing files without confirmation.|
+|`-o`|local, stdout, stderr|[Output JSON](./reference.md#output-json) ( optional ). Overwrite existing files without confirmation.|
 
 If both `-r` and `-o` are not specified, Result JSON will be outputed to stdout.
 
 |File Type|Format|Description|
 |---|---|---|
-|Net|`http://` *, `https://` *,|ddddd|
-|JSON|`{` * `}`,|ddddd|
-|System|`system:` *|ddddd|
-|Local|(default)|ddddd|
+|stdin|`stdin`|stdin|
+|stdout|`stdout`|stdout|
+|stderr|`stderr`|stderr|
+|net|`http://` *, `https://` *,|ddddd|
+|json|`{` * `}`,|ddddd|
+|system|`system:` *|ddddd|
+|local|(default)|ddddd|
 
 |System File|Description|
 |---|---|

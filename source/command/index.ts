@@ -28,13 +28,14 @@ interface RegulatedCommandLineParameters
 {
     template: string;
     parameter?: string;
+    cache?: string;
     setting?: string;
     result?: string;
     output?: string;
 }
 const showUsage = () =>
 {
-    console.log("usage: jsonarch template.json -p parameter.json -s setting.json -r result.json -o output.json");
+    console.log("usage: jsonarch template.json -p parameter.json -c cache.json -s setting.json -r result.json -o output.json");
     console.log("usage: jsonarch -v");
     console.log("Jsonarch Commandline Tool Reference: https://github.com/wraith13/jsonarch/blob/master/document/commandline.md");
 };
@@ -58,13 +59,13 @@ const regulateCommandLineParameters = (params: { [key: string]: string[] }): Reg
     else
     {
         const errors: string[] = [];
-        const knownParameters = [ "default", "-p", "-s", "-r", "-o" ];
+        const knownParameters = [ "default", "-p", "-c", "-s", "-r", "-o" ];
         const unknownParameters = Object.keys(params).filter(i => knownParameters.indexOf(i) < 0);
         unknownParameters.forEach(i => errors.push(`"${i}" is unknown option`));
         const requireParameters = [ "-t" ];
         const lackParameters = requireParameters.filter(i => params[i]?.length <= 0);
         lackParameters.forEach(i => errors.push(`"${i}" option is required.`));
-        const singleParameters = [ "default", "-p", "-s", "-r", "-o" ];
+        const singleParameters = [ "default", "-p", "-c", "-s", "-r", "-o" ];
         const pluralParameters = Object.keys(params).filter(i => 0 < singleParameters.indexOf(i)).filter(i => 2 <= params[i].length);
         pluralParameters.forEach(i => errors.push(`Only one "${i}" option can be specified.`));
         if (0 < errors.length)
@@ -78,6 +79,7 @@ const regulateCommandLineParameters = (params: { [key: string]: string[] }): Reg
             {
                 template: params["default"][0],
                 parameter: params["-p"]?.[0],
+                cache: params["-c"]?.[0],
                 setting: params["-s"]?.[0],
                 result: params["-r"]?.[0],
                 output: params["-o"]?.[0],

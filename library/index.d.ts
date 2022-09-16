@@ -94,6 +94,7 @@ export declare module Jsonarch {
     export interface Context {
         template: FileContext;
         parameter?: FileContext;
+        cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
         profile?: Profile;
     }
@@ -124,10 +125,10 @@ export declare module Jsonarch {
         originMap?: false | "template" | "parameter" | "both";
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
-        cache?: Cache;
     }
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
+        cache: Cache;
         setting: Setting;
         handler: Handler;
         file: ContextType;
@@ -143,6 +144,7 @@ export declare module Jsonarch {
         context: Context;
         template: TemplateType;
         parameter: Jsonable;
+        cache: Cache;
         setting: Setting;
         handler: Handler;
     }
@@ -193,7 +195,7 @@ export declare module Jsonarch {
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable>;
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
-    export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting) => Promise<Result>;
+    export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;
     export {};

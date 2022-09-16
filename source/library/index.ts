@@ -190,6 +190,7 @@ export module Jsonarch
     {
         template: FileContext;
         parameter?: FileContext;
+        cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
         profile?: Profile;
     }
@@ -215,7 +216,6 @@ export module Jsonarch
         originMap?: false | "template" | "parameter" | "both";
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
-        cache?: Cache;
     }
     // const bootSettingJson: Setting =
     // {
@@ -225,6 +225,7 @@ export module Jsonarch
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
+        cache: Cache;
         setting: Setting;
         handler: Handler;
         file: ContextType;
@@ -242,6 +243,7 @@ export module Jsonarch
         context: Context;
         template: TemplateType;
         parameter:Jsonable;
+        cache: Cache;
         setting: Setting;
         handler: Handler;
     }
@@ -455,21 +457,21 @@ export module Jsonarch
             else
             if (isNetFileLoadEntry(entry) || isLocalFileLoadEntry(entry))
             {
-                const cache = entry.setting.cache?.json?.[entry.file.path];
+                const cache = entry.cache?.json?.[entry.file.path];
                 if (undefined !== cache)
                 {
                     return cache as DataType;
                 }
                 const result = jsonParse(await loadFile(entry));
-                if ( ! entry.setting.cache)
+                if ( ! entry.cache)
                 {
-                    entry.setting.cache = { $arch: "cache", };
+                    entry.cache = { $arch: "cache", };
                 }
-                if ( ! entry.setting.cache.json)
+                if ( ! entry.cache.json)
                 {
-                    entry.setting.cache.json = { };
+                    entry.cache.json = { };
                 }
-                entry.setting.cache.json[entry.file.path] = result;
+                entry.cache.json[entry.file.path] = result;
                 return result as DataType;
             }
             throw new Error("never");
@@ -577,7 +579,7 @@ export module Jsonarch
             }
         }
     );
-    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable, setting: Setting): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -586,6 +588,7 @@ export module Jsonarch
             {
                 template: entry.template,
                 paremter: entry.parameter,
+                cache: entry.cache,
                 setting: entry.setting,
             };
             const rootEvaluateEntry: EvaluateEntry<Jsonable> =
@@ -593,11 +596,11 @@ export module Jsonarch
                 context,
                 template,
                 parameter,
+                cache,
                 setting,
                 handler,
             };
             const output = await apply(rootEvaluateEntry);
-            const cache = rootEvaluateEntry.setting.cache;
             const result: Result =
             {
                 $arch: "result",
@@ -611,6 +614,11 @@ export module Jsonarch
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
+
+        const emptyCache: Cache = { "$arch": "cache" };
+        const cache = entry.cache ?
+            await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: entry.cache }):
+            emptyCache;
         const settingFileContext =
             entry.setting ??
             getSystemFileContext("default-setting.json");
@@ -619,10 +627,12 @@ export module Jsonarch
             {
                 handler,
                 template: settingFileContext,
+                cache: entry.cache,
                 setting: getSystemFileContext("boot-setting.json"),
             },
-            await load({ context: entry, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
+            await load({ context: entry, cache, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
             null,
+            cache,
             bootSettingJson as Setting
         );
         const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
@@ -632,16 +642,18 @@ export module Jsonarch
                 {
                     handler,
                     template: entry.parameter,
+                    cache: entry.cache,
                     setting: settingFileContext,
                 },
-                await load({ context: entry, setting, handler, file: entry.parameter }),
+                await load({ context: entry, cache, setting, handler, file: entry.parameter }),
                 null,
+                cache,
                 setting
             ):
             undefined;
         const parameter = parameterResult?.output ?? null;
-        const template = await load({ context: entry, setting, handler, file: entry.template});
-        return applyRoot(entry, template, parameter, setting);
+        const template = await load({ context: entry, cache, setting, handler, file: entry.template});
+        return applyRoot(entry, template, parameter, cache, setting);
     };
     export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
     {
