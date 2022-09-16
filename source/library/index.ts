@@ -183,7 +183,6 @@ export module Jsonarch
             { category: "local", path: makeFullPath(contextOrEntry, path) };
     export const commandLineArgumentToFileContext = (argument: string): FileContext =>
         /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, }:
-        /^\{.*\}&/.test(argument) ? { category: "none", data: jsonParse(argument), }:
         /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
         { category: "local", path: argument };
     export interface Context

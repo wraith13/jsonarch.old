@@ -162,9 +162,8 @@ var Jsonarch;
     };
     Jsonarch.commandLineArgumentToFileContext = function (argument) {
         return /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), } :
-            /^\{.*\}&/.test(argument) ? { category: "none", data: Jsonarch.jsonParse(argument), } :
-                /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
-                    { category: "local", path: argument };
+            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
+                { category: "local", path: argument };
     };
     Jsonarch.getContext = function (contextOrEntry) {
         return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;

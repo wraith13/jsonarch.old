@@ -101,15 +101,26 @@ var regulateCommandLineParameters = function (params) {
     }
     else {
         var errors_1 = [];
-        var knownParameters_1 = ["default", "-p", "-c", "-s", "-r", "-o"];
+        var knownParameters_1 = ["default", "-p", "-c", "-s", "-r", "-o",];
         var unknownParameters = Object.keys(params).filter(function (i) { return knownParameters_1.indexOf(i) < 0; });
         unknownParameters.forEach(function (i) { return errors_1.push("\"".concat(i, "\" is unknown option")); });
-        var requireParameters = ["-t"];
+        var requireParameters = ["-t",];
         var lackParameters = requireParameters.filter(function (i) { var _a; return ((_a = params[i]) === null || _a === void 0 ? void 0 : _a.length) <= 0; });
         lackParameters.forEach(function (i) { return errors_1.push("\"".concat(i, "\" option is required.")); });
-        var singleParameters_1 = ["default", "-p", "-c", "-s", "-r", "-o"];
+        var singleParameters_1 = ["default", "-p", "-c", "-s", "-r", "-o",];
         var pluralParameters = Object.keys(params).filter(function (i) { return 0 < singleParameters_1.indexOf(i); }).filter(function (i) { return 2 <= params[i].length; });
         pluralParameters.forEach(function (i) { return errors_1.push("Only one \"".concat(i, "\" option can be specified.")); });
+        var inputPathParameters = ["default", "-p", "-c", "-s",];
+        if (2 <= inputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:in"); }).length) {
+            errors_1.push("Only one \"std:in\" can be specified.");
+        }
+        var outputPathParameters = ["-r", "-o",];
+        if (2 <= outputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:out"); }).length) {
+            errors_1.push("Only one \"std:out\" can be specified.");
+        }
+        if (2 <= outputPathParameters.filter(function (key) { return 0 <= params[key].indexOf("std:err"); }).length) {
+            errors_1.push("Only one \"std:err\" can be specified.");
+        }
         if (0 < errors_1.length) {
             errors_1.forEach(function (e) { return console.error(e); });
             return null;
@@ -125,6 +136,19 @@ var regulateCommandLineParameters = function (params) {
             };
             return result;
         }
+    }
+};
+var writeFile = function (path, data) {
+    switch (path) {
+        case "std:out":
+            console.log(data);
+            break;
+        case "std::err":
+            console.error(data);
+            break;
+        default:
+            fs.writeFileSync(path, data);
+            break;
     }
 };
 var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
@@ -145,13 +169,13 @@ var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, fu
             case 1:
                 result = _a.sent();
                 if (argv.result) {
-                    fs.writeFileSync(argv.result, library_1.Jsonarch.jsonToString(result, "result", result.setting));
+                    writeFile(argv.result, library_1.Jsonarch.jsonToString(result, "result", result.setting));
                 }
                 if (argv.output) {
-                    fs.writeFileSync(argv.output, library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
+                    writeFile(argv.output, library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
                 }
                 if (!(argv.result || argv.output)) {
-                    console.log(library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
+                    writeFile("std:out", library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
                 }
                 return [2 /*return*/];
         }
