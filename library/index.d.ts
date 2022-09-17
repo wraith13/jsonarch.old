@@ -1,6 +1,6 @@
-import languageEn from "./language/en.json";
-import languageJa from "./language/ja.json";
+export * as Locale from "./locale";
 export declare module Jsonarch {
+    export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
         version: string;
@@ -11,29 +11,6 @@ export declare module Jsonarch {
     };
     export const name: string;
     export const version: string;
-    export module Locale {
-        const master: {
-            en: {
-                $name: string;
-            };
-            ja: {
-                $name: string;
-            };
-        };
-        type LocaleKeyType = keyof typeof languageEn & keyof typeof languageJa;
-        type LocaleType = keyof typeof master;
-        const locales: ("en" | "ja")[];
-        const getSystemLocale: () => "en" | "ja";
-        const getShortLocale: (locale: string) => string;
-        const getMatchLocaleKey: (locale: string) => "en" | "ja";
-        const getLocaleName: (locale: LocaleType) => string;
-        const setLocale: (locale: LocaleType | null) => void;
-        const getPrimary: (key: LocaleKeyType) => string;
-        const getSecondary: (key: LocaleKeyType) => string;
-        const string: (key: string) => string;
-        const map: (key: LocaleKeyType) => string;
-        const parallel: (key: LocaleKeyType) => string;
-    }
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     export type JsonableValue = null | boolean | number | string;
@@ -178,8 +155,8 @@ export declare module Jsonarch {
     export const parseErrorJson: (error: Error) => JsonarchError | string;
     export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
-    export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<any>;
-    export const loadFile: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<any>;
+    export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;
+    export const loadFile: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
     export const load: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>) => Promise<DataType>;
     interface StaticTemplate extends JsonarchBase {
         $arch: "static";

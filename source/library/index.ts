@@ -1,9 +1,11 @@
+import * as System from "./system";
 import bootSettingJson from "./boot.setting.json";
 import settingJson from "./setting.json";
-import languageEn from "./language/en.json";
-import languageJa from "./language/ja.json";
+import * as Locale from "./locale";
+export * as Locale from "./locale";
 export module Jsonarch
 {
+    export const getTemporaryDummy = Locale.getSystemLocale();
     export const packageJson = require("../package.json") as
     {
         name: string;
@@ -15,55 +17,6 @@ export module Jsonarch
     };
     export const name = packageJson.name;
     export const version = packageJson.version;
-    const isConsoleMode = typeof window === 'undefined';
-    const fs = isConsoleMode ? require("fs"): undefined;
-    const https = isConsoleMode ? require("https"): undefined;
-    export module Locale
-    {
-        export const master =
-        {
-            en: languageEn,
-            ja: languageJa,
-        };
-        export type LocaleKeyType =
-            keyof typeof languageEn &
-            keyof typeof languageJa;
-        export type LocaleType = keyof typeof master;
-        export const locales = Object.keys(master) as LocaleType[];
-        export const getSystemLocale = () => isConsoleMode ?
-            Intl.DateTimeFormat().resolvedOptions().locale as LocaleType:
-            navigator.language as LocaleType;
-        export const getShortLocale = (locale: string) => locale.replace(/-.*$/, "");
-        export const getMatchLocaleKey = (locale: string) =>
-        {
-            const index = locales.indexOf(locale as LocaleType);
-            if (0 < index)
-            {
-                return locales[index];
-            }
-            const shortIndex = locales.indexOf(getShortLocale(locale) as LocaleType);
-            if (0 < shortIndex)
-            {
-                return locales[shortIndex];
-            }
-            return locales[0];
-        };
-        let masterKey: LocaleType = getMatchLocaleKey(getSystemLocale());
-        export const getLocaleName = (locale: LocaleType) => master[locale].$name;
-        export const setLocale = (locale: LocaleType | null) =>
-        {
-            const key = locale ?? getSystemLocale();
-            if (0 <= locales.indexOf(key))
-            {
-                masterKey = key;
-            }
-        };
-        export const getPrimary = (key : LocaleKeyType) => master[masterKey][key];
-        export const getSecondary = (key : LocaleKeyType) => master[locales.filter(locale => masterKey !== locale)[0]][key];
-        export const string = (key : string) : string => getPrimary(key as LocaleKeyType) || key;
-        export const map = (key : LocaleKeyType) : string => string(key);
-        export const parallel = (key : LocaleKeyType) : string => `${getPrimary(key)} / ${getSecondary(key)}`;
-    }
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     export type JsonableValue = null | boolean | number | string;
@@ -153,7 +106,7 @@ export module Jsonarch
             }
         }
         else
-        if ( ! isConsoleMode && /^\//.test(path))
+        if ( ! System.isConsoleMode && /^\//.test(path))
         {
             if (isSystemFileContext(context.template))
             {
@@ -178,7 +131,7 @@ export module Jsonarch
     export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType): NoneFileContext<DataType> =>
         ({ category: "none", data, });
     export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
-        ( ! isConsoleMode) || /^https?\:\/\//.test(path) ?
+        ( ! System.isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
             { category: "local", path: makeFullPath(contextOrEntry, path) };
     export const commandLineArgumentToFileContext = <DataType extends Jsonarch.Jsonable = Jsonarch.Jsonable>(argument: string): FileContext<DataType> =>
@@ -351,72 +304,10 @@ export module Jsonarch
             throw new Error("never");
         }
     );
-    export const loadNetFile = (entry: LoadEntry<NetFileContext>) => profile
-    (
-        entry, "loadNetFile", () => new Promise<string>
-        (
-            (resolve, reject) =>
-            {
-                if (isConsoleMode)
-                {
-                    https.get
-                    (
-                        entry.file.path, (response: any) =>
-                        {
-                            //console.log('statusCode:', response.statusCode);
-                            //console.log('headers:', response.headers);
-                            if (200 <= response.statusCode && response.statusCode < 300)
-                            {
-                                let buffer = "";
-                                response.on("data", (chunk: string) => buffer += chunk);
-                                response.on("end", () => resolve(buffer));
-                            }
-                            else
-                            {
-                                reject();
-                            }
-                        }
-                    )
-                    .on("error", () => reject());
-                }
-                else
-                {
-                    const request = new XMLHttpRequest();
-                    request.open('GET', entry.file.path, true);
-                    request.onreadystatechange = function()
-                    {
-                        if (4 === request.readyState)
-                        {
-                            if (200 <= request.status && request.status < 300)
-                            {
-                                resolve(request.responseText);
-                            }
-                            else
-                            {
-                                reject();
-                            }
-                        }
-                    };
-                    request.send(null);
-                }
-            }
-        )
-    );
-    export const loadLocalFile = (entry: LoadEntry<LocalFileContext>) => profile
-    (
-        entry, "loadLocalFile", async () =>
-        {
-            if (fs)
-            {
-                return fs.readFileSync(entry.file.path, { encoding: "utf-8" });
-            }
-            else
-            {
-                throw new Error("Not support to load local file on web.");
-            }
-        }
-    );
-    
+    export const loadNetFile = (entry: LoadEntry<NetFileContext>) =>
+        profile(entry, "loadNetFile", () => System.loadNetFile(entry.file.path));
+    export const loadLocalFile = (entry: LoadEntry<LocalFileContext>) =>
+        profile(entry, "loadLocalFile", async () => System.loadLocalFile(entry.file.path));
     export const loadFile = (entry: LoadEntry<NetFileContext | LocalFileContext>) => profile
     (
         entry, "loadFile", async () =>

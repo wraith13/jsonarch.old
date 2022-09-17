@@ -10,6 +10,29 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -50,56 +73,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Jsonarch = void 0;
+exports.Jsonarch = exports.Locale = void 0;
+var System = __importStar(require("./system"));
 var boot_setting_json_1 = __importDefault(require("./boot.setting.json"));
 var setting_json_1 = __importDefault(require("./setting.json"));
-var en_json_1 = __importDefault(require("./language/en.json"));
-var ja_json_1 = __importDefault(require("./language/ja.json"));
+var Locale = __importStar(require("./locale"));
+exports.Locale = __importStar(require("./locale"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
+    Jsonarch.getTemporaryDummy = Locale.getSystemLocale();
     Jsonarch.packageJson = require("../package.json");
     Jsonarch.name = Jsonarch.packageJson.name;
     Jsonarch.version = Jsonarch.packageJson.version;
-    var isConsoleMode = typeof window === 'undefined';
-    var fs = isConsoleMode ? require("fs") : undefined;
-    var https = isConsoleMode ? require("https") : undefined;
-    var Locale;
-    (function (Locale) {
-        Locale.master = {
-            en: en_json_1.default,
-            ja: ja_json_1.default,
-        };
-        Locale.locales = Object.keys(Locale.master);
-        Locale.getSystemLocale = function () { return isConsoleMode ?
-            Intl.DateTimeFormat().resolvedOptions().locale :
-            navigator.language; };
-        Locale.getShortLocale = function (locale) { return locale.replace(/-.*$/, ""); };
-        Locale.getMatchLocaleKey = function (locale) {
-            var index = Locale.locales.indexOf(locale);
-            if (0 < index) {
-                return Locale.locales[index];
-            }
-            var shortIndex = Locale.locales.indexOf(Locale.getShortLocale(locale));
-            if (0 < shortIndex) {
-                return Locale.locales[shortIndex];
-            }
-            return Locale.locales[0];
-        };
-        var masterKey = Locale.getMatchLocaleKey(Locale.getSystemLocale());
-        Locale.getLocaleName = function (locale) { return Locale.master[locale].$name; };
-        Locale.setLocale = function (locale) {
-            var key = locale !== null && locale !== void 0 ? locale : Locale.getSystemLocale();
-            if (0 <= Locale.locales.indexOf(key)) {
-                masterKey = key;
-            }
-        };
-        Locale.getPrimary = function (key) { return Locale.master[masterKey][key]; };
-        Locale.getSecondary = function (key) { return Locale.master[Locale.locales.filter(function (locale) { return masterKey !== locale; })[0]][key]; };
-        Locale.string = function (key) { return Locale.getPrimary(key) || key; };
-        Locale.map = function (key) { return Locale.string(key); };
-        Locale.parallel = function (key) { return "".concat(Locale.getPrimary(key), " / ").concat(Locale.getSecondary(key)); };
-    })(Locale = Jsonarch.Locale || (Jsonarch.Locale = {}));
     Jsonarch.templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     Jsonarch.settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
@@ -136,7 +122,7 @@ var Jsonarch;
                 return "".concat(parent_1, "/").concat(current);
             }
         }
-        else if (!isConsoleMode && /^\//.test(path)) {
+        else if (!System.isConsoleMode && /^\//.test(path)) {
             if (Jsonarch.isSystemFileContext(context.template)) {
                 throw new Error("makeFullPath({ templte:{ category: system }, },...)");
             }
@@ -156,7 +142,7 @@ var Jsonarch;
         return ({ category: "none", data: data, });
     };
     Jsonarch.pathToFileContext = function (contextOrEntry, path) {
-        return (!isConsoleMode) || /^https?\:\/\//.test(path) ?
+        return (!System.isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: Jsonarch.makeFullPath(contextOrEntry, path), } :
             { category: "local", path: Jsonarch.makeFullPath(contextOrEntry, path) };
     };
@@ -251,49 +237,14 @@ var Jsonarch;
             throw new Error("never");
         });
     }); }); };
-    Jsonarch.loadNetFile = function (entry) { return Jsonarch.profile(entry, "loadNetFile", function () { return new Promise(function (resolve, reject) {
-        if (isConsoleMode) {
-            https.get(entry.file.path, function (response) {
-                //console.log('statusCode:', response.statusCode);
-                //console.log('headers:', response.headers);
-                if (200 <= response.statusCode && response.statusCode < 300) {
-                    var buffer_1 = "";
-                    response.on("data", function (chunk) { return buffer_1 += chunk; });
-                    response.on("end", function () { return resolve(buffer_1); });
-                }
-                else {
-                    reject();
-                }
-            })
-                .on("error", function () { return reject(); });
-        }
-        else {
-            var request_1 = new XMLHttpRequest();
-            request_1.open('GET', entry.file.path, true);
-            request_1.onreadystatechange = function () {
-                if (4 === request_1.readyState) {
-                    if (200 <= request_1.status && request_1.status < 300) {
-                        resolve(request_1.responseText);
-                    }
-                    else {
-                        reject();
-                    }
-                }
-            };
-            request_1.send(null);
-        }
-    }); }); };
-    Jsonarch.loadLocalFile = function (entry) { return Jsonarch.profile(entry, "loadLocalFile", function () { return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            if (fs) {
-                return [2 /*return*/, fs.readFileSync(entry.file.path, { encoding: "utf-8" })];
-            }
-            else {
-                throw new Error("Not support to load local file on web.");
-            }
-            return [2 /*return*/];
-        });
-    }); }); };
+    Jsonarch.loadNetFile = function (entry) {
+        return Jsonarch.profile(entry, "loadNetFile", function () { return System.loadNetFile(entry.file.path); });
+    };
+    Jsonarch.loadLocalFile = function (entry) {
+        return Jsonarch.profile(entry, "loadLocalFile", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/, System.loadLocalFile(entry.file.path)];
+        }); }); });
+    };
     Jsonarch.loadFile = function (entry) { return Jsonarch.profile(entry, "loadFile", function () { return __awaiter(_this, void 0, void 0, function () {
         var loardHandler;
         return __generator(this, function (_a) {
