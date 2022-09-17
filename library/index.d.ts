@@ -41,21 +41,26 @@ export declare module Jsonarch {
         childrenTicks: number;
     }
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export type HashType = string;
     export interface SystemFileContext {
         category: "system";
         id: SystemFileType;
+        hash?: HashType;
     }
     export interface NoneFileContext<DataType extends Jsonable = Jsonable> {
         category: "none";
         data: DataType;
+        hash?: HashType;
     }
     export interface NetFileContext {
         category: "net";
         path: string;
+        hash?: HashType;
     }
     export interface LocalFileContext {
         category: "local";
         path: string;
+        hash?: HashType;
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
     export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
@@ -65,8 +70,9 @@ export declare module Jsonarch {
     export const isLocalFileContext: (file: FileContext) => file is LocalFileContext;
     export const makeFullPath: (contextOrEntry: ContextOrEntry, path: string) => string;
     export const getSystemFileContext: (id: SystemFileType) => SystemFileContext;
-    export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType) => NoneFileContext<DataType>;
+    export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType, hash?: HashType) => NoneFileContext<DataType>;
     export const pathToFileContext: (contextOrEntry: ContextOrEntry, path: string) => NetFileContext | LocalFileContext;
+    export const getHashFromPath: (path: string) => HashType | undefined;
     export const commandLineArgumentToFileContext: <DataType extends Jsonable = Jsonable>(argument: string) => FileContext<DataType>;
     export interface Context {
         template: FileContext;

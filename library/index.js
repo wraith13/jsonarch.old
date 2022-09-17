@@ -138,18 +138,27 @@ var Jsonarch;
         }
     };
     Jsonarch.getSystemFileContext = function (id) { return ({ category: "system", id: id, }); };
-    Jsonarch.jsonToFileContext = function (data) {
-        return ({ category: "none", data: data, });
+    Jsonarch.jsonToFileContext = function (data, hash) {
+        return ({ category: "none", data: data, hash: hash, });
     };
     Jsonarch.pathToFileContext = function (contextOrEntry, path) {
         return (!System.isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: Jsonarch.makeFullPath(contextOrEntry, path), } :
             { category: "local", path: Jsonarch.makeFullPath(contextOrEntry, path) };
     };
+    Jsonarch.getHashFromPath = function (path) {
+        var index = path.indexOf("#");
+        if (0 < index) {
+            return path.substring(index + 1);
+        }
+        else {
+            return undefined;
+        }
+    };
     Jsonarch.commandLineArgumentToFileContext = function (argument) {
-        return /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), } :
-            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, } :
-                { category: "local", path: argument };
+        return /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), hash: Jsonarch.getHashFromPath(argument), } :
+            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: Jsonarch.getHashFromPath(argument), } :
+                { category: "local", path: argument, hash: Jsonarch.getHashFromPath(argument), };
     };
     Jsonarch.getContext = function (contextOrEntry) {
         return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
@@ -491,6 +500,9 @@ var Jsonarch;
     Jsonarch.jsonToString = function (json, asType, setting) {
         if ("output" === asType && setting.textOutput && "string" === typeof json) {
             return json;
+        }
+        else if ("output" === asType && setting.textOutput && Array.isArray(json) && 0 === json.filter(function (line) { return "string" !== typeof line; }).length) {
+            return json.join("\n");
         }
         else if ("number" === typeof setting.indent) {
             return Jsonarch.jsonStringify(json, undefined, setting.indent);

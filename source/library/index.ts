@@ -51,25 +51,30 @@ export module Jsonarch
         childrenTicks: number;
     }
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export type HashType = string;
     export interface SystemFileContext
     {
         category: "system";
         id: SystemFileType;
+        hash?: HashType;
     }
     export interface NoneFileContext<DataType extends Jsonable = Jsonable>
     {
         category: "none";
         data: DataType;
+        hash?: HashType;
     }
     export interface NetFileContext
     {
         category: "net";
         path: string;
+        hash?: HashType;
     }
     export interface LocalFileContext
     {
         category: "local";
         path: string;
+        hash?: HashType;
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
     export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
@@ -128,16 +133,28 @@ export module Jsonarch
         }
     };
     export const getSystemFileContext = (id: SystemFileType): SystemFileContext => ({ category: "system", id, });
-    export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType): NoneFileContext<DataType> =>
-        ({ category: "none", data, });
+    export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType, hash?: HashType): NoneFileContext<DataType> =>
+        ({ category: "none", data, hash, });
     export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
         ( ! System.isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
             { category: "local", path: makeFullPath(contextOrEntry, path) };
+    export const getHashFromPath = (path: string): HashType | undefined =>
+    {
+        const index = path.indexOf("#");
+        if (0 < index)
+        {
+            return path.substring(index +1);
+        }
+        else
+        {
+            return undefined;
+        }
+    };
     export const commandLineArgumentToFileContext = <DataType extends Jsonarch.Jsonable = Jsonarch.Jsonable>(argument: string): FileContext<DataType> =>
-        /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, }:
-        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, }:
-        { category: "local", path: argument };
+        /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, hash: getHashFromPath(argument), }:
+        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: getHashFromPath(argument), }:
+        { category: "local", path: argument, hash: getHashFromPath(argument), };
     export interface Context
     {
         template: FileContext;
@@ -550,6 +567,11 @@ export module Jsonarch
         if ("output" === asType && setting.textOutput && "string" === typeof json)
         {
             return json;
+        }
+        else
+        if ("output" === asType && setting.textOutput && Array.isArray(json) && 0 === json.filter(line => "string" !== typeof line).length)
+        {
+            return json.join("\n");
         }
         else
         if ("number" === typeof setting.indent)
