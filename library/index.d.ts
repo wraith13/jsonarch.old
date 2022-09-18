@@ -180,6 +180,23 @@ export declare module Jsonarch {
     }
     export const isIncludeStaticJsonData: (template: Jsonable) => template is IncludeStaticJsonTemplate;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>;
+    interface Template extends JsonarchBase {
+        $arch: "template";
+        type?: string;
+        default?: {
+            parameter?: Jsonable;
+            setting?: Setting;
+        };
+        override?: {
+            parameter?: Jsonable;
+            setting?: Setting;
+        };
+        member?: JsonableObject;
+        return: Jsonable;
+        catch?: JsonableObject;
+    }
+    export const isTemplateData: (template: Jsonable) => template is Template;
+    export const evaluateTemplate: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable>;
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting) => Promise<Result>;

@@ -339,14 +339,23 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
+    Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, Jsonarch.isTemplateData(entry.template) ?
+                    Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return })) :
+                    undefined];
+        });
+    }); }); };
     Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var evaluatorList, _a, _b, _i, i, result;
+        var evaluatorList, _a, _b, _i, i, result, error;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     evaluatorList = [
                         Jsonarch.evaluateStatic,
                         Jsonarch.evaluateIncludeStaticJson,
+                        Jsonarch.evaluateTemplate,
                     ];
                     _a = [];
                     for (_b in evaluatorList)
@@ -366,7 +375,13 @@ var Jsonarch;
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/, entry.template];
+                case 4:
+                    error = {
+                        "$arch": "error",
+                        "message": "Unknown Jsonarch Type",
+                        "template": entry.template,
+                    };
+                    return [2 /*return*/, error];
             }
         });
     }); }); };
