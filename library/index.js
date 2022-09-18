@@ -318,44 +318,52 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isStaticData = Jsonarch.isJsonarch("static");
-    Jsonarch.evaluateStatic = function (entry) { return Jsonarch.profile(entry, "evaluateStatic", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-        return [2 /*return*/, Jsonarch.isStaticData(entry.template) ? entry.template.return : undefined];
-    }); }); }); };
+    Jsonarch.evaluateStatic = function (entry) {
+        return Jsonarch.profile(entry, "evaluateStatic", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/, entry.template.return];
+        }); }); });
+    };
     Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
     Jsonarch.evaluateIncludeStaticJson = function (entry) { return Jsonarch.profile(entry, "evaluateIncludeStaticJson", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    if (!Jsonarch.isIncludeStaticJsonData(entry.template)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
-                case 1:
-                    _a = _b.sent();
-                    return [3 /*break*/, 3];
-                case 2:
-                    _a = undefined;
-                    _b.label = 3;
-                case 3: return [2 /*return*/, _a];
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
+                case 1: return [2 /*return*/, _a.sent()];
             }
         });
     }); }); };
     Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
     Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            return [2 /*return*/, Jsonarch.isTemplateData(entry.template) ?
-                    Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return })) :
-                    undefined];
+            if (entry.template.catch) {
+                try {
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return }))];
+                }
+                catch (error) {
+                    //  🚧 call match(entry.template.catch, error)
+                    throw error;
+                }
+            }
+            else {
+                return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return }))];
+            }
+            return [2 /*return*/];
         });
     }); }); };
+    Jsonarch.evaluateIfMatch = function (isMatch, evaluateTarget) {
+        return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
+        }); }); };
+    };
     Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
         var evaluatorList, _a, _b, _i, i, result, error;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     evaluatorList = [
-                        Jsonarch.evaluateStatic,
-                        Jsonarch.evaluateIncludeStaticJson,
-                        Jsonarch.evaluateTemplate,
+                        Jsonarch.evaluateIfMatch(Jsonarch.isStaticData, Jsonarch.evaluateStatic),
+                        Jsonarch.evaluateIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
+                        Jsonarch.evaluateIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplate),
                     ];
                     _a = [];
                     for (_b in evaluatorList)

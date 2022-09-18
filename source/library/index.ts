@@ -400,27 +400,21 @@ export module Jsonarch
         return: Jsonable;
     }
     export const isStaticData = isJsonarch<StaticTemplate>("static");
-    export const evaluateStatic = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> => profile
-    (
-        entry, "evaluateStatic", async () =>
-        isStaticData(entry.template) ? entry.template.return: undefined
-    );
+    export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
+        profile(entry, "evaluateStatic", async () => entry.template.return);
     interface IncludeStaticJsonTemplate extends JsonarchBase
     {
         $arch: "include-static-json";
         path: string;
     }
     export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
-    export const evaluateIncludeStaticJson = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> => profile
+    export const evaluateIncludeStaticJson = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
     (
-        entry, "evaluateIncludeStaticJson", async () =>
-        isIncludeStaticJsonData(entry.template) ?
-            await loadFile
-            ({
-                ...entry,
-                file: pathToFileContext(entry, entry.template.path)
-            }):
-            undefined
+        entry, "evaluateIncludeStaticJson", async () => await loadFile
+        ({
+            ...entry,
+            file: pathToFileContext(entry, entry.template.path)
+        })
     );
     interface Template extends JsonarchBase
     {
@@ -441,22 +435,40 @@ export module Jsonarch
         catch?: JsonableObject;
     }
     export const isTemplateData = isJsonarch<Template>("template");
-    export const evaluateTemplate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> => profile
+    export const evaluateTemplate = (entry: EvaluateEntry<Template>): Promise<Jsonable> => profile
     (
         entry, "evaluateTemplate", async () =>
-        isTemplateData(entry.template) ?
-            apply({...entry, template: entry.template.return, }):
-            undefined
+        {
+            if (entry.template.catch)
+            {
+                try
+                {
+                    return apply({...entry, template: entry.template.return, });
+                }
+                catch(error)
+                {
+                    //  🚧 call match(entry.template.catch, error)
+                    throw error;
+                }
+            }
+            else
+            {
+                return apply({...entry, template: entry.template.return, });
+            }
+        }
     );
+    export const evaluateIfMatch = <TargetType extends JsonarchBase>(isMatch: ((entry: JsonarchBase) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
+        async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
+            isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
     export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> => profile
     (
         entry, "evaluate", async () =>
         {
             const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
             [
-                evaluateStatic,
-                evaluateIncludeStaticJson,
-                evaluateTemplate,
+                evaluateIfMatch(isStaticData, evaluateStatic),
+                evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
+                evaluateIfMatch(isTemplateData, evaluateTemplate),
             ];
             for(const i in evaluatorList)
             {
