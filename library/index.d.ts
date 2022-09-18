@@ -27,6 +27,7 @@ export declare module Jsonarch {
     interface JsonarchBase extends JsonableObject {
         $arch: string;
     }
+    export const isJsonarch: <Type extends JsonarchBase>(type: Type["$arch"]) => (template: Jsonable) => template is Type;
     export const isJsonarchBase: (template: Jsonable) => template is JsonarchBase;
     interface Profile {
         isProfiling: boolean;
@@ -97,6 +98,7 @@ export declare module Jsonarch {
             [key: string]: Jsonable;
         };
     }
+    export const isCache: (template: Jsonable) => template is Cache;
     export interface Setting extends JsonarchBase {
         $arch: "setting";
         language?: string;
@@ -109,6 +111,7 @@ export declare module Jsonarch {
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
     }
+    export const isSetting: (template: Jsonable) => template is Setting;
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
         cache: Cache;
@@ -135,7 +138,6 @@ export declare module Jsonarch {
         handler: Handler;
     }
     export const isEvaluateTargetEntry: (entry: EvaluateEntry<Jsonable>) => entry is EvaluateEntry<JsonarchBase>;
-    export const isJsonarch: <Type extends JsonarchBase>(type: Type["$arch"]) => (template: Jsonable) => template is Type;
     interface Result extends JsonarchBase {
         $arch: "result";
         output: Jsonable;
@@ -146,10 +148,12 @@ export declare module Jsonarch {
         callGraph?: any;
         setting: Setting;
     }
+    export const isResult: (template: Jsonable) => template is Result;
     interface JsonarchError extends JsonarchBase {
         $arch: "error";
         message: string;
     }
+    export const isError: (template: Jsonable) => template is JsonarchError;
     export const getTicks: () => number;
     export const profile: <ResultT>(contextOrEntry: Context | {
         context: Context;
@@ -181,5 +185,6 @@ export declare module Jsonarch {
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;
+    export const throwIfError: <DataType extends Jsonable>(json: DataType) => DataType;
     export {};
 }

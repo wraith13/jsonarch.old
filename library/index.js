@@ -91,6 +91,11 @@ var Jsonarch;
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
+    Jsonarch.isJsonarch = function (type) {
+        return (function (template) {
+            return Jsonarch.isJsonarchBase(template) && type === template.$arch;
+        });
+    };
     Jsonarch.isJsonarchBase = function (template) {
         return null !== template &&
             "object" === typeof template &&
@@ -114,9 +119,13 @@ var Jsonarch;
                 var parent_1 = context.template.path
                     .replace(/#.*/, "")
                     .replace(/\/[^/]*$/, "");
-                var current = path.replace(/^\.\//, "");
+                var current = path.replace(/^\.\//, "").replace(/\/\.\//, "/");
                 while (/^\.\.\//.test(current)) {
-                    parent_1 = parent_1.replace(/\/[^/]*$/, "");
+                    var newParent = parent_1.replace(/\/[^/]*$/, "");
+                    if (parent_1 === newParent) {
+                        break;
+                    }
+                    parent_1 = newParent;
                     current = current.replace(/^\.\.\//, "");
                 }
                 return "".concat(parent_1, "/").concat(current);
@@ -163,6 +172,8 @@ var Jsonarch;
     Jsonarch.getContext = function (contextOrEntry) {
         return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
     };
+    Jsonarch.isCache = Jsonarch.isJsonarch("cache");
+    Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
     Jsonarch.isSystemFileLoadEntry = function (entry) { return Jsonarch.isSystemFileContext(entry.file); };
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
@@ -170,11 +181,8 @@ var Jsonarch;
     Jsonarch.isEvaluateTargetEntry = function (entry) {
         return Jsonarch.isJsonarchBase(entry.template);
     };
-    Jsonarch.isJsonarch = function (type) {
-        return (function (template) {
-            return Jsonarch.isJsonarchBase(template) && type === template.$arch;
-        });
-    };
+    Jsonarch.isResult = Jsonarch.isJsonarch("result");
+    Jsonarch.isError = Jsonarch.isJsonarch("error");
     Jsonarch.getTicks = function () { return new Date().getTime(); };
     var beginProfileScope = function (context, name) {
         var _a, _b;
@@ -514,6 +522,12 @@ var Jsonarch;
             // "minify" === setting.indent
             return Jsonarch.jsonStringify(json);
         }
+    };
+    Jsonarch.throwIfError = function (json) {
+        if (Jsonarch.isError(json)) {
+            throw new Jsonarch.ErrorJson(json);
+        }
+        return json;
     };
 })(Jsonarch = exports.Jsonarch || (exports.Jsonarch = {}));
 //# sourceMappingURL=index.js.map

@@ -33,6 +33,9 @@ export module Jsonarch
     {
         $arch: string;
     }
+    export const isJsonarch = <Type extends JsonarchBase>(type: Type["$arch"]) =>
+        ((template: Jsonable): template is Type =>
+            isJsonarchBase(template) && type === template.$arch);
     export const isJsonarchBase = (template: Jsonable): template is JsonarchBase =>
         null !== template &&
         "object" === typeof template &&
@@ -101,10 +104,15 @@ export module Jsonarch
                 let parent = context.template.path
                     .replace(/#.*/, "")
                     .replace(/\/[^/]*$/, "");
-                let current = path.replace(/^\.\//, "");
+                let current = path.replace(/^\.\//, "").replace(/\/\.\//, "/");
                 while(/^\.\.\//.test(current))
                 {
-                    parent = parent.replace(/\/[^/]*$/, "");
+                    const newParent = parent.replace(/\/[^/]*$/, "");
+                    if (parent === newParent)
+                    {
+                        break;
+                    }
+                    parent = newParent;
                     current = current.replace(/^\.\.\//, "");
                 }
                 return `${parent}/${current}`;
@@ -173,6 +181,7 @@ export module Jsonarch
         values?: { [key: string]: Jsonable; };
         templates?: { [key: string]: Jsonable; };
     }
+    export const isCache = isJsonarch<Cache>("cache");
     export interface Setting extends JsonarchBase
     {
         $arch: "setting";
@@ -186,6 +195,7 @@ export module Jsonarch
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
     }
+    export const isSetting = isJsonarch<Setting>("setting");
     // const bootSettingJson: Setting =
     // {
     //     "$schema": settingSchema,
@@ -222,9 +232,6 @@ export module Jsonarch
     }
     export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> =>
         isJsonarchBase(entry.template);
-    export const isJsonarch = <Type extends JsonarchBase>(type: Type["$arch"]) =>
-        ((template: Jsonable): template is Type =>
-            isJsonarchBase(template) && type === template.$arch);
     interface Result extends JsonarchBase
     {
         $arch: "result";
@@ -236,11 +243,13 @@ export module Jsonarch
         callGraph?: any;
         setting: Setting;
     }
+    export const isResult = isJsonarch<Result>("result");
     interface JsonarchError extends JsonarchBase
     {
         $arch: "error";
         message: string;
     }
+    export const isError = isJsonarch<JsonarchError>("error");
     export const getTicks = () => new Date().getTime();
     const beginProfileScope = (context: Context, name: string): ProfileEntry =>
     {
@@ -588,5 +597,13 @@ export module Jsonarch
             // "minify" === setting.indent
             return jsonStringify(json);
         }
+    };
+    export const throwIfError = <DataType extends Jsonable>(json: DataType): DataType =>
+    {
+        if (isError(json))
+        {
+            throw new ErrorJson(json);
+        }
+        return json;
     };
 }
