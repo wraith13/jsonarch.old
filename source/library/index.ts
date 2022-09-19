@@ -221,7 +221,7 @@ export module Jsonarch
     {
         context: Context;
         template: TemplateType;
-        parameter:Jsonable;
+        parameter: Jsonable | undefined;
         cache: Cache;
         setting: Setting;
         handler: Handler;
@@ -420,7 +420,7 @@ export module Jsonarch
     {
         $arch: "template";
         type?: string;
-        default?:
+        defaults?:
         {
             parameter?: Jsonable;
             setting?: Setting;
@@ -435,15 +435,36 @@ export module Jsonarch
         catch?: JsonableObject;
     }
     export const isTemplateData = isJsonarch<Template>("template");
+    export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
+    {
+        if (undefined === defaults)
+        {
+            return parameter;
+        }
+        else
+        if (undefined === parameter || "object" !== typeof defaults || "object" !== typeof parameter)
+        {
+            return defaults;
+        }
+        else
+        {
+            return { ...defaults, ...parameter, };
+        }
+    };
     export const evaluateTemplate = (entry: EvaluateEntry<Template>): Promise<Jsonable> => profile
     (
         entry, "evaluateTemplate", async () =>
         {
+            const parameter = applyDefault
+            (
+                applyDefault(entry.template.defaults, entry.parameter),
+                entry.template.override?.setting
+            );
             if (entry.template.catch)
             {
                 try
                 {
-                    return apply({...entry, template: entry.template.return, });
+                    return apply({...entry, template: entry.template.return, parameter, });
                 }
                 catch(error)
                 {
@@ -453,23 +474,75 @@ export module Jsonarch
             }
             else
             {
-                return apply({...entry, template: entry.template.return, });
+                return apply({...entry, template: entry.template.return, parameter, });
+            }
+        }
+    );
+    type Refer = string;
+    interface Call extends JsonarchBase
+    {
+        $arch: "call";
+        refer: Refer;
+        parameter?: Jsonable;
+    }
+    export const isCallData = isJsonarch<Call>("call");
+    export module Library
+    {
+        export module String
+        {
+            export const json = (parameter: Jsonable | undefined) =>
+            {
+                if (Array.isArray(parameter) && 0 === parameter.filter(i => "string" !== typeof i).length)
+                {
+                    return parameter.join("");
+                }
+                else
+                {
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "Unmatch parameter type",
+                        "refer": "string.join",
+                        "parameter": parameter,
+                    });
+                }
+            };
+        }
+    }
+    export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateCall", async () =>
+        {
+            const parameter = undefined === entry.template.parameter ?
+                undefined:
+                await apply({...entry, template: entry.template.parameter, });
+            switch(entry.template.refer)
+            {
+            case "string.json":
+                return Library.String.json(parameter);
+            default:
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unknown refer call",
+                    "refer": entry.template.refer,
+                });
             }
         }
     );
     export const evaluateIfMatch = <TargetType extends JsonarchBase>(isMatch: ((entry: JsonarchBase) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
         async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
+    const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
+    [
+        evaluateIfMatch(isStaticData, evaluateStatic),
+        evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
+        evaluateIfMatch(isTemplateData, evaluateTemplate),
+    ];
     export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> => profile
     (
         entry, "evaluate", async () =>
         {
-            const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
-            [
-                evaluateIfMatch(isStaticData, evaluateStatic),
-                evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
-                evaluateIfMatch(isTemplateData, evaluateTemplate),
-            ];
             for(const i in evaluatorList)
             {
                 const result = await evaluatorList[i](entry);
@@ -478,13 +551,12 @@ export module Jsonarch
                     return result;
                 }
             }
-            const error: JsonarchError =
-            {
+            throw new ErrorJson
+            ({
                 "$arch": "error",
                 "message": "Unknown Jsonarch Type",
                 "template": entry.template,
-            };
-            return error;
+            });
             // return entry.template;
         }
     );

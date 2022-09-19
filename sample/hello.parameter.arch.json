@@ -6,13 +6,13 @@
         "message":
         {
             "$arch": "call",
-            "targe": "string.join",
-            "values":
+            "refer": "string.join",
+            "parameter":
             [
                 "Hello, ",
                 {
-                    "$arch": "refer",
-                    "target":
+                    "$arch": "value",
+                    "refer":
                     [
                         "parameter",
                         "name"

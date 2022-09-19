@@ -333,11 +333,25 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
+    Jsonarch.applyDefault = function (defaults, parameter) {
+        if (undefined === defaults) {
+            return parameter;
+        }
+        else if (undefined === parameter || "object" !== typeof defaults || "object" !== typeof parameter) {
+            return defaults;
+        }
+        else {
+            return __assign(__assign({}, defaults), parameter);
+        }
+    };
     Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+        var parameter;
+        var _a;
+        return __generator(this, function (_b) {
+            parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.defaults, entry.parameter), (_a = entry.template.override) === null || _a === void 0 ? void 0 : _a.setting);
             if (entry.template.catch) {
                 try {
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return }))];
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
                 }
                 catch (error) {
                     //  🚧 call match(entry.template.catch, error)
@@ -345,9 +359,57 @@ var Jsonarch;
                 }
             }
             else {
-                return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return }))];
+                return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
             }
             return [2 /*return*/];
+        });
+    }); }); };
+    Jsonarch.isCallData = Jsonarch.isJsonarch("call");
+    var Library;
+    (function (Library) {
+        var String;
+        (function (String) {
+            String.json = function (parameter) {
+                if (Array.isArray(parameter) && 0 === parameter.filter(function (i) { return "string" !== typeof i; }).length) {
+                    return parameter.join("");
+                }
+                else {
+                    throw new Jsonarch.ErrorJson({
+                        "$arch": "error",
+                        "message": "Unmatch parameter type",
+                        "refer": "string.join",
+                        "parameter": parameter,
+                    });
+                }
+            };
+        })(String = Library.String || (Library.String = {}));
+    })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
+    Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
+                    _a = undefined;
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
+                case 2:
+                    _a = _b.sent();
+                    _b.label = 3;
+                case 3:
+                    parameter = _a;
+                    switch (entry.template.refer) {
+                        case "string.json":
+                            return [2 /*return*/, Library.String.json(parameter)];
+                        default:
+                            throw new Jsonarch.ErrorJson({
+                                "$arch": "error",
+                                "message": "Unknown refer call",
+                                "refer": entry.template.refer,
+                            });
+                    }
+                    return [2 /*return*/];
+            }
         });
     }); }); };
     Jsonarch.evaluateIfMatch = function (isMatch, evaluateTarget) {
@@ -355,16 +417,16 @@ var Jsonarch;
             return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
         }); }); };
     };
+    var evaluatorList = [
+        Jsonarch.evaluateIfMatch(Jsonarch.isStaticData, Jsonarch.evaluateStatic),
+        Jsonarch.evaluateIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
+        Jsonarch.evaluateIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplate),
+    ];
     Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var evaluatorList, _a, _b, _i, i, result, error;
+        var _a, _b, _i, i, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    evaluatorList = [
-                        Jsonarch.evaluateIfMatch(Jsonarch.isStaticData, Jsonarch.evaluateStatic),
-                        Jsonarch.evaluateIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
-                        Jsonarch.evaluateIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplate),
-                    ];
                     _a = [];
                     for (_b in evaluatorList)
                         _a.push(_b);
@@ -383,13 +445,11 @@ var Jsonarch;
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4:
-                    error = {
-                        "$arch": "error",
-                        "message": "Unknown Jsonarch Type",
-                        "template": entry.template,
-                    };
-                    return [2 /*return*/, error];
+                case 4: throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch Type",
+                    "template": entry.template,
+                });
             }
         });
     }); }); };
