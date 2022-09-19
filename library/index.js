@@ -82,15 +82,27 @@ exports.Locale = __importStar(require("./locale"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
+    Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
+    Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
+    Jsonarch.objectKeys = function (target) { return Object.keys(target); };
+    Jsonarch.isString = function (value) { return "string" === typeof value; };
+    Jsonarch.isNumber = function (value) { return "number" === typeof value; };
+    Jsonarch.isObject = function (value, isMember) {
+        if (isMember === void 0) { isMember = {}; }
+        return null !== value &&
+            "object" === typeof value &&
+            !Array.isArray(value) &&
+            0 === Jsonarch.objectKeys(isMember).filter(function (key) { return !isMember[key](value[key]); }).length;
+    };
+    Jsonarch.isArray = function (value, isType) {
+        return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length;
+    };
     Jsonarch.getTemporaryDummy = Locale.getSystemLocale();
     Jsonarch.packageJson = require("../package.json");
     Jsonarch.name = Jsonarch.packageJson.name;
     Jsonarch.version = Jsonarch.packageJson.version;
     Jsonarch.templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     Jsonarch.settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
-    Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
-    Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
-    Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.isJsonarch = function (type) {
         return (function (template) {
             return Jsonarch.isJsonarchBase(template) && type === template.$arch;
@@ -348,7 +360,7 @@ var Jsonarch;
         var parameter;
         var _a;
         return __generator(this, function (_b) {
-            parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.defaults, entry.parameter), (_a = entry.template.override) === null || _a === void 0 ? void 0 : _a.setting);
+            parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_a = entry.template.override) === null || _a === void 0 ? void 0 : _a.setting);
             if (entry.template.catch) {
                 try {
                     return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
@@ -370,7 +382,7 @@ var Jsonarch;
         var String;
         (function (String) {
             String.json = function (parameter) {
-                if (Array.isArray(parameter) && 0 === parameter.filter(function (i) { return "string" !== typeof i; }).length) {
+                if (Jsonarch.isArray(parameter, Jsonarch.isString)) {
                     return parameter.join("");
                 }
                 else {

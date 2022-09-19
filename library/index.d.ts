@@ -1,5 +1,22 @@
 export * as Locale from "./locale";
 export declare module Jsonarch {
+    export type JsonableValue = null | boolean | number | string;
+    export interface JsonableObject {
+        [key: string]: undefined | Jsonable;
+    }
+    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
+    export type JsonablePartial<Target> = {
+        [key in keyof Target]?: Target[key];
+    } & JsonableObject;
+    export const jsonStringify: <T extends Jsonable>(source: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number) => string;
+    export const jsonParse: <T extends Jsonable = Jsonable>(text: string, reviver?: ((this: any, key: string, value: any) => any) | undefined) => T;
+    export const objectKeys: <T extends object>(target: T) => (keyof T & string)[];
+    export const isString: (value: unknown) => value is string;
+    export const isNumber: (value: unknown) => value is number;
+    export const isObject: (value: unknown, isMember?: {
+        [key: string]: (x: unknown) => boolean;
+    }) => value is object;
+    export const isArray: <T>(value: unknown, isType: (x: unknown) => x is T) => value is T[];
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
@@ -13,17 +30,6 @@ export declare module Jsonarch {
     export const version: string;
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
-    export type JsonableValue = null | boolean | number | string;
-    export interface JsonableObject {
-        [key: string]: undefined | Jsonable;
-    }
-    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
-    export type JsonablePartial<Target> = {
-        [key in keyof Target]?: Target[key];
-    } & JsonableObject;
-    export const jsonStringify: <T extends Jsonable>(source: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number) => string;
-    export const jsonParse: <T extends Jsonable = Jsonable>(text: string, reviver?: ((this: any, key: string, value: any) => any) | undefined) => T;
-    export const objectKeys: <T extends JsonableObject>(target: T) => (keyof T & string)[];
     interface JsonarchBase extends JsonableObject {
         $arch: string;
     }
@@ -183,7 +189,7 @@ export declare module Jsonarch {
     interface Template extends JsonarchBase {
         $arch: "template";
         type?: string;
-        defaults?: {
+        default?: {
             parameter?: Jsonable;
             setting?: Setting;
         };

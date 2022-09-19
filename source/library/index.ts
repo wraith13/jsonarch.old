@@ -5,6 +5,25 @@ import * as Locale from "./locale";
 export * as Locale from "./locale";
 export module Jsonarch
 {
+    export type JsonableValue = null | boolean | number | string;
+    export interface JsonableObject
+    {
+        [key: string]: undefined | Jsonable;
+    }
+    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
+    export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
+    export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
+    export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
+    export const objectKeys = <T extends object>(target: T) => Object.keys(target) as (keyof T & string)[];
+    export const isString = (value: unknown): value is string => "string" === typeof value;
+    export const isNumber = (value: unknown): value is number => "number" === typeof value;
+    export const isObject = (value: unknown, isMember: { [key:string]: (x: unknown) => boolean } = { }): value is object =>
+        null !== value &&
+        "object" === typeof value &&
+        ! Array.isArray(value) &&
+        0 === objectKeys(isMember).filter(key => ! isMember[key]((<{ [key:string]: unknown }>value)[key])).length;
+    export const isArray = <T>(value: unknown, isType: (x: unknown) => x is T): value is T[] =>
+        Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
     export const getTemporaryDummy = Locale.getSystemLocale();
     export const packageJson = require("../package.json") as
     {
@@ -19,16 +38,6 @@ export module Jsonarch
     export const version = packageJson.version;
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
-    export type JsonableValue = null | boolean | number | string;
-    export interface JsonableObject
-    {
-        [key: string]: undefined | Jsonable;
-    }
-    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
-    export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
-    export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
-    export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
-    export const objectKeys = <T extends JsonableObject>(target: T) => Object.keys(target) as (keyof T & string)[];
     interface JsonarchBase extends JsonableObject
     {
         $arch: string;
@@ -420,7 +429,7 @@ export module Jsonarch
     {
         $arch: "template";
         type?: string;
-        defaults?:
+        default?:
         {
             parameter?: Jsonable;
             setting?: Setting;
@@ -457,7 +466,7 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                applyDefault(entry.template.defaults, entry.parameter),
+                applyDefault(entry.template.default, entry.parameter),
                 entry.template.override?.setting
             );
             if (entry.template.catch)
@@ -492,7 +501,7 @@ export module Jsonarch
         {
             export const json = (parameter: Jsonable | undefined) =>
             {
-                if (Array.isArray(parameter) && 0 === parameter.filter(i => "string" !== typeof i).length)
+                if (isArray(parameter, isString))
                 {
                     return parameter.join("");
                 }
