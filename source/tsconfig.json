@@ -27,12 +27,9 @@
         "noEmitOnError": true,
         "resolveJsonModule": true,
         "esModuleInterop": true,
+        "sourceRoot": "./",
         "outDir": ".."
     },
-    "files": [
-        "library/index.ts",
-        "command/index.ts"
-    ],
     "exclude": [
     ]
 }

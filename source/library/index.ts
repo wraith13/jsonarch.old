@@ -314,7 +314,7 @@ export module Jsonarch
         new (json: JsonarchError): Error;
         (json: JsonarchError): Error;
     };
-    export const parseErrorJson = (error: Error): JsonarchError | string =>
+    export const parseErrorJson = (error: Error): JsonarchError =>
     {
         if (error.message.startsWith("json:"))
         {
@@ -322,7 +322,12 @@ export module Jsonarch
         }
         else
         {
-            return error.message;
+            const result = <JsonarchError>
+            {
+                "$arch": "error",
+                ...error
+            };
+            return result;
         }
     };
     export const loadSystemJson = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>): Promise<DataType> => profile
@@ -643,15 +648,29 @@ export module Jsonarch
                 setting,
                 handler,
             };
-            const output = await apply(rootEvaluateEntry);
-            const result: Result =
+            try
             {
-                $arch: "result",
-                output,
-                cache,
-                setting,
-            };
-            return result;
+                const output = await apply(rootEvaluateEntry);
+                const result: Result =
+                {
+                    $arch: "result",
+                    output,
+                    cache,
+                    setting,
+                };
+                return result;
+            }
+            catch(error: any)
+            {
+                const result: Result =
+                {
+                    $arch: "result",
+                    output: parseErrorJson(error),
+                    cache,
+                    setting,
+                };
+                return result;
+            }
         }
     );
     export const process = async (entry: CompileEntry):Promise<Result> =>
@@ -700,6 +719,7 @@ export module Jsonarch
     };
     export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
     {
+        const indent = setting.indent ?? 4;
         if ("output" === asType && setting.textOutput && "string" === typeof json)
         {
             return json;
@@ -710,18 +730,18 @@ export module Jsonarch
             return json.join("\n");
         }
         else
-        if ("number" === typeof setting.indent)
+        if ("number" === typeof indent)
         {
-            return jsonStringify(json, undefined, setting.indent);
+            return jsonStringify(json, undefined, indent);
         }
         else
-        if ("tab" === setting.indent)
+        if ("tab" === indent)
         {
             return jsonStringify(json, undefined, "\t");
         }
         else
         {
-            // "minify" === setting.indent
+            // "minify" === indent
             return jsonStringify(json);
         }
     };

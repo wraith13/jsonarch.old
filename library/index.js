@@ -252,7 +252,8 @@ var Jsonarch;
             return Jsonarch.jsonParse(error.message.replace(/^json\:/, ""));
         }
         else {
-            return error.message;
+            var result = __assign({ "$arch": "error" }, error);
+            return result;
         }
     };
     Jsonarch.loadSystemJson = function (entry) { return Jsonarch.profile(entry, "loadSystemJson", function () { return __awaiter(_this, void 0, void 0, function () {
@@ -507,7 +508,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, rootEvaluateEntry, output, result;
+        var handler, context, rootEvaluateEntry, output, result, error_1, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -526,8 +527,11 @@ var Jsonarch;
                         setting: setting,
                         handler: handler,
                     };
-                    return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                case 2:
                     output = _a.sent();
                     result = {
                         $arch: "result",
@@ -536,6 +540,16 @@ var Jsonarch;
                         setting: setting,
                     };
                     return [2 /*return*/, result];
+                case 3:
+                    error_1 = _a.sent();
+                    result = {
+                        $arch: "result",
+                        output: Jsonarch.parseErrorJson(error_1),
+                        cache: cache,
+                        setting: setting,
+                    };
+                    return [2 /*return*/, result];
+                case 4: return [2 /*return*/];
             }
         });
     }); }); };
@@ -601,20 +615,22 @@ var Jsonarch;
         });
     }); };
     Jsonarch.jsonToString = function (json, asType, setting) {
+        var _a;
+        var indent = (_a = setting.indent) !== null && _a !== void 0 ? _a : 4;
         if ("output" === asType && setting.textOutput && "string" === typeof json) {
             return json;
         }
         else if ("output" === asType && setting.textOutput && Array.isArray(json) && 0 === json.filter(function (line) { return "string" !== typeof line; }).length) {
             return json.join("\n");
         }
-        else if ("number" === typeof setting.indent) {
-            return Jsonarch.jsonStringify(json, undefined, setting.indent);
+        else if ("number" === typeof indent) {
+            return Jsonarch.jsonStringify(json, undefined, indent);
         }
-        else if ("tab" === setting.indent) {
+        else if ("tab" === indent) {
             return Jsonarch.jsonStringify(json, undefined, "\t");
         }
         else {
-            // "minify" === setting.indent
+            // "minify" === indent
             return Jsonarch.jsonStringify(json);
         }
     };

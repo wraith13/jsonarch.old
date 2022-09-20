@@ -168,7 +168,7 @@ export declare module Jsonarch {
         (json: JsonarchError): Error;
         new (json: JsonarchError): Error;
     };
-    export const parseErrorJson: (error: Error) => JsonarchError | string;
+    export const parseErrorJson: (error: Error) => JsonarchError;
     export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;
