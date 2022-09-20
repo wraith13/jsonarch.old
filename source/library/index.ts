@@ -239,8 +239,10 @@ export module Jsonarch
     {
         handler: Handler;
     }
+    const isPureDataType = (template: JsonarchBase) =>
+        0 <= [ "setting", "cache", ].indexOf(template.$arch);
     export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> =>
-        isJsonarchBase(entry.template);
+        isJsonarchBase(entry.template) && ! isPureDataType(entry.template);
     interface Result extends JsonarchBase
     {
         $arch: "result";
@@ -500,6 +502,12 @@ export module Jsonarch
         parameter?: Jsonable;
     }
     export const isCallData = isJsonarch<Call>("call");
+    interface Value extends JsonarchBase
+    {
+        $arch: "value";
+        refer: Refer;
+    }
+    export const isValueData = isJsonarch<Value>("value");
     export module Library
     {
         export module String
@@ -532,7 +540,7 @@ export module Jsonarch
                 await apply({...entry, template: entry.template.parameter, });
             switch(entry.template.refer)
             {
-            case "string.json":
+            case "string.join":
                 return Library.String.json(parameter);
             default:
                 throw new ErrorJson
@@ -544,6 +552,14 @@ export module Jsonarch
             }
         }
     );
+    export const evaluateValue = (entry: EvaluateEntry<Value>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateValue", async () =>
+        {
+            //entry.template.refer;
+            return (entry.parameter as any).name;
+        }
+    );
     export const evaluateIfMatch = <TargetType extends JsonarchBase>(isMatch: ((entry: JsonarchBase) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
         async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
@@ -552,6 +568,8 @@ export module Jsonarch
         evaluateIfMatch(isStaticData, evaluateStatic),
         evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
         evaluateIfMatch(isTemplateData, evaluateTemplate),
+        evaluateIfMatch(isCallData, evaluateCall),
+        evaluateIfMatch(isValueData, evaluateValue),
     ];
     export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> => profile
     (

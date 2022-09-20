@@ -190,8 +190,11 @@ var Jsonarch;
     Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isLocalFileContext(entry.file); };
+    var isPureDataType = function (template) {
+        return 0 <= ["setting", "cache",].indexOf(template.$arch);
+    };
     Jsonarch.isEvaluateTargetEntry = function (entry) {
-        return Jsonarch.isJsonarchBase(entry.template);
+        return Jsonarch.isJsonarchBase(entry.template) && !isPureDataType(entry.template);
     };
     Jsonarch.isResult = Jsonarch.isJsonarch("result");
     Jsonarch.isError = Jsonarch.isJsonarch("error");
@@ -378,6 +381,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isCallData = Jsonarch.isJsonarch("call");
+    Jsonarch.isValueData = Jsonarch.isJsonarch("value");
     var Library;
     (function (Library) {
         var String;
@@ -412,7 +416,7 @@ var Jsonarch;
                 case 3:
                     parameter = _a;
                     switch (entry.template.refer) {
-                        case "string.json":
+                        case "string.join":
                             return [2 /*return*/, Library.String.json(parameter)];
                         default:
                             throw new Jsonarch.ErrorJson({
@@ -425,6 +429,12 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateValue = function (entry) { return Jsonarch.profile(entry, "evaluateValue", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            //entry.template.refer;
+            return [2 /*return*/, entry.parameter.name];
+        });
+    }); }); };
     Jsonarch.evaluateIfMatch = function (isMatch, evaluateTarget) {
         return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
             return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
@@ -434,6 +444,8 @@ var Jsonarch;
         Jsonarch.evaluateIfMatch(Jsonarch.isStaticData, Jsonarch.evaluateStatic),
         Jsonarch.evaluateIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
         Jsonarch.evaluateIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplate),
+        Jsonarch.evaluateIfMatch(Jsonarch.isCallData, Jsonarch.evaluateCall),
+        Jsonarch.evaluateIfMatch(Jsonarch.isValueData, Jsonarch.evaluateValue),
     ];
     Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
         var _a, _b, _i, i, result;

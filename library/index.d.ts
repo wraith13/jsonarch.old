@@ -211,12 +211,18 @@ export declare module Jsonarch {
         parameter?: Jsonable;
     }
     export const isCallData: (template: Jsonable) => template is Call;
+    interface Value extends JsonarchBase {
+        $arch: "value";
+        refer: Refer;
+    }
+    export const isValueData: (template: Jsonable) => template is Value;
     export module Library {
         module String {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
+    export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends JsonarchBase>(isMatch: (entry: JsonarchBase) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable>;
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
