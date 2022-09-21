@@ -12,7 +12,7 @@
                 "Hello, ",
                 {
                     "$arch": "value",
-                    "refer": "parameter.name"
+                    "refer": ["parameter","name"]
                 },
                 "!"
             ]

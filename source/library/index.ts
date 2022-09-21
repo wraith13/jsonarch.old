@@ -494,7 +494,10 @@ export module Jsonarch
             }
         }
     );
-    type Refer = string;
+    type ReferKeyElement = string;
+    type ReferIndextElement = number;
+    type ReferElement = ReferKeyElement | ReferIndextElement;
+    type Refer = ReferElement[];
     interface Call extends JsonarchBase
     {
         $arch: "call";
@@ -531,6 +534,37 @@ export module Jsonarch
             };
         }
     }
+    export const turnRefer = (root: Jsonable, refer: Refer): JsonarchBase | undefined =>
+    {
+
+    };
+    export const resolveRefer = (entry: EvaluateEntry<JsonarchBase & { refer: Refer}>): JsonarchBase | undefined =>
+    {
+        switch(entry.template.refer[0])
+        {
+        case "template":
+            break;
+        case "type":
+            break;
+        case "value":
+            break;
+        case "parameter":
+            if (entry.parameter)
+            {
+                return turnRefer(entry.parameter, entry.template.refer.filter((_i, ix) => 0 < ix));
+            }
+            else
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "sssssssssssssss",
+                });
+            }
+            break;
+        }
+        return undefined;
+    };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
     (
         entry, "evaluateCall", async () =>
@@ -557,6 +591,7 @@ export module Jsonarch
         entry, "evaluateValue", async () =>
         {
             //entry.template.refer;
+
             return (entry.parameter as any).name;
         }
     );
