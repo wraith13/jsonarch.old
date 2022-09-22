@@ -187,8 +187,9 @@ export module Jsonarch
     {
         $arch: "cache";
         json?: { [path: string]: Jsonable };
-        values?: { [key: string]: Jsonable; };
-        templates?: { [key: string]: Jsonable; };
+        template?: { [key: string]: Jsonable; };
+        type?: { [key: string]: Jsonable; };
+        value?: { [key: string]: Jsonable; };
     }
     export const isCache = isJsonarch<Cache>("cache");
     export interface Setting extends JsonarchBase
@@ -534,36 +535,52 @@ export module Jsonarch
             };
         }
     }
-    export const turnRefer = (root: Jsonable, refer: Refer): JsonarchBase | undefined =>
+    export const turnRefer = (root: Jsonable, refer: Refer): Jsonable | undefined =>
     {
-
-    };
-    export const resolveRefer = (entry: EvaluateEntry<JsonarchBase & { refer: Refer}>): JsonarchBase | undefined =>
-    {
-        switch(entry.template.refer[0])
+        let rest = refer.map(i => i);
+        let current: Jsonable | undefined = root;
+        while(true)
         {
-        case "template":
-            break;
-        case "type":
-            break;
-        case "value":
-            break;
-        case "parameter":
-            if (entry.parameter)
+            if (rest.length <= 0)
             {
-                return turnRefer(entry.parameter, entry.template.refer.filter((_i, ix) => 0 < ix));
+                return current;
+            }
+            if (undefined === current || null === current || "object" !== typeof current)
+            {
+                return undefined;
+            }
+            const key = rest.shift();
+            if ("number" === typeof key && Array.isArray(current))
+            {
+                current = current[key];
+            }
+            else
+            if ("string" === typeof key && ! Array.isArray(current))
+            {
+                current = current[key];
             }
             else
             {
                 throw new ErrorJson
                 ({
                     "$arch": "error",
-                    "message": "sssssssssssssss",
+                    "message": "Unmatch refer path",
                 });
             }
-            break;
         }
-        return undefined;
+    };
+    export const resolveRefer = (entry: EvaluateEntry<JsonarchBase & { refer: Refer}>): Jsonable | undefined =>
+    {
+        return turnRefer
+        (
+            {
+                template: entry.cache.template,
+                type: entry.cache.type,
+                value: entry.cache.value,
+                parameter: entry.parameter,
+            },
+            entry.template.refer
+        );
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
     (
@@ -572,11 +589,32 @@ export module Jsonarch
             const parameter = undefined === entry.template.parameter ?
                 undefined:
                 await apply({...entry, template: entry.template.parameter, });
-            switch(entry.template.refer)
+            const target: any = turnRefer
+            (
+                {
+                    string:
+                    {
+                        join: Library.String.json,
+                    },
+                    template: entry.cache.template,
+                } as any,
+                entry.template.refer
+            );
+            if ("function" === typeof target)
             {
-            case "string.join":
-                return Library.String.json(parameter);
-            default:
+                return target(parameter);
+            }
+            else
+            if (isTemplateData(target))
+            {
+                return await evaluateTemplate
+                ({
+                    ...entry,
+                    template: target,
+                });
+            }
+            else
+            {
                 throw new ErrorJson
                 ({
                     "$arch": "error",

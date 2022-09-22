@@ -401,8 +401,41 @@ var Jsonarch;
             };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
+    Jsonarch.turnRefer = function (root, refer) {
+        var rest = refer.map(function (i) { return i; });
+        var current = root;
+        while (true) {
+            if (rest.length <= 0) {
+                return current;
+            }
+            if (undefined === current || null === current || "object" !== typeof current) {
+                return undefined;
+            }
+            var key = rest.shift();
+            if ("number" === typeof key && Array.isArray(current)) {
+                current = current[key];
+            }
+            else if ("string" === typeof key && !Array.isArray(current)) {
+                current = current[key];
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unmatch refer path",
+                });
+            }
+        }
+    };
+    Jsonarch.resolveRefer = function (entry) {
+        return Jsonarch.turnRefer({
+            template: entry.cache.template,
+            type: entry.cache.type,
+            value: entry.cache.value,
+            parameter: entry.parameter,
+        }, entry.template.refer);
+    };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, _a;
+        var parameter, _a, target;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -415,17 +448,23 @@ var Jsonarch;
                     _b.label = 3;
                 case 3:
                     parameter = _a;
-                    switch (entry.template.refer) {
-                        case "string.join":
-                            return [2 /*return*/, Library.String.json(parameter)];
-                        default:
-                            throw new Jsonarch.ErrorJson({
-                                "$arch": "error",
-                                "message": "Unknown refer call",
-                                "refer": entry.template.refer,
-                            });
-                    }
-                    return [2 /*return*/];
+                    target = Jsonarch.turnRefer({
+                        string: {
+                            join: Library.String.json,
+                        },
+                        template: entry.cache.template,
+                    }, entry.template.refer);
+                    if (!("function" === typeof target)) return [3 /*break*/, 4];
+                    return [2 /*return*/, target(parameter)];
+                case 4:
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 6];
+                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, entry), { template: target }))];
+                case 5: return [2 /*return*/, _b.sent()];
+                case 6: throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown refer call",
+                    "refer": entry.template.refer,
+                });
             }
         });
     }); }); };

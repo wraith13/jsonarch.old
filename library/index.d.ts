@@ -97,10 +97,13 @@ export declare module Jsonarch {
         json?: {
             [path: string]: Jsonable;
         };
-        values?: {
+        template?: {
             [key: string]: Jsonable;
         };
-        templates?: {
+        type?: {
+            [key: string]: Jsonable;
+        };
+        value?: {
             [key: string]: Jsonable;
         };
     }
@@ -204,7 +207,10 @@ export declare module Jsonarch {
     export const isTemplateData: (template: Jsonable) => template is Template;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
-    type Refer = string;
+    type ReferKeyElement = string;
+    type ReferIndextElement = number;
+    type ReferElement = ReferKeyElement | ReferIndextElement;
+    type Refer = ReferElement[];
     interface Call extends JsonarchBase {
         $arch: "call";
         refer: Refer;
@@ -221,6 +227,10 @@ export declare module Jsonarch {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
+    export const turnRefer: (root: Jsonable, refer: Refer) => Jsonable | undefined;
+    export const resolveRefer: (entry: EvaluateEntry<JsonarchBase & {
+        refer: Refer;
+    }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends JsonarchBase>(isMatch: (entry: JsonarchBase) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>;
