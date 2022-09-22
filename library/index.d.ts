@@ -1,10 +1,12 @@
 export * as Locale from "./locale";
 export declare module Jsonarch {
-    export type JsonableValue = null | boolean | number | string;
-    export interface JsonableObject {
-        [key: string]: undefined | Jsonable;
+    export interface StructureObject<Element> {
+        [key: string]: undefined | Structure<Element>;
     }
-    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
+    export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
+    export type JsonableValue = null | boolean | number | string;
+    export type JsonableObject = StructureObject<JsonableValue>;
+    export type Jsonable = Structure<JsonableValue>;
     export type JsonablePartial<Target> = {
         [key in keyof Target]?: Target[key];
     } & JsonableObject;
@@ -33,8 +35,8 @@ export declare module Jsonarch {
     interface JsonarchBase extends JsonableObject {
         $arch: string;
     }
-    export const isJsonarch: <Type extends JsonarchBase>(type: Type["$arch"]) => (template: Jsonable) => template is Type;
-    export const isJsonarchBase: (template: Jsonable) => template is JsonarchBase;
+    export const isJsonarch: <Type extends JsonarchBase>(type: Type["$arch"]) => (template: any) => template is Type;
+    export const isJsonarchBase: (template: any) => template is JsonarchBase;
     interface Profile {
         isProfiling: boolean;
         score: {
@@ -107,7 +109,7 @@ export declare module Jsonarch {
             [key: string]: Jsonable;
         };
     }
-    export const isCache: (template: Jsonable) => template is Cache;
+    export const isCache: (template: any) => template is Cache;
     export interface Setting extends JsonarchBase {
         $arch: "setting";
         language?: string;
@@ -120,7 +122,7 @@ export declare module Jsonarch {
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
     }
-    export const isSetting: (template: Jsonable) => template is Setting;
+    export const isSetting: (template: any) => template is Setting;
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
         cache: Cache;
@@ -157,12 +159,12 @@ export declare module Jsonarch {
         callGraph?: any;
         setting: Setting;
     }
-    export const isResult: (template: Jsonable) => template is Result;
+    export const isResult: (template: any) => template is Result;
     interface JsonarchError extends JsonarchBase {
         $arch: "error";
         message: string;
     }
-    export const isError: (template: Jsonable) => template is JsonarchError;
+    export const isError: (template: any) => template is JsonarchError;
     export const getTicks: () => number;
     export const profile: <ResultT>(contextOrEntry: Context | {
         context: Context;
@@ -181,13 +183,13 @@ export declare module Jsonarch {
         $arch: "static";
         return: Jsonable;
     }
-    export const isStaticData: (template: Jsonable) => template is StaticTemplate;
+    export const isStaticData: (template: any) => template is StaticTemplate;
     export const evaluateStatic: (entry: EvaluateEntry<StaticTemplate>) => Promise<Jsonable>;
     interface IncludeStaticJsonTemplate extends JsonarchBase {
         $arch: "include-static-json";
         path: string;
     }
-    export const isIncludeStaticJsonData: (template: Jsonable) => template is IncludeStaticJsonTemplate;
+    export const isIncludeStaticJsonData: (template: any) => template is IncludeStaticJsonTemplate;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
     interface Template extends JsonarchBase {
         $arch: "template";
@@ -204,7 +206,7 @@ export declare module Jsonarch {
         return: Jsonable;
         catch?: JsonableObject;
     }
-    export const isTemplateData: (template: Jsonable) => template is Template;
+    export const isTemplateData: (template: any) => template is Template;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     type ReferKeyElement = string;
@@ -216,18 +218,18 @@ export declare module Jsonarch {
         refer: Refer;
         parameter?: Jsonable;
     }
-    export const isCallData: (template: Jsonable) => template is Call;
+    export const isCallData: (template: any) => template is Call;
     interface Value extends JsonarchBase {
         $arch: "value";
         refer: Refer;
     }
-    export const isValueData: (template: Jsonable) => template is Value;
+    export const isValueData: (template: any) => template is Value;
     export module Library {
         module String {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
-    export const turnRefer: (root: Jsonable, refer: Refer) => Jsonable | undefined;
+    export const turnRefer: <Element_1 extends string | number | boolean | Function | null>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<JsonarchBase & {
         refer: Refer;
     }>) => Jsonable | undefined;

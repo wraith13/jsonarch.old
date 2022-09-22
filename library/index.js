@@ -415,7 +415,7 @@ var Jsonarch;
             if ("number" === typeof key && Array.isArray(current)) {
                 current = current[key];
             }
-            else if ("string" === typeof key && !Array.isArray(current)) {
+            else if ("string" === typeof key && !Array.isArray(current) && key in current) {
                 current = current[key];
             }
             else {

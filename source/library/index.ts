@@ -5,12 +5,21 @@ import * as Locale from "./locale";
 export * as Locale from "./locale";
 export module Jsonarch
 {
-    export type JsonableValue = null | boolean | number | string;
-    export interface JsonableObject
+    // export type JsonableValue = null | boolean | number | string;
+    // export interface JsonableObject
+    // {
+    //     [key: string]: undefined | Jsonable;
+    // }
+    // export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
+    export interface StructureObject<Element>
     {
-        [key: string]: undefined | Jsonable;
+        [key: string]: undefined | Structure<Element>;
     }
-    export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
+    export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
+    export type JsonableValue = null | boolean | number | string;
+    export type JsonableObject = StructureObject<JsonableValue>;
+    export type Jsonable = Structure<JsonableValue>;
+
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
     export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
     export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
@@ -43,9 +52,9 @@ export module Jsonarch
         $arch: string;
     }
     export const isJsonarch = <Type extends JsonarchBase>(type: Type["$arch"]) =>
-        ((template: Jsonable): template is Type =>
+        ((template: any): template is Type =>
             isJsonarchBase(template) && type === template.$arch);
-    export const isJsonarchBase = (template: Jsonable): template is JsonarchBase =>
+    export const isJsonarchBase = (template: any): template is JsonarchBase =>
         null !== template &&
         "object" === typeof template &&
         "$arch" in template &&
@@ -535,10 +544,10 @@ export module Jsonarch
             };
         }
     }
-    export const turnRefer = (root: Jsonable, refer: Refer): Jsonable | undefined =>
+    export const turnRefer = <Element extends null | boolean | number | string | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);
-        let current: Jsonable | undefined = root;
+        let current: Structure<Element> | undefined = root;
         while(true)
         {
             if (rest.length <= 0)
@@ -555,7 +564,7 @@ export module Jsonarch
                 current = current[key];
             }
             else
-            if ("string" === typeof key && ! Array.isArray(current))
+            if ("string" === typeof key && ! Array.isArray(current) && key in current)
             {
                 current = current[key];
             }
@@ -571,7 +580,7 @@ export module Jsonarch
     };
     export const resolveRefer = (entry: EvaluateEntry<JsonarchBase & { refer: Refer}>): Jsonable | undefined =>
     {
-        return turnRefer
+        return turnRefer<JsonableValue>
         (
             {
                 template: entry.cache.template,
@@ -589,7 +598,7 @@ export module Jsonarch
             const parameter = undefined === entry.template.parameter ?
                 undefined:
                 await apply({...entry, template: entry.template.parameter, });
-            const target: any = turnRefer
+            const target = turnRefer<JsonableValue | Function>
             (
                 {
                     string:
@@ -597,7 +606,7 @@ export module Jsonarch
                         join: Library.String.json,
                     },
                     template: entry.cache.template,
-                } as any,
+                },
                 entry.template.refer
             );
             if ("function" === typeof target)
