@@ -5,12 +5,6 @@ import * as Locale from "./locale";
 export * as Locale from "./locale";
 export module Jsonarch
 {
-    // export type JsonableValue = null | boolean | number | string;
-    // export interface JsonableObject
-    // {
-    //     [key: string]: undefined | Jsonable;
-    // }
-    // export type Jsonable = JsonableValue | Jsonable[] | JsonableObject;
     export interface StructureObject<Element>
     {
         [key: string]: undefined | Structure<Element>;
@@ -544,7 +538,7 @@ export module Jsonarch
             };
         }
     }
-    export const turnRefer = <Element extends null | boolean | number | string | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
+    export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);
         let current: Structure<Element> | undefined = root;

@@ -229,7 +229,7 @@ export declare module Jsonarch {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
-    export const turnRefer: <Element_1 extends string | number | boolean | Function | null>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
+    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<JsonarchBase & {
         refer: Refer;
     }>) => Jsonable | undefined;

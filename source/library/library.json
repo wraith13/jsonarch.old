@@ -1,0 +1,49 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "library",
+    "type":
+    {
+
+    },
+    "library":
+    {
+        "string":
+        {
+            "$arch": "library",
+            "type":
+            {
+            },
+            "template":
+            {
+                "join":
+                {
+                    "$arch": "template",
+                    "type":
+                    {
+                        "parameter":
+                        {
+                            "$arch": "type",
+                            "type": "array",
+                            "itemType": "string"
+                        },
+                        "return": "string"
+                    }
+                },
+                "split":
+                {
+                    "$arch": "template",
+                    "type":
+                    {
+                        "parameter": "string",
+                        "return":
+                        {
+                            "$arch": "type",
+                            "type": "array",
+                            "itemType": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "preview": true,
     "description": "Jsonarch is JSON to JSON Processor.",
-    "main": "libarary/index.js",
+    "main": "library/index.js",
     "types": "library/index.d.ts",
     "bin": "command/index.js",
     "bugs": {
