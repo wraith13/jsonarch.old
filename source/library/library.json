@@ -1,18 +1,13 @@
 {
     "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
     "$arch": "library",
-    "type":
-    {
-
-    },
+    "type": { },
     "library":
     {
         "string":
         {
             "$arch": "library",
-            "type":
-            {
-            },
+            "type": { },
             "template":
             {
                 "join":
@@ -25,11 +20,14 @@
                         {
                             "parameter":
                             {
-                                "$arch": "or", "value":
+                                "$arch": "or",
+                                "value":
                                 [
                                     { "$arch": "type", "type": "array", "itemType": "string" },
                                     {
-                                        "$arch": "type", "type": "object", "member":
+                                        "$arch": "type",
+                                        "type": "object",
+                                        "member":
                                         {
                                             "list": { "$arch": "type", "type": "array", "itemType": "string" },
                                             "separator": { "$arch": "type", "type": "string" }
@@ -43,11 +41,14 @@
                 },
                 "split":
                 {
-                    "$arch": "template", "type":
+                    "$arch": "template",
+                    "type":
                     {
                         "parameter":
                         {
-                            "$arch": "type", "type": "object", "member":
+                            "$arch": "type",
+                            "type": "object",
+                            "member":
                             {
                                 "text": { "$arch": "type", "type": "string" },
                                 "separator": { "$arch": "type", "type": "string" }

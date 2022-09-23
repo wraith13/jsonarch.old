@@ -705,7 +705,7 @@ var Jsonarch;
                 result += "\n" + baseIndent + "}";
             }
             else {
-                result += "{ ";
+                result += "{";
                 var isFirst_2 = true;
                 Jsonarch.objectKeys(json).forEach(function (key) {
                     var value = json[key];
@@ -714,9 +714,9 @@ var Jsonarch;
                             isFirst_2 = false;
                         }
                         else {
-                            result += ", ";
+                            result += ",";
                         }
-                        result += Jsonarch.jsonStringify(key) + ": " + Jsonarch.jsonStringify(value);
+                        result += " " + Jsonarch.jsonStringify(key) + ": " + Jsonarch.jsonStringify(value);
                     }
                 });
                 result += " }";
@@ -744,16 +744,16 @@ var Jsonarch;
                 result += "\n" + baseIndent + "]";
             }
             else {
-                result += "[ ";
+                result += "[";
                 var isFirst_4 = true;
                 json.forEach(function (value) {
                     if (isFirst_4) {
                         isFirst_4 = false;
                     }
                     else {
-                        result += ", ";
+                        result += ",";
                     }
-                    result += Jsonarch.jsonStringify(value);
+                    result += " " + Jsonarch.jsonStringify(value);
                 });
                 result += " ]";
             }

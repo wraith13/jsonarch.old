@@ -860,7 +860,7 @@ export module Jsonarch
             }
             else
             {
-                result += "{ ";
+                result += "{";
                 let isFirst = true;
                 objectKeys(json).forEach
                 (
@@ -875,9 +875,9 @@ export module Jsonarch
                             }
                             else
                             {
-                                result += ", ";
+                                result += ",";
                             }
-                            result += jsonStringify(key) +": " +jsonStringify(value);
+                            result += " " +jsonStringify(key) +": " +jsonStringify(value);
                         }
                     }
                 );
@@ -918,7 +918,7 @@ export module Jsonarch
             }
             else
             {
-                result += "[ ";
+                result += "[";
                 let isFirst = true;
                 json.forEach
                 (
@@ -930,9 +930,9 @@ export module Jsonarch
                         }
                         else
                         {
-                            result += ", ";
+                            result += ",";
                         }
-                        result += jsonStringify(value);
+                        result += " " +jsonStringify(value);
                     }
                 );
                 result += " ]";
