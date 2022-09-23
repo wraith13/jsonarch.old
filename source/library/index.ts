@@ -13,18 +13,18 @@ export module Jsonarch
     export type JsonableValue = null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
-
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
     export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
     export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
-    export const objectKeys = <T extends object>(target: T) => Object.keys(target) as (keyof T & string)[];
+    export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
+    export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
     export const isString = (value: unknown): value is string => "string" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
-    export const isObject = (value: unknown, isMember: { [key:string]: (x: unknown) => boolean } = { }): value is object =>
+    export const isObject = <T extends { }>(value: unknown, isMember: { [key in keyof T]?: (x: unknown) => x is T[key] } = { }): value is T =>
         null !== value &&
         "object" === typeof value &&
         ! Array.isArray(value) &&
-        0 === objectKeys(isMember).filter(key => ! isMember[key]((<{ [key:string]: unknown }>value)[key])).length;
+        0 === objectKeys(isMember).filter(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true)).length;
     export const isArray = <T>(value: unknown, isType: (x: unknown) => x is T): value is T[] =>
         Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
     export const getTemporaryDummy = Locale.getSystemLocale();
@@ -199,7 +199,7 @@ export module Jsonarch
     {
         $arch: "setting";
         language?: string;
-        indent?: "minify" | "tab" | number;
+        indent?: "minify" | "smart" | "tab" | number;
         textOutput?: boolean;
         timeout?: number;
         trace?: "stdout" | "stderr" | boolean;
@@ -811,9 +811,146 @@ export module Jsonarch
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, cache, setting);
     };
+    export const multiplyString = (text: string, count: number): string =>
+        count < 1 ? "": (multiplyString(text +text, Math.floor(count /2)) + (0 === count % 2 ? "": text));
+    export const smartJsonStringify = (json: Jsonable, indent: "tab" | number = 4, base: number = 0): string =>
+    {
+        let result = "";
+        const baseIndent = "tab" === indent ?
+            multiplyString("\t", base):
+            multiplyString(" ", indent *base);
+        const nextIndent = "tab" === indent ?
+            multiplyString("\t", base +1):
+            multiplyString(" ", indent *(base +1));
+        if (isObject<JsonableObject>(json))
+        {
+            if (objectValues(json).some(i => isObject(i) || Array.isArray(i)))
+            {
+                result += baseIndent +"{\n";
+                let isFirst = true;
+                objectKeys(json).forEach
+                (
+                    key =>
+                    {
+                        const value = json[key];
+                        if (undefined !== value)
+                        {
+                            if (isFirst)
+                            {
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                result += ",\n";
+                            }
+                            const valueJson = smartJsonStringify(value, indent, base +1);
+                            if (0 <= valueJson.indexOf("\n"))
+                            {
+                                result += nextIndent +jsonStringify(key) +":\n";
+                                result += valueJson;
+                            }
+                            else
+                            {
+                                result += nextIndent +jsonStringify(key) +": " +valueJson;
+                            }
+                        }
+                    }
+                );
+                result += "\n" +baseIndent +"}";
+            }
+            else
+            {
+                result += "{ ";
+                let isFirst = true;
+                objectKeys(json).forEach
+                (
+                    key =>
+                    {
+                        const value = json[key];
+                        if (undefined !== value)
+                        {
+                            if (isFirst)
+                            {
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                result += ", ";
+                            }
+                            result += jsonStringify(key) +": " +jsonStringify(value);
+                        }
+                    }
+                );
+                result += " }";
+            }
+        }
+        else
+        if (Array.isArray(json))
+        {
+            if (json.some(i => isObject(i) || Array.isArray(i)))
+            {
+                result += baseIndent +"[\n";
+                let isFirst = true;
+                json.forEach
+                (
+                    value =>
+                    {
+                        if (isFirst)
+                        {
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            result += ",\n";
+                        }
+                        const valueJson = smartJsonStringify(value, indent, base +1);
+                        if (0 <= valueJson.indexOf("\n"))
+                        {
+                            result += valueJson;
+                        }
+                        else
+                        {
+                            result += nextIndent +valueJson;
+                        }
+                    }
+                );
+                result += "\n" +baseIndent +"]";
+            }
+            else
+            {
+                result += "[ ";
+                let isFirst = true;
+                json.forEach
+                (
+                    value =>
+                    {
+                        if (isFirst)
+                        {
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            result += ", ";
+                        }
+                        result += jsonStringify(value);
+                    }
+                );
+                result += " ]";
+            }
+        }
+        else
+        {
+            result += jsonStringify(json);
+        }
+        if (base <= 0)
+        {
+            result += "\n";
+        }
+        return result;
+    };
     export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
     {
-        const indent = setting.indent ?? 4;
+        const indent = setting.indent ?? "smart";
         if ("output" === asType && setting.textOutput && "string" === typeof json)
         {
             return json;
@@ -832,6 +969,11 @@ export module Jsonarch
         if ("tab" === indent)
         {
             return jsonStringify(json, undefined, "\t");
+        }
+        else
+        if ("smart" === indent)
+        {
+            return smartJsonStringify(json, 4);
         }
         else
         {

@@ -20,27 +20,40 @@
                     "$arch": "template",
                     "type":
                     {
-                        "parameter":
+                        "$arch": "type",
+                        "type":
                         {
-                            "$arch": "type",
-                            "type": "array",
-                            "itemType": "string"
-                        },
-                        "return": "string"
+                            "parameter":
+                            {
+                                "$arch": "or", "value":
+                                [
+                                    { "$arch": "type", "type": "array", "itemType": "string" },
+                                    {
+                                        "$arch": "type", "type": "object", "member":
+                                        {
+                                            "list": { "$arch": "type", "type": "array", "itemType": "string" },
+                                            "separator": { "$arch": "type", "type": "string" }
+                                        }
+                                    }
+                                ]
+                            },
+                            "return": { "$arch": "type", "type": "string" }
+                        }
                     }
                 },
                 "split":
                 {
-                    "$arch": "template",
-                    "type":
+                    "$arch": "template", "type":
                     {
-                        "parameter": "string",
-                        "return":
+                        "parameter":
                         {
-                            "$arch": "type",
-                            "type": "array",
-                            "itemType": "string"
-                        }
+                            "$arch": "type", "type": "object", "member":
+                            {
+                                "text": { "$arch": "type", "type": "string" },
+                                "separator": { "$arch": "type", "type": "string" }
+                            }
+                        },
+                        "return": { "$arch": "type", "type": "array", "itemType": "string" }
                     }
                 }
             }

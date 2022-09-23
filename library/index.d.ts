@@ -12,12 +12,11 @@ export declare module Jsonarch {
     } & JsonableObject;
     export const jsonStringify: <T extends Jsonable>(source: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number) => string;
     export const jsonParse: <T extends Jsonable = Jsonable>(text: string, reviver?: ((this: any, key: string, value: any) => any) | undefined) => T;
-    export const objectKeys: <T extends object>(target: T) => (keyof T & string)[];
+    export const objectKeys: <T extends {}>(target: T) => (keyof T & string)[];
+    export const objectValues: <T extends {}>(target: T) => T[keyof T][];
     export const isString: (value: unknown) => value is string;
     export const isNumber: (value: unknown) => value is number;
-    export const isObject: (value: unknown, isMember?: {
-        [key: string]: (x: unknown) => boolean;
-    }) => value is object;
+    export const isObject: <T extends {}>(value: unknown, isMember?: { [key in keyof T]?: ((x: unknown) => x is T[key]) | undefined; }) => value is T;
     export const isArray: <T>(value: unknown, isType: (x: unknown) => x is T) => value is T[];
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
@@ -113,7 +112,7 @@ export declare module Jsonarch {
     export interface Setting extends JsonarchBase {
         $arch: "setting";
         language?: string;
-        indent?: "minify" | "tab" | number;
+        indent?: "minify" | "smart" | "tab" | number;
         textOutput?: boolean;
         timeout?: number;
         trace?: "stdout" | "stderr" | boolean;
@@ -240,6 +239,8 @@ export declare module Jsonarch {
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
+    export const multiplyString: (text: string, count: number) => string;
+    export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;
     export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;
     export const throwIfError: <DataType extends Jsonable>(json: DataType) => DataType;
     export {};

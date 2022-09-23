@@ -85,6 +85,7 @@ var Jsonarch;
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
+    Jsonarch.objectValues = function (target) { return Object.values(target); };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
     Jsonarch.isObject = function (value, isMember) {
@@ -92,7 +93,7 @@ var Jsonarch;
         return null !== value &&
             "object" === typeof value &&
             !Array.isArray(value) &&
-            0 === Jsonarch.objectKeys(isMember).filter(function (key) { return !isMember[key](value[key]); }).length;
+            0 === Jsonarch.objectKeys(isMember).filter(function (key) { var _a; return !(((_a = isMember[key]) === null || _a === void 0 ? void 0 : _a.call(isMember, value[key])) || true); }).length;
     };
     Jsonarch.isArray = function (value, isType) {
         return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length;
@@ -665,9 +666,109 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.multiplyString = function (text, count) {
+        return count < 1 ? "" : (Jsonarch.multiplyString(text + text, Math.floor(count / 2)) + (0 === count % 2 ? "" : text));
+    };
+    Jsonarch.smartJsonStringify = function (json, indent, base) {
+        if (indent === void 0) { indent = 4; }
+        if (base === void 0) { base = 0; }
+        var result = "";
+        var baseIndent = "tab" === indent ?
+            Jsonarch.multiplyString("\t", base) :
+            Jsonarch.multiplyString(" ", indent * base);
+        var nextIndent = "tab" === indent ?
+            Jsonarch.multiplyString("\t", base + 1) :
+            Jsonarch.multiplyString(" ", indent * (base + 1));
+        if (Jsonarch.isObject(json)) {
+            if (Jsonarch.objectValues(json).some(function (i) { return Jsonarch.isObject(i) || Array.isArray(i); })) {
+                result += baseIndent + "{\n";
+                var isFirst_1 = true;
+                Jsonarch.objectKeys(json).forEach(function (key) {
+                    var value = json[key];
+                    if (undefined !== value) {
+                        if (isFirst_1) {
+                            isFirst_1 = false;
+                        }
+                        else {
+                            result += ",\n";
+                        }
+                        var valueJson = Jsonarch.smartJsonStringify(value, indent, base + 1);
+                        if (0 <= valueJson.indexOf("\n")) {
+                            result += nextIndent + Jsonarch.jsonStringify(key) + ":\n";
+                            result += valueJson;
+                        }
+                        else {
+                            result += nextIndent + Jsonarch.jsonStringify(key) + ": " + valueJson;
+                        }
+                    }
+                });
+                result += "\n" + baseIndent + "}";
+            }
+            else {
+                result += "{ ";
+                var isFirst_2 = true;
+                Jsonarch.objectKeys(json).forEach(function (key) {
+                    var value = json[key];
+                    if (undefined !== value) {
+                        if (isFirst_2) {
+                            isFirst_2 = false;
+                        }
+                        else {
+                            result += ", ";
+                        }
+                        result += Jsonarch.jsonStringify(key) + ": " + Jsonarch.jsonStringify(value);
+                    }
+                });
+                result += " }";
+            }
+        }
+        else if (Array.isArray(json)) {
+            if (json.some(function (i) { return Jsonarch.isObject(i) || Array.isArray(i); })) {
+                result += baseIndent + "[\n";
+                var isFirst_3 = true;
+                json.forEach(function (value) {
+                    if (isFirst_3) {
+                        isFirst_3 = false;
+                    }
+                    else {
+                        result += ",\n";
+                    }
+                    var valueJson = Jsonarch.smartJsonStringify(value, indent, base + 1);
+                    if (0 <= valueJson.indexOf("\n")) {
+                        result += valueJson;
+                    }
+                    else {
+                        result += nextIndent + valueJson;
+                    }
+                });
+                result += "\n" + baseIndent + "]";
+            }
+            else {
+                result += "[ ";
+                var isFirst_4 = true;
+                json.forEach(function (value) {
+                    if (isFirst_4) {
+                        isFirst_4 = false;
+                    }
+                    else {
+                        result += ", ";
+                    }
+                    result += Jsonarch.jsonStringify(value);
+                });
+                result += " ]";
+            }
+        }
+        else {
+            result += Jsonarch.jsonStringify(json);
+        }
+        if (base <= 0) {
+            result += "\n";
+        }
+        return result;
+    };
     Jsonarch.jsonToString = function (json, asType, setting) {
         var _a;
-        var indent = (_a = setting.indent) !== null && _a !== void 0 ? _a : 4;
+        var indent = (_a = setting.indent) !== null && _a !== void 0 ? _a : "smart";
         if ("output" === asType && setting.textOutput && "string" === typeof json) {
             return json;
         }
@@ -679,6 +780,9 @@ var Jsonarch;
         }
         else if ("tab" === indent) {
             return Jsonarch.jsonStringify(json, undefined, "\t");
+        }
+        else if ("smart" === indent) {
+            return Jsonarch.smartJsonStringify(json, 4);
         }
         else {
             // "minify" === indent
