@@ -381,6 +381,16 @@ var Jsonarch;
             return [2 /*return*/];
         });
     }); }); };
+    Jsonarch.isAlphaTypeData = function (type) {
+        return (function (template) {
+            return Jsonarch.isTypeData(template) && type === template.type;
+        });
+    };
+    Jsonarch.isTypeReferData = Jsonarch.isAlphaTypeData("refer");
+    Jsonarch.isNullValueTypeData = Jsonarch.isAlphaTypeData("null");
+    Jsonarch.isBooleanValueTypeData = Jsonarch.isAlphaTypeData("boolean");
+    Jsonarch.isStringValueTypeData = Jsonarch.isAlphaTypeData("string");
+    Jsonarch.isNumberValueTypeData = Jsonarch.isAlphaTypeData("number");
     Jsonarch.isTypeData = Jsonarch.isJsonarch("type");
     Jsonarch.isCallData = Jsonarch.isJsonarch("call");
     Jsonarch.isValueData = Jsonarch.isJsonarch("value");

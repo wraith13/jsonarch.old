@@ -510,24 +510,44 @@ export module Jsonarch
         type: PrimitiveType;
         optional?: boolean;
     }
+    export const isAlphaTypeData = <Type extends AlphaType>(type: Type["type"]) =>
+        ((template: any): template is Type =>
+            isTypeData(template) && type === template.type);
+    export interface TypeRefer extends AlphaType
+    {
+        $arch: "type";
+        type: "refer";
+        refer: Refer;
+        parameter?: Jsonable;
+    }
+    export const isTypeReferData = isAlphaTypeData<TypeRefer>("refer");
     export interface NullValueType extends AlphaType
     {
         $arch: "type";
-        type: PrimitiveValueType;
+        type: "null";
     }
+    export const isNullValueTypeData = isAlphaTypeData<NullValueType>("null");
     export interface BooleanValueType extends AlphaType
     {
         $arch: "type";
-        type: PrimitiveValueType;
+        type: "boolean";
         enum?: boolean[];
     }
-    export interface StringValueType extends AlphaType
+    export const isBooleanValueTypeData = isAlphaTypeData<BooleanValueType>("boolean");
+    export interface FormatStringValueType extends AlphaType
     {
         $arch: "type";
         type: "string";
         format?: string;
-        enum?: string[];
     }
+    export interface EnumerationStringValueType extends AlphaType
+    {
+        $arch: "type";
+        type: "string";
+        Enumeration?: string[];
+    }
+    export type StringValueType = FormatStringValueType | EnumerationStringValueType;
+    export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
     export interface NumberValueType extends AlphaType
     {
         $arch: "type";
@@ -537,6 +557,7 @@ export module Jsonarch
         maxValue?: number;
         enum?: number[];
     }
+    export const isNumberValueTypeData = isAlphaTypeData<NumberValueType>("number");
     export type ValueType = NullValueType | BooleanValueType | StringValueType | NumberValueType;
     export interface ArrayType extends AlphaType
     {
@@ -571,7 +592,14 @@ export module Jsonarch
         parameter: Type;
         return: Type;
     }
-    export type Type = ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType;
+    export interface MetaeType extends AlphaType
+    {
+        $arch: "type";
+        type: "meta";
+        parameter: Type;
+        return: Type;
+    }
+    export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaeType;
     export type PrimitiveType = Type["type"];
     export const isTypeData = isJsonarch<Type>("type");
     export interface Call extends AlphaJsonarch
