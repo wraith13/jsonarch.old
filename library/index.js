@@ -106,10 +106,10 @@ var Jsonarch;
     Jsonarch.settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     Jsonarch.isJsonarch = function (type) {
         return (function (template) {
-            return Jsonarch.isJsonarchBase(template) && type === template.$arch;
+            return Jsonarch.isAlphaJsonarch(template) && type === template.$arch;
         });
     };
-    Jsonarch.isJsonarchBase = function (template) {
+    Jsonarch.isAlphaJsonarch = function (template) {
         return null !== template &&
             "object" === typeof template &&
             "$arch" in template &&
@@ -195,7 +195,7 @@ var Jsonarch;
         return 0 <= ["setting", "cache",].indexOf(template.$arch);
     };
     Jsonarch.isEvaluateTargetEntry = function (entry) {
-        return Jsonarch.isJsonarchBase(entry.template) && !isPureDataType(entry.template);
+        return Jsonarch.isAlphaJsonarch(entry.template) && !isPureDataType(entry.template);
     };
     Jsonarch.isResult = Jsonarch.isJsonarch("result");
     Jsonarch.isError = Jsonarch.isJsonarch("error");
@@ -381,6 +381,7 @@ var Jsonarch;
             return [2 /*return*/];
         });
     }); }); };
+    Jsonarch.isTypeData = Jsonarch.isJsonarch("type");
     Jsonarch.isCallData = Jsonarch.isJsonarch("call");
     Jsonarch.isValueData = Jsonarch.isJsonarch("value");
     var Library;
@@ -402,6 +403,9 @@ var Jsonarch;
             };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
+    Jsonarch.isCompatibleType = function (_source, _destination) {
+        return true;
+    };
     Jsonarch.turnRefer = function (root, refer) {
         var rest = refer.map(function (i) { return i; });
         var current = root;

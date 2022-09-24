@@ -41,25 +41,25 @@ export module Jsonarch
     export const version = packageJson.version;
     export const templateSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/template-json-schema.json#";
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
-    interface JsonarchBase extends JsonableObject
+    export interface AlphaJsonarch extends JsonableObject
     {
         $arch: string;
     }
-    export const isJsonarch = <Type extends JsonarchBase>(type: Type["$arch"]) =>
+    export const isJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
         ((template: any): template is Type =>
-            isJsonarchBase(template) && type === template.$arch);
-    export const isJsonarchBase = (template: any): template is JsonarchBase =>
+            isAlphaJsonarch(template) && type === template.$arch);
+    export const isAlphaJsonarch = (template: any): template is AlphaJsonarch =>
         null !== template &&
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
-    interface Profile
+    export interface Profile
     {
         isProfiling: boolean;
         score: { [scope: string]: number };
         stack: ProfileEntry[];
     }
-    interface ProfileEntry
+    export interface ProfileEntry
     {
         name: string;
         startTicks: number;
@@ -186,7 +186,7 @@ export module Jsonarch
     export type ContextOrEntry = Context | { context: Context, };
     export const getContext = (contextOrEntry: ContextOrEntry): Context =>
         "context" in contextOrEntry ? contextOrEntry.context: contextOrEntry;
-    export interface Cache extends JsonarchBase
+    export interface Cache extends AlphaJsonarch
     {
         $arch: "cache";
         json?: { [path: string]: Jsonable };
@@ -195,7 +195,7 @@ export module Jsonarch
         value?: { [key: string]: Jsonable; };
     }
     export const isCache = isJsonarch<Cache>("cache");
-    export interface Setting extends JsonarchBase
+    export interface Setting extends AlphaJsonarch
     {
         $arch: "setting";
         language?: string;
@@ -226,7 +226,7 @@ export module Jsonarch
     export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
     export const isNetFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NetFileContext> => isNetFileContext(entry.file);
     export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isLocalFileContext(entry.file);
-    interface Handler
+    export interface Handler
     {
         load?: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
     }
@@ -243,11 +243,11 @@ export module Jsonarch
     {
         handler: Handler;
     }
-    const isPureDataType = (template: JsonarchBase) =>
+    const isPureDataType = (template: AlphaJsonarch) =>
         0 <= [ "setting", "cache", ].indexOf(template.$arch);
-    export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<JsonarchBase> =>
-        isJsonarchBase(entry.template) && ! isPureDataType(entry.template);
-    interface Result extends JsonarchBase
+    export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
+        isAlphaJsonarch(entry.template) && ! isPureDataType(entry.template);
+    export interface Result extends AlphaJsonarch
     {
         $arch: "result";
         output: Jsonable;
@@ -259,7 +259,7 @@ export module Jsonarch
         setting: Setting;
     }
     export const isResult = isJsonarch<Result>("result");
-    interface JsonarchError extends JsonarchBase
+    export interface JsonarchError extends AlphaJsonarch
     {
         $arch: "error";
         message: string;
@@ -414,7 +414,7 @@ export module Jsonarch
         }
     )
     ;
-    interface StaticTemplate extends JsonarchBase
+    export interface StaticTemplate extends AlphaJsonarch
     {
         $arch: "static";
         return: Jsonable;
@@ -422,7 +422,7 @@ export module Jsonarch
     export const isStaticData = isJsonarch<StaticTemplate>("static");
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
         profile(entry, "evaluateStatic", async () => entry.template.return);
-    interface IncludeStaticJsonTemplate extends JsonarchBase
+    export interface IncludeStaticJsonTemplate extends AlphaJsonarch
     {
         $arch: "include-static-json";
         path: string;
@@ -436,7 +436,7 @@ export module Jsonarch
             file: pathToFileContext(entry, entry.template.path)
         })
     );
-    interface Template extends JsonarchBase
+    export interface Template extends AlphaJsonarch
     {
         $arch: "template";
         type?: string;
@@ -502,14 +502,86 @@ export module Jsonarch
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
-    interface Call extends JsonarchBase
+    export type PrimitiveValueType = "null" | "boolean" | "number" | "string";
+    export type PrimitiveCompositeType = "or" | "and";
+    export interface AlphaType extends AlphaJsonarch
+    {
+        $arch: "type";
+        type: PrimitiveType;
+        optional?: boolean;
+    }
+    export interface NullValueType extends AlphaType
+    {
+        $arch: "type";
+        type: PrimitiveValueType;
+    }
+    export interface BooleanValueType extends AlphaType
+    {
+        $arch: "type";
+        type: PrimitiveValueType;
+        enum?: boolean[];
+    }
+    export interface StringValueType extends AlphaType
+    {
+        $arch: "type";
+        type: "string";
+        format?: string;
+        enum?: string[];
+    }
+    export interface NumberValueType extends AlphaType
+    {
+        $arch: "type";
+        type: "number";
+        integerOnly?: boolean;
+        minValue?: number;
+        maxValue?: number;
+        enum?: number[];
+    }
+    export type ValueType = NullValueType | BooleanValueType | StringValueType | NumberValueType;
+    export interface ArrayType extends AlphaType
+    {
+        $arch: "type";
+        type: "array";
+        itemType: Type;
+        minLength?: number;
+        maxLength?: number;
+    }
+    export interface TupleType extends AlphaType
+    {
+        $arch: "type";
+        type: "tuple";
+        list: Type[];
+    }
+    export interface ObjectType extends AlphaType
+    {
+        $arch: "type";
+        type: "object";
+        member: { [key: string]: Type; };
+    }
+    export interface CompositeType extends AlphaType
+    {
+        $arch: "type";
+        type: PrimitiveCompositeType;
+        list: Type[];
+    }
+    export interface TemplateType extends AlphaType
+    {
+        $arch: "type";
+        type: "template";
+        parameter: Type;
+        return: Type;
+    }
+    export type Type = ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType;
+    export type PrimitiveType = Type["type"];
+    export const isTypeData = isJsonarch<Type>("type");
+    export interface Call extends AlphaJsonarch
     {
         $arch: "call";
         refer: Refer;
         parameter?: Jsonable;
     }
     export const isCallData = isJsonarch<Call>("call");
-    interface Value extends JsonarchBase
+    export interface Value extends AlphaJsonarch
     {
         $arch: "value";
         refer: Refer;
@@ -538,6 +610,10 @@ export module Jsonarch
             };
         }
     }
+    export const isCompatibleType = (_source: Type, _destination: Type) =>
+    {
+        return true;
+    };
     export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);
@@ -572,7 +648,7 @@ export module Jsonarch
             }
         }
     };
-    export const resolveRefer = (entry: EvaluateEntry<JsonarchBase & { refer: Refer}>): Jsonable | undefined =>
+    export const resolveRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer}>): Jsonable | undefined =>
     {
         return turnRefer<JsonableValue>
         (
@@ -636,10 +712,10 @@ export module Jsonarch
             return (entry.parameter as any).name;
         }
     );
-    export const evaluateIfMatch = <TargetType extends JsonarchBase>(isMatch: ((entry: JsonarchBase) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
-        async (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable | undefined> =>
+    export const evaluateIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
+        async (entry: EvaluateEntry<AlphaJsonarch>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
-    const evaluatorList: ((entry: EvaluateEntry<JsonarchBase>) => Promise<Jsonable | undefined>)[] =
+    const evaluatorList: ((entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>)[] =
     [
         evaluateIfMatch(isStaticData, evaluateStatic),
         evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
@@ -647,7 +723,7 @@ export module Jsonarch
         evaluateIfMatch(isCallData, evaluateCall),
         evaluateIfMatch(isValueData, evaluateValue),
     ];
-    export const evaluate = (entry: EvaluateEntry<JsonarchBase>): Promise<Jsonable> => profile
+    export const evaluate = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Jsonable> => profile
     (
         entry, "evaluate", async () =>
         {
