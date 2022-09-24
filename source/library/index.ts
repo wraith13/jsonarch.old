@@ -567,24 +567,36 @@ export module Jsonarch
         minLength?: number;
         maxLength?: number;
     }
+    export const isArrayTypeData = isAlphaTypeData<ArrayType>("array");
     export interface TupleType extends AlphaType
     {
         $arch: "type";
         type: "tuple";
         list: Type[];
     }
+    export const isTupleTypeData = isAlphaTypeData<TupleType>("tuple");
     export interface ObjectType extends AlphaType
     {
         $arch: "type";
         type: "object";
         member: { [key: string]: Type; };
     }
-    export interface CompositeType extends AlphaType
+    export const isObjectTypeData = isAlphaTypeData<ObjectType>("object");
+    export interface OrCompositeType extends AlphaType
     {
         $arch: "type";
-        type: PrimitiveCompositeType;
+        type: "or";
         list: Type[];
     }
+    export const isOrCompositeTypeData = isAlphaTypeData<OrCompositeType>("or");
+    export interface AndCompositeType extends AlphaType
+    {
+        $arch: "type";
+        type: "and";
+        list: Type[];
+    }
+    export const isAndCompositeTypeData = isAlphaTypeData<AndCompositeType>("and");
+    export type CompositeType = OrCompositeType | AndCompositeType;
     export interface TemplateType extends AlphaType
     {
         $arch: "type";
@@ -592,6 +604,7 @@ export module Jsonarch
         parameter: Type;
         return: Type;
     }
+    export const isTemplateTypeData = isAlphaTypeData<TemplateType>("template");
     export interface MetaeType extends AlphaType
     {
         $arch: "type";
@@ -599,6 +612,7 @@ export module Jsonarch
         parameter: Type;
         return: Type;
     }
+    export const isMetaeTypeData = isAlphaTypeData<MetaeType>("meta");
     export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaeType;
     export type PrimitiveType = Type["type"];
     export const isTypeData = isJsonarch<Type>("type");
