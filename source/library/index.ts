@@ -666,12 +666,27 @@ export module Jsonarch
             };
         }
     }
-    export const regulateType = (_compositeType: Type) =>
+    export const regulateType = (compositeType: Type): Type =>
     {
+        return compositeType;
     };
-    export const isCompatibleType = (_source: Type, _destination: Type) =>
+    export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
+    export const compareType = (a: Type, b: Type): CompareTypeResult =>
     {
-        return true;
+        return "unmatch";
+    };
+    export const isCompatibleType = (source: Type, destination: Type) =>
+    {
+        switch(compareType(source, destination))
+        {
+        case "equal":
+        case "extended":
+            return true;
+        // case "unmatch":
+        // case "base":
+        default:
+            return false;
+        }
     };
     export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
