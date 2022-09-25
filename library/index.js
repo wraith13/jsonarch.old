@@ -391,11 +391,26 @@ var Jsonarch;
     Jsonarch.isBooleanValueTypeData = Jsonarch.isAlphaTypeData("boolean");
     Jsonarch.isStringValueTypeData = Jsonarch.isAlphaTypeData("string");
     Jsonarch.isNumberValueTypeData = Jsonarch.isAlphaTypeData("number");
+    Jsonarch.isValueTypeData = function (template) {
+        return Jsonarch.isNullValueTypeData(template) ||
+            Jsonarch.isBooleanValueTypeData(template) ||
+            Jsonarch.isNumberValueTypeData(template) ||
+            Jsonarch.isStringValueTypeData(template);
+    };
     Jsonarch.isArrayTypeData = Jsonarch.isAlphaTypeData("array");
     Jsonarch.isTupleTypeData = Jsonarch.isAlphaTypeData("tuple");
     Jsonarch.isObjectTypeData = Jsonarch.isAlphaTypeData("object");
+    Jsonarch.isStructureTypeData = function (template) {
+        return Jsonarch.isArrayTypeData(template) ||
+            Jsonarch.isTupleTypeData(template) ||
+            Jsonarch.isObjectTypeData(template);
+    };
     Jsonarch.isOrCompositeTypeData = Jsonarch.isAlphaTypeData("or");
     Jsonarch.isAndCompositeTypeData = Jsonarch.isAlphaTypeData("and");
+    Jsonarch.isCompositeTypeData = function (template) {
+        return Jsonarch.isOrCompositeTypeData(template) ||
+            Jsonarch.isAndCompositeTypeData(template);
+    };
     Jsonarch.isTemplateTypeData = Jsonarch.isAlphaTypeData("template");
     Jsonarch.isMetaeTypeData = Jsonarch.isAlphaTypeData("meta");
     Jsonarch.isTypeData = Jsonarch.isJsonarch("type");
@@ -420,6 +435,8 @@ var Jsonarch;
             };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
+    Jsonarch.regulateType = function (_compositeType) {
+    };
     Jsonarch.isCompatibleType = function (_source, _destination) {
         return true;
     };

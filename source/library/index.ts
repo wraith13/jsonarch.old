@@ -46,7 +46,7 @@ export module Jsonarch
         $arch: string;
     }
     export const isJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
-        ((template: any): template is Type =>
+        ((template: unknown): template is Type =>
             isAlphaJsonarch(template) && type === template.$arch);
     export const isAlphaJsonarch = (template: any): template is AlphaJsonarch =>
         null !== template &&
@@ -502,8 +502,6 @@ export module Jsonarch
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
-    export type PrimitiveValueType = "null" | "boolean" | "number" | "string";
-    export type PrimitiveCompositeType = "or" | "and";
     export interface AlphaType extends AlphaJsonarch
     {
         $arch: "type";
@@ -511,7 +509,7 @@ export module Jsonarch
         optional?: boolean;
     }
     export const isAlphaTypeData = <Type extends AlphaType>(type: Type["type"]) =>
-        ((template: any): template is Type =>
+        ((template: unknown): template is Type =>
             isTypeData(template) && type === template.type);
     export interface TypeRefer extends AlphaType
     {
@@ -558,7 +556,13 @@ export module Jsonarch
         enum?: number[];
     }
     export const isNumberValueTypeData = isAlphaTypeData<NumberValueType>("number");
-    export type ValueType = NullValueType | BooleanValueType | StringValueType | NumberValueType;
+    export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
+    export type PrimitiveValueType = ValueType["type"];
+    export const isValueTypeData = (template: unknown): template is ValueType =>
+        isNullValueTypeData(template) ||
+        isBooleanValueTypeData(template) ||
+        isNumberValueTypeData(template) ||
+        isStringValueTypeData(template);
     export interface ArrayType extends AlphaType
     {
         $arch: "type";
@@ -582,6 +586,12 @@ export module Jsonarch
         member: { [key: string]: Type; };
     }
     export const isObjectTypeData = isAlphaTypeData<ObjectType>("object");
+    export type StructureType = ArrayType | TupleType | ObjectType;
+    export type PrimitiveStructureType = StructureType["type"];
+    export const isStructureTypeData = (template: unknown): template is StructureType =>
+        isArrayTypeData(template) ||
+        isTupleTypeData(template) ||
+        isObjectTypeData(template);
     export interface OrCompositeType extends AlphaType
     {
         $arch: "type";
@@ -597,6 +607,10 @@ export module Jsonarch
     }
     export const isAndCompositeTypeData = isAlphaTypeData<AndCompositeType>("and");
     export type CompositeType = OrCompositeType | AndCompositeType;
+    export type PrimitiveCompositeType = CompositeType["type"];
+    export const isCompositeTypeData = (template: unknown): template is CompositeType =>
+        isOrCompositeTypeData(template) ||
+        isAndCompositeTypeData(template);
     export interface TemplateType extends AlphaType
     {
         $arch: "type";
@@ -605,15 +619,15 @@ export module Jsonarch
         return: Type;
     }
     export const isTemplateTypeData = isAlphaTypeData<TemplateType>("template");
-    export interface MetaeType extends AlphaType
+    export interface MetaType extends AlphaType
     {
         $arch: "type";
         type: "meta";
         parameter: Type;
         return: Type;
     }
-    export const isMetaeTypeData = isAlphaTypeData<MetaeType>("meta");
-    export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaeType;
+    export const isMetaeTypeData = isAlphaTypeData<MetaType>("meta");
+    export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
     export type PrimitiveType = Type["type"];
     export const isTypeData = isJsonarch<Type>("type");
     export interface Call extends AlphaJsonarch
@@ -652,6 +666,9 @@ export module Jsonarch
             };
         }
     }
+    export const regulateType = (_compositeType: Type) =>
+    {
+    };
     export const isCompatibleType = (_source: Type, _destination: Type) =>
     {
         return true;
