@@ -511,6 +511,10 @@ export module Jsonarch
     export const isAlphaTypeData = <Type extends AlphaType>(type: Type["type"]) =>
         ((template: unknown): template is Type =>
             isTypeData(template) && type === template.type);
+    export interface AlphaEnumType<ValueType extends JsonableValue> extends AlphaType
+    {
+        enum?: ValueType[];
+    }
     export interface TypeRefer extends AlphaType
     {
         $arch: "type";
@@ -525,11 +529,10 @@ export module Jsonarch
         type: "null";
     }
     export const isNullValueTypeData = isAlphaTypeData<NullValueType>("null");
-    export interface BooleanValueType extends AlphaType
+    export interface BooleanValueType extends AlphaEnumType<boolean>
     {
         $arch: "type";
         type: "boolean";
-        enum?: boolean[];
     }
     export const isBooleanValueTypeData = isAlphaTypeData<BooleanValueType>("boolean");
     export interface FormatStringValueType extends AlphaType
@@ -538,22 +541,20 @@ export module Jsonarch
         type: "string";
         format?: string;
     }
-    export interface EnumerationStringValueType extends AlphaType
+    export interface EnumStringValueType extends AlphaEnumType<string>
     {
         $arch: "type";
         type: "string";
-        Enumeration?: string[];
     }
-    export type StringValueType = FormatStringValueType | EnumerationStringValueType;
+    export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
-    export interface NumberValueType extends AlphaType
+    export interface NumberValueType extends AlphaEnumType<number>
     {
         $arch: "type";
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
         maxValue?: number;
-        enum?: number[];
     }
     export const isNumberValueTypeData = isAlphaTypeData<NumberValueType>("number");
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
@@ -671,23 +672,166 @@ export module Jsonarch
         return compositeType;
     };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
+    export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
+    export const isEqualOrExtented = (result: CompareTypeResult) => "equal" === result || "extended" === result;
+    export const compareTypeOptional = (a: Type, b: Type): CompareTypeResult =>
+    {
+        if (a.optional ?? false === b.optional ?? false)
+        {
+            return "equal";
+        }
+        else
+        if (a.optional ?? false)
+        {
+            return "base";
+        }
+        else
+        {
+            return "extended";
+        }
+    };
+    export const compareTypeEnum = <ValueType extends JsonableValue>(a: AlphaEnumType<ValueType>, b: AlphaEnumType<ValueType>): CompareTypeResult =>
+    {
+        const aEnum = a.enum;
+        const bEnum = b.enum;
+        if (undefined === aEnum && undefined === bEnum)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === aEnum)
+        {
+            return "base";
+        }
+        else
+        if (undefined === bEnum)
+        {
+            return "extended";
+        }
+        else
+        {
+            const aHasUnmatch = aEnum.some(i => bEnum.indexOf(i) < 0);
+            const bHasUnmatch = bEnum.some(i => aEnum.indexOf(i) < 0);
+            if (( ! aHasUnmatch) && ( ! bHasUnmatch))
+            {
+                return "equal";
+            }
+            else
+            if ( ! aHasUnmatch)
+            {
+                return "extended";
+            }
+            else
+            if ( ! bHasUnmatch)
+            {
+                return "base";
+            }
+            else
+            {
+                return "unmatch";
+            }
+        }
+    };
+    export const compareTypeMin = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    {
+        if (a.minValue === b.minValue)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === a.minValue)
+        {
+            return "base";
+        }
+        else
+        if (undefined === b.minValue)
+        {
+            return "extended";
+        }
+        else
+        if (a.minValue < b.minValue)
+        {
+            return "base";
+        }
+        else
+        {
+            return "extended";
+        }
+    };
+    export const compareTypeMax = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    {
+        if (a.maxValue === b.maxValue)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === a.maxValue)
+        {
+            return "base";
+        }
+        else
+        if (undefined === b.maxValue)
+        {
+            return "extended";
+        }
+        else
+        if (a.maxValue < b.maxValue)
+        {
+            return "extended";
+        }
+        else
+        {
+            return "base";
+        }
+};
+    export const compareTypeMinMax = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    {
+        const minResult = compareTypeMin(a, b);
+        const maxResult = compareTypeMax(a, b);
+        if ("equal" === minResult && "equal" === maxResult)
+        {
+            return "equal";
+        }
+        else
+        if (isBaseOrEqual(minResult) && isBaseOrEqual(maxResult))
+        {
+            return "base";
+        }
+        else
+        if (isEqualOrExtented(minResult) && isEqualOrExtented(maxResult))
+        {
+            return "extended";
+        }
+        else
+        {
+            return "unmatch";
+        }
+    };
     export const compareType = (a: Type, b: Type): CompareTypeResult =>
     {
+        if (isCompositeTypeData(a))
+        {
+
+        }
+        else
+        if (isCompositeTypeData(b))
+        {
+
+        }
+        else
+        if (a.type === b.type)
+        {
+            switch(a.type)
+            {
+            case "null":
+                return compareTypeOptional(a, b);
+            }
+            return "equal";
+        }
         return "unmatch";
     };
     export const isCompatibleType = (source: Type, destination: Type) =>
-    {
-        switch(compareType(source, destination))
-        {
-        case "equal":
-        case "extended":
-            return true;
-        // case "unmatch":
-        // case "base":
-        default:
-            return false;
-        }
-    };
+        isEqualOrExtented(compareType(source, destination));
     export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);

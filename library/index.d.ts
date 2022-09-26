@@ -218,6 +218,9 @@ export declare module Jsonarch {
         optional?: boolean;
     }
     export const isAlphaTypeData: <Type_1 extends AlphaType>(type: Type_1["type"]) => (template: unknown) => template is Type_1;
+    export interface AlphaEnumType<ValueType extends JsonableValue> extends AlphaType {
+        enum?: ValueType[];
+    }
     export interface TypeRefer extends AlphaType {
         $arch: "type";
         type: "refer";
@@ -230,10 +233,9 @@ export declare module Jsonarch {
         type: "null";
     }
     export const isNullValueTypeData: (template: unknown) => template is NullValueType;
-    export interface BooleanValueType extends AlphaType {
+    export interface BooleanValueType extends AlphaEnumType<boolean> {
         $arch: "type";
         type: "boolean";
-        enum?: boolean[];
     }
     export const isBooleanValueTypeData: (template: unknown) => template is BooleanValueType;
     export interface FormatStringValueType extends AlphaType {
@@ -241,20 +243,18 @@ export declare module Jsonarch {
         type: "string";
         format?: string;
     }
-    export interface EnumerationStringValueType extends AlphaType {
+    export interface EnumStringValueType extends AlphaEnumType<string> {
         $arch: "type";
         type: "string";
-        Enumeration?: string[];
     }
-    export type StringValueType = FormatStringValueType | EnumerationStringValueType;
+    export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData: (template: unknown) => template is StringValueType;
-    export interface NumberValueType extends AlphaType {
+    export interface NumberValueType extends AlphaEnumType<number> {
         $arch: "type";
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
         maxValue?: number;
-        enum?: number[];
     }
     export const isNumberValueTypeData: (template: unknown) => template is NumberValueType;
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
@@ -333,8 +333,17 @@ export declare module Jsonarch {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
-    export const regulateType: (_compositeType: Type) => void;
-    export const isCompatibleType: (_source: Type, _destination: Type) => boolean;
+    export const regulateType: (compositeType: Type) => Type;
+    export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
+    export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
+    export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
+    export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
+    export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
+    export const compareTypeMin: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
+    export const compareTypeMax: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
+    export const compareTypeMinMax: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
+    export const compareType: (a: Type, b: Type) => CompareTypeResult;
+    export const isCompatibleType: (source: Type, destination: Type) => boolean;
     export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;

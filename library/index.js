@@ -435,10 +435,118 @@ var Jsonarch;
             };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
-    Jsonarch.regulateType = function (_compositeType) {
+    Jsonarch.regulateType = function (compositeType) {
+        return compositeType;
     };
-    Jsonarch.isCompatibleType = function (_source, _destination) {
-        return true;
+    Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
+    Jsonarch.isEqualOrExtented = function (result) { return "equal" === result || "extended" === result; };
+    Jsonarch.compareTypeOptional = function (a, b) {
+        var _a, _b, _c;
+        if ((_b = (_a = a.optional) !== null && _a !== void 0 ? _a : false === b.optional) !== null && _b !== void 0 ? _b : false) {
+            return "equal";
+        }
+        else if ((_c = a.optional) !== null && _c !== void 0 ? _c : false) {
+            return "base";
+        }
+        else {
+            return "extended";
+        }
+    };
+    Jsonarch.compareTypeEnum = function (a, b) {
+        var aEnum = a.enum;
+        var bEnum = b.enum;
+        if (undefined === aEnum && undefined === bEnum) {
+            return "equal";
+        }
+        else if (undefined === aEnum) {
+            return "base";
+        }
+        else if (undefined === bEnum) {
+            return "extended";
+        }
+        else {
+            var aHasUnmatch = aEnum.some(function (i) { return bEnum.indexOf(i) < 0; });
+            var bHasUnmatch = bEnum.some(function (i) { return aEnum.indexOf(i) < 0; });
+            if ((!aHasUnmatch) && (!bHasUnmatch)) {
+                return "equal";
+            }
+            else if (!aHasUnmatch) {
+                return "extended";
+            }
+            else if (!bHasUnmatch) {
+                return "base";
+            }
+            else {
+                return "unmatch";
+            }
+        }
+    };
+    Jsonarch.compareTypeMin = function (a, b) {
+        if (a.minValue === b.minValue) {
+            return "equal";
+        }
+        else if (undefined === a.minValue) {
+            return "base";
+        }
+        else if (undefined === b.minValue) {
+            return "extended";
+        }
+        else if (a.minValue < b.minValue) {
+            return "base";
+        }
+        else {
+            return "extended";
+        }
+    };
+    Jsonarch.compareTypeMax = function (a, b) {
+        if (a.maxValue === b.maxValue) {
+            return "equal";
+        }
+        else if (undefined === a.maxValue) {
+            return "base";
+        }
+        else if (undefined === b.maxValue) {
+            return "extended";
+        }
+        else if (a.maxValue < b.maxValue) {
+            return "extended";
+        }
+        else {
+            return "base";
+        }
+    };
+    Jsonarch.compareTypeMinMax = function (a, b) {
+        var minResult = Jsonarch.compareTypeMin(a, b);
+        var maxResult = Jsonarch.compareTypeMax(a, b);
+        if ("equal" === minResult && "equal" === maxResult) {
+            return "equal";
+        }
+        else if (Jsonarch.isBaseOrEqual(minResult) && Jsonarch.isBaseOrEqual(maxResult)) {
+            return "base";
+        }
+        else if (Jsonarch.isEqualOrExtented(minResult) && Jsonarch.isEqualOrExtented(maxResult)) {
+            return "extended";
+        }
+        else {
+            return "unmatch";
+        }
+    };
+    Jsonarch.compareType = function (a, b) {
+        if (Jsonarch.isCompositeTypeData(a)) {
+        }
+        else if (Jsonarch.isCompositeTypeData(b)) {
+        }
+        else if (a.type === b.type) {
+            switch (a.type) {
+                case "null":
+                    return Jsonarch.compareTypeOptional(a, b);
+            }
+            return "equal";
+        }
+        return "unmatch";
+    };
+    Jsonarch.isCompatibleType = function (source, destination) {
+        return Jsonarch.isEqualOrExtented(Jsonarch.compareType(source, destination));
     };
     Jsonarch.turnRefer = function (root, refer) {
         var rest = refer.map(function (i) { return i; });
