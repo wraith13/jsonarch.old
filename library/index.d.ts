@@ -337,11 +337,16 @@ export declare module Jsonarch {
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
+    export const compositeCompareTypeResult: (a: CompareTypeResult, b: CompareTypeResult) => CompareTypeResult;
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
     export const compareTypeMin: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMax: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMinMax: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
+    export const compositeCompareType: <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) => (a: TargetType, b: TargetType) => CompareTypeResult;
+    export const compareNullType: (a: NullValueType, b: NullValueType) => CompareTypeResult;
+    export const compareBoolanType: (a: BooleanValueType, b: BooleanValueType) => CompareTypeResult;
+    export const compareNumberType: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareType: (a: Type, b: Type) => CompareTypeResult;
     export const isCompatibleType: (source: Type, destination: Type) => boolean;
     export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;

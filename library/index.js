@@ -440,6 +440,31 @@ var Jsonarch;
     };
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
     Jsonarch.isEqualOrExtented = function (result) { return "equal" === result || "extended" === result; };
+    Jsonarch.compositeCompareTypeResult = function (a, b) {
+        switch (b) {
+            case "equal":
+                break;
+            case "base":
+                switch (a) {
+                    case "equal":
+                        return "base";
+                    case "extended":
+                        return "unmatch";
+                }
+                break;
+            case "extended":
+                switch (a) {
+                    case "base":
+                        return "unmatch";
+                    case "equal":
+                        return "extended";
+                }
+                break;
+            case "unmatch":
+                return "unmatch";
+        }
+        return a;
+    };
     Jsonarch.compareTypeOptional = function (a, b) {
         var _a, _b, _c;
         if ((_b = (_a = a.optional) !== null && _a !== void 0 ? _a : false === b.optional) !== null && _b !== void 0 ? _b : false) {
@@ -515,22 +540,31 @@ var Jsonarch;
             return "base";
         }
     };
-    Jsonarch.compareTypeMinMax = function (a, b) {
-        var minResult = Jsonarch.compareTypeMin(a, b);
-        var maxResult = Jsonarch.compareTypeMax(a, b);
-        if ("equal" === minResult && "equal" === maxResult) {
-            return "equal";
-        }
-        else if (Jsonarch.isBaseOrEqual(minResult) && Jsonarch.isBaseOrEqual(maxResult)) {
-            return "base";
-        }
-        else if (Jsonarch.isEqualOrExtented(minResult) && Jsonarch.isEqualOrExtented(maxResult)) {
-            return "extended";
-        }
-        else {
-            return "unmatch";
-        }
+    Jsonarch.compareTypeMinMax = function (a, b) { return Jsonarch.compositeCompareTypeResult(Jsonarch.compareTypeMin(a, b), Jsonarch.compareTypeMax(a, b)); };
+    Jsonarch.compositeCompareType = function (comparer) {
+        return function (a, b) {
+            var result = "equal";
+            for (var i in comparer) {
+                result = Jsonarch.compositeCompareTypeResult(result, comparer[i](a, b));
+                if ("unmatch" === result) {
+                    break;
+                }
+            }
+            return result;
+        };
     };
+    Jsonarch.compareNullType = Jsonarch.compositeCompareType([
+        Jsonarch.compareTypeOptional,
+    ]);
+    Jsonarch.compareBoolanType = Jsonarch.compositeCompareType([
+        Jsonarch.compareTypeOptional,
+        Jsonarch.compareTypeEnum,
+    ]);
+    Jsonarch.compareNumberType = Jsonarch.compositeCompareType([
+        Jsonarch.compareTypeOptional,
+        Jsonarch.compareTypeEnum,
+        Jsonarch.compareTypeMinMax,
+    ]);
     Jsonarch.compareType = function (a, b) {
         if (Jsonarch.isCompositeTypeData(a)) {
         }
