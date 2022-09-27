@@ -18,6 +18,8 @@ export declare module Jsonarch {
     export const isNumber: (value: unknown) => value is number;
     export const isObject: <T extends {}>(value: unknown, isMember?: { [key in keyof T]?: ((x: unknown) => x is T[key]) | undefined; }) => value is T;
     export const isArray: <T>(value: unknown, isType: (x: unknown) => x is T) => value is T[];
+    export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
+    export const getLazyValue: <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>) => T;
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
@@ -337,7 +339,7 @@ export declare module Jsonarch {
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
-    export const compositeCompareTypeResult: (list: CompareTypeResult[]) => CompareTypeResult;
+    export const compositeCompareTypeResult: (list: Lazy<CompareTypeResult | undefined>[]) => CompareTypeResult;
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
     export const compareTypeMinValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;

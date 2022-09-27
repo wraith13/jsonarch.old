@@ -98,6 +98,11 @@ var Jsonarch;
     Jsonarch.isArray = function (value, isType) {
         return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length;
     };
+    Jsonarch.getLazyValue = function (lazy) {
+        return "function" === typeof lazy ?
+            lazy() :
+            lazy;
+    };
     Jsonarch.getTemporaryDummy = Locale.getSystemLocale();
     Jsonarch.packageJson = require("../package.json");
     Jsonarch.name = Jsonarch.packageJson.name;
@@ -443,7 +448,9 @@ var Jsonarch;
     Jsonarch.compositeCompareTypeResult = function (list) {
         var result = "equal";
         for (var i in list) {
-            switch (list[i]) {
+            switch (Jsonarch.getLazyValue(list[i])) {
+                case undefined:
+                    break;
                 case "equal":
                     break;
                 case "base":
@@ -609,32 +616,18 @@ var Jsonarch;
         Jsonarch.compareTypeMaxLength(a, b),
     ]); };
     Jsonarch.compareTypeList = function (a, b) {
-        var result = "equal";
         var commonLength = Math.min(a.length, b.length);
-        for (var i = 0; i < commonLength; ++i) {
-            result = Jsonarch.compositeCompareTypeResult([result, Jsonarch.compareType(a[i], b[i]),]);
-            if ("unmatch" === result) {
-                break;
-            }
-        }
-        if (commonLength < a.length) {
-            result = Jsonarch.compositeCompareTypeResult([result, "extended",]);
-        }
-        if (commonLength < b.length) {
-            result = Jsonarch.compositeCompareTypeResult([result, "base",]);
-        }
-        return result;
+        return Jsonarch.compositeCompareTypeResult(a
+            .filter(function (_i, ix) { return ix < commonLength; })
+            .map(function (_i, ix) { return (function () { return Jsonarch.compareType(a[ix], b[ix]); }); })
+            .concat([
+            commonLength < a.length ? "extended" : undefined,
+            commonLength < b.length ? "base" : undefined,
+        ]));
     };
     Jsonarch.compositeCompareType = function (comparer) {
         return function (a, b) {
-            var result = "equal";
-            for (var i in comparer) {
-                result = Jsonarch.compositeCompareTypeResult([result, comparer[i](a, b),]);
-                if ("unmatch" === result) {
-                    break;
-                }
-            }
-            return result;
+            return Jsonarch.compositeCompareTypeResult(comparer.map(function (i) { return i(a, b); }));
         };
     };
     Jsonarch.compareNullValueType = Jsonarch.compositeCompareType([
@@ -666,15 +659,15 @@ var Jsonarch;
     Jsonarch.compareTemplateType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
         function (a, b) { return Jsonarch.compositeCompareTypeResult([
-            Jsonarch.compareType(a.parameter, b.parameter),
-            Jsonarch.compareType(a.return, b.return),
+            function () { return Jsonarch.compareType(a.parameter, b.parameter); },
+            function () { return Jsonarch.compareType(a.return, b.return); },
         ]); },
     ]);
     Jsonarch.compareMetaType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
         function (a, b) { return Jsonarch.compositeCompareTypeResult([
-            Jsonarch.compareType(a.parameter, b.parameter),
-            Jsonarch.compareType(a.return, b.return),
+            function () { return Jsonarch.compareType(a.parameter, b.parameter); },
+            function () { return Jsonarch.compareType(a.return, b.return); },
         ]); },
     ]);
     Jsonarch.compareIfMatch = function (isMatch, compareTarget) {
@@ -698,12 +691,7 @@ var Jsonarch;
         else if (Jsonarch.isCompositeTypeData(b)) {
         }
         else if (a.type === b.type) {
-            for (var i in compareTypeEntryList) {
-                var result = compareTypeEntryList[i](a, b);
-                if (undefined !== result) {
-                    return result;
-                }
-            }
+            return Jsonarch.compositeCompareTypeResult(compareTypeEntryList.map(function (i) { return i(a, b); }));
         }
         return "unmatch";
     };
@@ -796,27 +784,27 @@ var Jsonarch;
         Jsonarch.evaluateIfMatch(Jsonarch.isValueData, Jsonarch.evaluateValue),
     ];
     Jsonarch.evaluate = function (entry) { return Jsonarch.profile(entry, "evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _a, _b, _i, i, result;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var _a, _b, _c, i, result;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     _a = [];
                     for (_b in evaluatorList)
                         _a.push(_b);
-                    _i = 0;
-                    _c.label = 1;
+                    _c = 0;
+                    _d.label = 1;
                 case 1:
-                    if (!(_i < _a.length)) return [3 /*break*/, 4];
-                    i = _a[_i];
+                    if (!(_c < _a.length)) return [3 /*break*/, 4];
+                    i = _a[_c];
                     return [4 /*yield*/, evaluatorList[i](entry)];
                 case 2:
-                    result = _c.sent();
+                    result = _d.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
-                    _c.label = 3;
+                    _d.label = 3;
                 case 3:
-                    _i++;
+                    _c++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
