@@ -627,7 +627,7 @@ export module Jsonarch
         parameter: Type;
         return: Type;
     }
-    export const isMetaeTypeData = isAlphaTypeData<MetaType>("meta");
+    export const isMetaTypeData = isAlphaTypeData<MetaType>("meta");
     export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
     export type PrimitiveType = Type["type"];
     export const isTypeData = isJsonarch<Type>("type");
@@ -674,34 +674,47 @@ export module Jsonarch
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
     export const isEqualOrExtented = (result: CompareTypeResult) => "equal" === result || "extended" === result;
-    export const compositeCompareTypeResult = (a: CompareTypeResult, b: CompareTypeResult) =>
+    export const compositeCompareTypeResult = (list: CompareTypeResult[]): CompareTypeResult =>
     {
-        switch(b)
+        let result: CompareTypeResult = "equal";
+        for(const i in list)
         {
-        case "equal":
-            break;
-        case "base":
-            switch(a)
+            switch(list[i])
             {
             case "equal":
-                return "base";
-            case "extended":
-                return "unmatch";
-            }
-            break;
-        case "extended":
-            switch(a)
-            {
+                break;
             case "base":
-                return "unmatch";
-            case "equal":
-                return "extended";
+                switch(result)
+                {
+                case "equal":
+                    result = "base";
+                    break;
+                case "extended":
+                    result = "unmatch";
+                    break;
+                }
+                break;
+            case "extended":
+                switch(result)
+                {
+                case "base":
+                    result = "unmatch";
+                    break;
+                case "equal":
+                    result = "extended";
+                    break;
+                }
+                break;
+            case "unmatch":
+                result = "unmatch";
+                break;
             }
-            break;
-        case "unmatch":
-            return "unmatch";
+            if ("unmatch" === result)
+            {
+                break;
+            }
         }
-        return a;
+        return result;
     };
     export const compareTypeOptional = (a: Type, b: Type): CompareTypeResult =>
     {
@@ -761,7 +774,7 @@ export module Jsonarch
             }
         }
     };
-    export const compareTypeMin = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    export const compareTypeMinValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
         if (a.minValue === b.minValue)
         {
@@ -787,7 +800,7 @@ export module Jsonarch
             return "extended";
         }
     };
-    export const compareTypeMax = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    export const compareTypeMaxValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
         if (a.maxValue === b.maxValue)
         {
@@ -812,19 +825,120 @@ export module Jsonarch
         {
             return "base";
         }
-};
-    export const compareTypeMinMax = (a: NumberValueType, b: NumberValueType): CompareTypeResult => compositeCompareTypeResult
-    (
-        compareTypeMin(a, b),
-        compareTypeMax(a, b)
-    );
+    };
+    export const compareTypeMinMaxValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult => compositeCompareTypeResult
+    ([
+        compareTypeMinValue(a, b),
+        compareTypeMaxValue(a, b)
+    ]);
+    export const compareTypeFormat = (a: StringValueType, b: StringValueType): CompareTypeResult =>
+    {
+        if (a.format === b.format)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === a.format)
+        {
+            return "base";
+        }
+        else
+        if (undefined === b.format)
+        {
+            return "extended";
+        }
+        else
+        {
+            //  細かい比較検証は行わず unmatch と見做す。
+            return "unmatch";
+        }
+    };
+    export const compareTypeMinLength = (a: ArrayType, b: ArrayType): CompareTypeResult =>
+    {
+        if (a.minLength === b.minLength)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === a.minLength)
+        {
+            return "base";
+        }
+        else
+        if (undefined === b.minLength)
+        {
+            return "extended";
+        }
+        else
+        if (a.minLength < b.minLength)
+        {
+            return "base";
+        }
+        else
+        {
+            return "extended";
+        }
+    };
+    export const compareTypeMaxLength = (a: ArrayType, b: ArrayType): CompareTypeResult =>
+    {
+        if (a.maxLength === b.maxLength)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === a.maxLength)
+        {
+            return "base";
+        }
+        else
+        if (undefined === b.maxLength)
+        {
+            return "extended";
+        }
+        else
+        if (a.maxLength < b.maxLength)
+        {
+            return "extended";
+        }
+        else
+        {
+            return "base";
+        }
+    };
+    export const compareTypeMinMaxLength = (a: ArrayType, b: ArrayType): CompareTypeResult => compositeCompareTypeResult
+    ([
+        compareTypeMinLength(a, b),
+        compareTypeMaxLength(a, b),
+    ]);
+    export const compareTypeList = (a: Type[], b: Type[]): CompareTypeResult =>
+    {
+        let result: CompareTypeResult = "equal";
+        const commonLength = Math.min(a.length, b.length);
+        for(let i = 0; i < commonLength; ++i)
+        {
+            result = compositeCompareTypeResult([ result, compareType(a[i], b[i]), ]);
+            if ("unmatch" === result)
+            {
+                break;
+            }
+        }
+        if (commonLength < a.length)
+        {
+            result = compositeCompareTypeResult([ result, "extended", ]);
+        }
+        if (commonLength < b.length)
+        {
+            result = compositeCompareTypeResult([ result, "base", ]);
+        }
+        return result;
+    };
     export const compositeCompareType = <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) =>
     (a: TargetType, b: TargetType): CompareTypeResult =>
     {
         let result: CompareTypeResult = "equal";
-        for(let i in comparer)
+        for(const i in comparer)
         {
-            result = compositeCompareTypeResult(result, comparer[i](a, b));
+            result = compositeCompareTypeResult([ result, comparer[i](a, b), ]);
             if ("unmatch" === result)
             {
                 break;
@@ -832,21 +946,70 @@ export module Jsonarch
         }
         return result;
     };
-    export const compareNullType = compositeCompareType<NullValueType>
+    export const compareNullValueType = compositeCompareType<NullValueType>
     ([
         compareTypeOptional,
     ]);
-    export const compareBoolanType = compositeCompareType<BooleanValueType>
-    ([
-        compareTypeOptional,
-        compareTypeEnum,
-    ]);
-    export const compareNumberType = compositeCompareType<NumberValueType>
+    export const compareBoolanValueType = compositeCompareType<BooleanValueType>
     ([
         compareTypeOptional,
         compareTypeEnum,
-        compareTypeMinMax,
     ]);
+    export const compareNumberValueType = compositeCompareType<NumberValueType>
+    ([
+        compareTypeOptional,
+        compareTypeEnum,
+        compareTypeMinMaxValue,
+    ]);
+    export const compareStringValueType = compositeCompareType<StringValueType>
+    ([
+        compareTypeOptional,
+        compareTypeEnum,
+        compareTypeFormat,
+    ]);
+    export const compareArrayType = compositeCompareType<ArrayType>
+    ([
+        compareTypeOptional,
+        compareTypeMinMaxLength,
+        (a: ArrayType, b: ArrayType) => compareType(a.itemType, b.itemType),
+    ]);
+    export const compareTupleType = compositeCompareType<TupleType>
+    ([
+        compareTypeOptional,
+        (a: TupleType, b: TupleType) => compareTypeList(a.list, b.list),
+    ]);
+    export const compareTemplateType = compositeCompareType<TemplateType>
+    ([
+        compareTypeOptional,
+        (a: TemplateType, b: TemplateType) => compositeCompareTypeResult
+        ([
+            compareType(a.parameter, b.parameter),
+            compareType(a.return, b.return),
+        ]),
+    ]);
+    export const compareMetaType = compositeCompareType<MetaType>
+    ([
+        compareTypeOptional,
+        (a: MetaType, b: MetaType) => compositeCompareTypeResult
+        ([
+            compareType(a.parameter, b.parameter),
+            compareType(a.return, b.return),
+        ]),
+    ]);
+    export const compareIfMatch = <TargetType extends Type>(isMatch: ((type: Type) => type is TargetType), compareTarget: (a: TargetType, b: TargetType) => CompareTypeResult) =>
+        (a: Type, b: Type): CompareTypeResult | undefined =>
+            isMatch(a) && isMatch(b) ? compareTarget(a, b): undefined;
+    const compareTypeEntryList: ((a: Type, b: Type) => CompareTypeResult | undefined)[] =
+    [
+        compareIfMatch(isNullValueTypeData, compareNullValueType),
+        compareIfMatch(isBooleanValueTypeData, compareBoolanValueType),
+        compareIfMatch(isNumberValueTypeData, compareNumberValueType),
+        compareIfMatch(isStringValueTypeData, compareStringValueType),
+        compareIfMatch(isArrayTypeData, compareArrayType),
+        compareIfMatch(isTupleTypeData, compareTupleType),
+        compareIfMatch(isTemplateTypeData, compareTemplateType),
+        compareIfMatch(isMetaTypeData, compareMetaType),
+    ];
     export const compareType = (a: Type, b: Type): CompareTypeResult =>
     {
         if (isCompositeTypeData(a))
@@ -861,12 +1024,14 @@ export module Jsonarch
         else
         if (a.type === b.type)
         {
-            switch(a.type)
+            for(const i in compareTypeEntryList)
             {
-            case "null":
-                return compareTypeOptional(a, b);
+                const result = compareTypeEntryList[i](a, b);
+                if (undefined !== result)
+                {
+                    return result;
+                }
             }
-            return "equal";
         }
         return "unmatch";
     };
