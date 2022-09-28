@@ -679,6 +679,18 @@ export module Jsonarch
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
     export const isEqualOrExtented = (result: CompareTypeResult) => "equal" === result || "extended" === result;
+    export const reverseCompareTypeResult = (result: CompareTypeResult): CompareTypeResult =>
+    {
+        switch(result)
+        {
+        case "base":
+            return "extended";
+        case "extended":
+            return "base";
+        default:
+            return result;
+        }
+    };
     export const compositeCompareTypeResult = (list: Lazy<CompareTypeResult | undefined>[]): CompareTypeResult =>
     {
         let result: CompareTypeResult = "equal";
@@ -962,6 +974,23 @@ export module Jsonarch
             }
         ]);
     };
+    export const compareTypeOrComposite = (a: OrCompositeType, b: Type): CompareTypeResult =>
+    {
+        const resultList = a.list.map(i => compareType(i, b));
+        if (( ! resultList.some(i => "equal" !== i)) && isOrCompositeTypeData(b) && a.list.length === b.list.length)
+        {
+            return "equal";
+        }
+        if (resultList.some(i => isBaseOrEqual(i)))
+        {
+            return "base";
+        }
+        if (( ! resultList.some(i => ! isEqualOrExtented(i))))
+        {
+            return "extended";
+        }
+        return "unmatch";
+    };
     export const compositeCompareType = <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) =>
         (a: TargetType, b: TargetType): CompareTypeResult =>
             compositeCompareTypeResult(comparer.map(i => i(a,b)));
@@ -1037,21 +1066,24 @@ export module Jsonarch
     ];
     export const compareType = (a: Type, b: Type): CompareTypeResult =>
     {
-        if (isCompositeTypeData(a))
-        {
-
-        }
-        else
-        if (isCompositeTypeData(b))
-        {
-
-        }
-        else
         if (a.type === b.type)
         {
             return compositeCompareTypeResult(compareTypeEntryList.map(i => i(a,b)));
         }
-        return "unmatch";
+        else
+        if (isOrCompositeTypeData(a))
+        {
+            return compareTypeOrComposite(a, b);
+        }
+        else
+        if (isOrCompositeTypeData(b))
+        {
+            return reverseCompareTypeResult(compareTypeOrComposite(b, a));
+        }
+        else
+        {
+            return "unmatch";
+        }
     };
     export const isCompatibleType = (source: Type, destination: Type) =>
         isEqualOrExtented(compareType(source, destination));

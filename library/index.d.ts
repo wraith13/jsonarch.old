@@ -339,6 +339,7 @@ export declare module Jsonarch {
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
+    export const reverseCompareTypeResult: (result: CompareTypeResult) => CompareTypeResult;
     export const compositeCompareTypeResult: (list: Lazy<CompareTypeResult | undefined>[]) => CompareTypeResult;
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
@@ -351,6 +352,7 @@ export declare module Jsonarch {
     export const compareTypeMinMaxLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
     export const compareTypeList: (a: Type[], b: Type[]) => CompareTypeResult;
     export const compareTypeObjectMember: (a: ObjectType, b: ObjectType) => CompareTypeResult;
+    export const compareTypeOrComposite: (a: OrCompositeType, b: Type) => CompareTypeResult;
     export const compositeCompareType: <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) => (a: TargetType, b: TargetType) => CompareTypeResult;
     export const compareNullValueType: (a: NullValueType, b: NullValueType) => CompareTypeResult;
     export const compareBoolanValueType: (a: BooleanValueType, b: BooleanValueType) => CompareTypeResult;

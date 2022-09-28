@@ -454,6 +454,16 @@ var Jsonarch;
     };
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
     Jsonarch.isEqualOrExtented = function (result) { return "equal" === result || "extended" === result; };
+    Jsonarch.reverseCompareTypeResult = function (result) {
+        switch (result) {
+            case "base":
+                return "extended";
+            case "extended":
+                return "base";
+            default:
+                return result;
+        }
+    };
     Jsonarch.compositeCompareTypeResult = function (list) {
         var result = "equal";
         for (var i in list) {
@@ -656,6 +666,19 @@ var Jsonarch;
             }
         ], false));
     };
+    Jsonarch.compareTypeOrComposite = function (a, b) {
+        var resultList = a.list.map(function (i) { return Jsonarch.compareType(i, b); });
+        if ((!resultList.some(function (i) { return "equal" !== i; })) && Jsonarch.isOrCompositeTypeData(b) && a.list.length === b.list.length) {
+            return "equal";
+        }
+        if (resultList.some(function (i) { return Jsonarch.isBaseOrEqual(i); })) {
+            return "base";
+        }
+        if ((!resultList.some(function (i) { return !Jsonarch.isEqualOrExtented(i); }))) {
+            return "extended";
+        }
+        return "unmatch";
+    };
     Jsonarch.compositeCompareType = function (comparer) {
         return function (a, b) {
             return Jsonarch.compositeCompareTypeResult(comparer.map(function (i) { return i(a, b); }));
@@ -722,14 +745,18 @@ var Jsonarch;
         Jsonarch.compareIfMatch(Jsonarch.isMetaTypeData, Jsonarch.compareMetaType),
     ];
     Jsonarch.compareType = function (a, b) {
-        if (Jsonarch.isCompositeTypeData(a)) {
-        }
-        else if (Jsonarch.isCompositeTypeData(b)) {
-        }
-        else if (a.type === b.type) {
+        if (a.type === b.type) {
             return Jsonarch.compositeCompareTypeResult(compareTypeEntryList.map(function (i) { return i(a, b); }));
         }
-        return "unmatch";
+        else if (Jsonarch.isOrCompositeTypeData(a)) {
+            return Jsonarch.compareTypeOrComposite(a, b);
+        }
+        else if (Jsonarch.isOrCompositeTypeData(b)) {
+            return Jsonarch.reverseCompareTypeResult(Jsonarch.compareTypeOrComposite(b, a));
+        }
+        else {
+            return "unmatch";
+        }
     };
     Jsonarch.isCompatibleType = function (source, destination) {
         return Jsonarch.isEqualOrExtented(Jsonarch.compareType(source, destination));
