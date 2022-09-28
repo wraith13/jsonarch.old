@@ -350,6 +350,7 @@ export declare module Jsonarch {
     export const compareTypeMaxLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
     export const compareTypeMinMaxLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
     export const compareTypeList: (a: Type[], b: Type[]) => CompareTypeResult;
+    export const compareTypeObjectMember: (a: ObjectType, b: ObjectType) => CompareTypeResult;
     export const compositeCompareType: <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) => (a: TargetType, b: TargetType) => CompareTypeResult;
     export const compareNullValueType: (a: NullValueType, b: NullValueType) => CompareTypeResult;
     export const compareBoolanValueType: (a: BooleanValueType, b: BooleanValueType) => CompareTypeResult;
@@ -357,6 +358,7 @@ export declare module Jsonarch {
     export const compareStringValueType: (a: StringValueType, b: StringValueType) => CompareTypeResult;
     export const compareArrayType: (a: ArrayType, b: ArrayType) => CompareTypeResult;
     export const compareTupleType: (a: TupleType, b: TupleType) => CompareTypeResult;
+    export const compareObjectType: (a: ObjectType, b: ObjectType) => CompareTypeResult;
     export const compareTemplateType: (a: TemplateType, b: TemplateType) => CompareTypeResult;
     export const compareMetaType: (a: MetaType, b: MetaType) => CompareTypeResult;
     export const compareIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, compareTarget: (a: TargetType, b: TargetType) => CompareTypeResult) => (a: Type, b: Type) => CompareTypeResult | undefined;

@@ -921,16 +921,46 @@ export module Jsonarch
     {
         const commonLength = Math.min(a.length, b.length);
         return compositeCompareTypeResult
-        (
-            a
+        ([
+            ...a
                 .filter((_i, ix) => ix < commonLength)
-                .map((_i, ix) => <Lazy<CompareTypeResult | undefined>>(() => compareType(a[ix], b[ix])))
-                .concat
-                ([
-                    commonLength < a.length ? "extended": undefined,
-                    commonLength < b.length ? "base": undefined,
-                ])
-        );
+                .map((_i, ix) => <Lazy<CompareTypeResult | undefined>>(() => compareType(a[ix], b[ix]))),
+            commonLength < a.length ? "extended": undefined,
+            commonLength < b.length ? "base": undefined,
+        ]);
+    };
+    export const compareTypeObjectMember = (a: ObjectType, b: ObjectType): CompareTypeResult =>
+    {
+        const aMemberList = objectKeys(a.member);
+        const bMemberList = objectKeys(b.member);
+        const commonMemberList = aMemberList.filter(a => bMemberList.some(b => a === b));
+        const aOnlyMemberList = aMemberList.filter(a => ! commonMemberList.some(i => a === i));
+        const bOnlyMemberList = bMemberList.filter(b => ! commonMemberList.some(i => b === i));
+        return compositeCompareTypeResult
+        ([
+            ...commonMemberList.map(i => () => compareType(a.member[i], b.member[i])),
+            () =>
+            {
+                if (0 === aOnlyMemberList.length && 0 === bOnlyMemberList.length)
+                {
+                    return "equal";
+                }
+                else
+                if (0 === aOnlyMemberList.length)
+                {
+                    return "base";
+                }
+                else
+                if (0 === bOnlyMemberList.length)
+                {
+                    return "extended";
+                }
+                else
+                {
+                    return "unmatch";
+                }
+            }
+        ]);
     };
     export const compositeCompareType = <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) =>
         (a: TargetType, b: TargetType): CompareTypeResult =>
@@ -967,6 +997,11 @@ export module Jsonarch
         compareTypeOptional,
         (a: TupleType, b: TupleType) => compareTypeList(a.list, b.list),
     ]);
+    export const compareObjectType = compositeCompareType<ObjectType>
+    ([
+        compareTypeOptional,
+        compareTypeObjectMember,
+    ]);
     export const compareTemplateType = compositeCompareType<TemplateType>
     ([
         compareTypeOptional,
@@ -996,6 +1031,7 @@ export module Jsonarch
         compareIfMatch(isStringValueTypeData, compareStringValueType),
         compareIfMatch(isArrayTypeData, compareArrayType),
         compareIfMatch(isTupleTypeData, compareTupleType),
+        compareIfMatch(isObjectTypeData, compareObjectType),
         compareIfMatch(isTemplateTypeData, compareTemplateType),
         compareIfMatch(isMetaTypeData, compareMetaType),
     ];
