@@ -674,7 +674,36 @@ export module Jsonarch
     }
     export const regulateType = (compositeType: Type): Type =>
     {
-        return compositeType;
+        if (isAndCompositeTypeData(compositeType))
+        {
+
+        }
+        else
+        if (isOrCompositeTypeData(compositeType))
+        {
+            return <OrCompositeType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
+        }
+        else
+        if (isArrayTypeData(compositeType))
+        {
+            return <ArrayType>{ ...compareType, itemType: regulateType(compositeType.itemType), };
+        }
+        else
+        if (isTupleTypeData(compositeType))
+        {
+            return <TupleType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
+        }
+        else
+        if (isObjectTypeData(compositeType))
+        {
+            const member: { [key: string]: Type; } = { };
+            objectKeys(compositeType.member).forEach(key => member[key] = regulateType(compositeType.member[key]));
+            return <ObjectType>{ ...compositeType, member, };
+        }
+        else
+        {
+            return compositeType;
+        }
     };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
@@ -991,6 +1020,10 @@ export module Jsonarch
         }
         return "unmatch";
     };
+    export const compareTypeMeta = (_a: MetaType, _b: Type): CompareTypeResult =>
+    {
+        return "unmatch";
+    };
     export const compositeCompareType = <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) =>
         (a: TargetType, b: TargetType): CompareTypeResult =>
             compositeCompareTypeResult(comparer.map(i => i(a,b)));
@@ -1079,6 +1112,16 @@ export module Jsonarch
         if (isOrCompositeTypeData(b))
         {
             return reverseCompareTypeResult(compareTypeOrComposite(b, a));
+        }
+        else
+        if (isMetaTypeData(a))
+        {
+            return compareTypeMeta(a, b);
+        }
+        else
+        if (isMetaTypeData(b))
+        {
+            return reverseCompareTypeResult(compareTypeMeta(b, a));
         }
         else
         {
