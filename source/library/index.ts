@@ -519,6 +519,7 @@ export module Jsonarch
     export interface AlphaEnumType<ValueType extends JsonableValue> extends AlphaType
     {
         enum?: ValueType[];
+        neverEnum?: ValueType[];
     }
     export interface TypeRefer extends AlphaType
     {
@@ -822,6 +823,48 @@ export module Jsonarch
             }
         }
     };
+    export const compareTypeNeverEnum = <ValueType extends JsonableValue>(a: AlphaEnumType<ValueType>, b: AlphaEnumType<ValueType>): CompareTypeResult =>
+    {
+        const aNeverEnum = a.neverEnum;
+        const bNeverEnum = b.neverEnum;
+        if (undefined === aNeverEnum && undefined === bNeverEnum)
+        {
+            return "equal";
+        }
+        else
+        if (undefined === aNeverEnum)
+        {
+            return "base";
+        }
+        else
+        if (undefined === bNeverEnum)
+        {
+            return "extended";
+        }
+        else
+        {
+            const aHasUnmatch = aNeverEnum.some(i => bNeverEnum.indexOf(i) < 0);
+            const bHasUnmatch = bNeverEnum.some(i => aNeverEnum.indexOf(i) < 0);
+            if (( ! aHasUnmatch) && ( ! bHasUnmatch))
+            {
+                return "equal";
+            }
+            else
+            if ( ! aHasUnmatch)
+            {
+                return "base";
+            }
+            else
+            if ( ! bHasUnmatch)
+            {
+                return "extended";
+            }
+            else
+            {
+                return "unmatch";
+            }
+        }
+    };
     export const compareTypeMinValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
         if (a.minValue === b.minValue)
@@ -1035,17 +1078,20 @@ export module Jsonarch
     ([
         compareTypeOptional,
         compareTypeEnum,
+        compareTypeNeverEnum,
     ]);
     export const compareNumberValueType = compositeCompareType<NumberValueType>
     ([
         compareTypeOptional,
         compareTypeEnum,
+        compareTypeNeverEnum,
         compareTypeMinMaxValue,
     ]);
     export const compareStringValueType = compositeCompareType<StringValueType>
     ([
         compareTypeOptional,
         compareTypeEnum,
+        compareTypeNeverEnum,
         compareTypeFormat,
     ]);
     export const compareArrayType = compositeCompareType<ArrayType>
