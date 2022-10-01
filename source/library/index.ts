@@ -523,7 +523,6 @@ export module Jsonarch
     }
     export interface TypeRefer extends AlphaType
     {
-        $arch: "type";
         type: "refer";
         refer: Refer;
         parameter?: Jsonable;
@@ -531,50 +530,42 @@ export module Jsonarch
     export const isTypeReferData = isAlphaTypeData<TypeRefer>("refer");
     export interface NeverType extends AlphaType
     {
-        $arch: "type";
         type: "never";
     }
     export const isNeverTypeData = isAlphaTypeData<NeverType>("never");
     export interface UnknownType extends AlphaType
     {
-        $arch: "type";
         type: "unknown";
     }
     export const isUnknownTypeData = isAlphaTypeData<UnknownType>("unknown");
     export interface AnyType extends AlphaType
     {
-        $arch: "type";
         type: "any";
     }
     export const isAnyTypeData = isAlphaTypeData<AnyType>("any");
     export interface NullValueType extends AlphaType
     {
-        $arch: "type";
         type: "null";
     }
     export const isNullValueTypeData = isAlphaTypeData<NullValueType>("null");
     export interface BooleanValueType extends AlphaEnumType<boolean>
     {
-        $arch: "type";
         type: "boolean";
     }
     export const isBooleanValueTypeData = isAlphaTypeData<BooleanValueType>("boolean");
     export interface FormatStringValueType extends AlphaType
     {
-        $arch: "type";
         type: "string";
         format?: string;
     }
     export interface EnumStringValueType extends AlphaEnumType<string>
     {
-        $arch: "type";
         type: "string";
     }
     export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
     export interface NumberValueType extends AlphaEnumType<number>
     {
-        $arch: "type";
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
@@ -590,7 +581,6 @@ export module Jsonarch
         isStringValueTypeData(template);
     export interface ArrayType extends AlphaType
     {
-        $arch: "type";
         type: "array";
         itemType: Type;
         minLength?: number;
@@ -599,14 +589,12 @@ export module Jsonarch
     export const isArrayTypeData = isAlphaTypeData<ArrayType>("array");
     export interface TupleType extends AlphaType
     {
-        $arch: "type";
         type: "tuple";
         list: Type[];
     }
     export const isTupleTypeData = isAlphaTypeData<TupleType>("tuple");
     export interface ObjectType extends AlphaType
     {
-        $arch: "type";
         type: "object";
         member: { [key: string]: Type; };
     }
@@ -619,14 +607,12 @@ export module Jsonarch
         isObjectTypeData(template);
     export interface OrCompositeType extends AlphaType
     {
-        $arch: "type";
         type: "or";
         list: Type[];
     }
     export const isOrCompositeTypeData = isAlphaTypeData<OrCompositeType>("or");
     export interface AndCompositeType extends AlphaType
     {
-        $arch: "type";
         type: "and";
         list: Type[];
     }
@@ -638,7 +624,6 @@ export module Jsonarch
         isAndCompositeTypeData(template);
     export interface TemplateType extends AlphaType
     {
-        $arch: "type";
         type: "template";
         parameter: Type;
         return: Type;
@@ -646,7 +631,6 @@ export module Jsonarch
     export const isTemplateTypeData = isAlphaTypeData<TemplateType>("template");
     export interface MetaType extends AlphaType
     {
-        $arch: "type";
         type: "meta";
         parameter: Type;
         return: Type;
@@ -691,39 +675,6 @@ export module Jsonarch
             };
         }
     }
-    export const regulateType = (compositeType: Type): Type =>
-    {
-        if (isAndCompositeTypeData(compositeType))
-        {
-
-        }
-        else
-        if (isOrCompositeTypeData(compositeType))
-        {
-            return <OrCompositeType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
-        }
-        else
-        if (isArrayTypeData(compositeType))
-        {
-            return <ArrayType>{ ...compareType, itemType: regulateType(compositeType.itemType), };
-        }
-        else
-        if (isTupleTypeData(compositeType))
-        {
-            return <TupleType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
-        }
-        else
-        if (isObjectTypeData(compositeType))
-        {
-            const member: { [key: string]: Type; } = { };
-            objectKeys(compositeType.member).forEach(key => member[key] = regulateType(compositeType.member[key]));
-            return <ObjectType>{ ...compositeType, member, };
-        }
-        else
-        {
-            return compositeType;
-        }
-    };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
     export const isEqualOrExtented = (result: CompareTypeResult) => "equal" === result || "extended" === result;
@@ -1194,6 +1145,173 @@ export module Jsonarch
     };
     export const isCompatibleType = (source: Type, destination: Type) =>
         isEqualOrExtented(compareType(source, destination));
+    export const andTypeOptional = <TargetType extends Type>(a: TargetType, b: TargetType): TargetType =>
+    {
+        const result = { ...a };
+        if (a.optional !== b.optional && (a.optional ?? true) && ! (b.optional ?? false))
+        {
+            if (undefined === b.optional)
+            {
+                delete result.optional;
+            }
+            else
+            {
+                result.optional = b.optional;
+            }
+        }
+        return result;
+    };
+    export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
+        (a: TargetType, b: TargetType): TargetType | NeverType =>
+        {
+            let result: TargetType | NeverType = { ...a, };
+            for(const i in merger)
+            {
+                if (isNeverTypeData(result))
+                {
+                    break;
+                }
+                else
+                {
+                    result = merger[i](result, b);
+                }
+            }
+            return result;
+        };
+    export const andNullValueType = compositeAndType<NullValueType>
+    ([
+        andTypeOptional,
+    ]);
+    export const andBoolanValueType = compositeAndType<BooleanValueType>
+    ([
+        andTypeOptional,
+        andTypeEnum,
+        andTypeNeverEnum,
+    ]);
+    export const andNumberValueType = compositeAndType<NumberValueType>
+    ([
+        andTypeOptional,
+        andTypeEnum,
+        andTypeNeverEnum,
+        andTypeMinMaxValue,
+    ]);
+    export const andStringValueType = compositeAndType<StringValueType>
+    ([
+        andTypeOptional,
+        andTypeEnum,
+        andTypeNeverEnum,
+        andTypeFormat,
+    ]);
+    export const andArrayType = compositeAndType<ArrayType>
+    ([
+        andTypeOptional,
+        andTypeMinMaxLength,
+        (a: ArrayType, b: ArrayType) => compareType(a.itemType, b.itemType),
+    ]);
+    export const andTupleType = compositeAndType<TupleType>
+    ([
+        andTypeOptional,
+        (a: TupleType, b: TupleType) => compareTypeList(a.list, b.list),
+    ]);
+    export const andObjectType = compositeAndType<ObjectType>
+    ([
+        andTypeOptional,
+        andTypeObjectMember,
+    ]);
+    export const andTemplateType = compositeAndType<TemplateType>
+    ([
+        andTypeOptional,
+        (a: TemplateType, b: TemplateType) => compositeCompareTypeResult
+        ([
+            () => compareType(a.parameter, b.parameter),
+            () => compareType(a.return, b.return),
+        ]),
+    ]);
+    export const andMetaType = compositeAndType<MetaType>
+    ([
+        andTypeOptional,
+        (a: MetaType, b: MetaType) => compositeCompareTypeResult
+        ([
+            () => compareType(a.parameter, b.parameter),
+            () => compareType(a.return, b.return),
+        ]),
+    ]);
+    export const andIfMatch = <TargetType extends Type>(isMatch: ((type: Type) => type is TargetType), mergeTarget: (a: TargetType, b: TargetType) => TargetType | NeverType) =>
+        (a: Type, b: Type): TargetType | NeverType | undefined =>
+            isMatch(a) && isMatch(b) ? mergeTarget(a, b): undefined;
+    const andTypeEntryList: ((a: Type, b: Type) => Type | undefined)[] =
+    [
+        andIfMatch(isNullValueTypeData, andNullValueType),
+        andIfMatch(isBooleanValueTypeData, andBoolanValueType),
+        andIfMatch(isNumberValueTypeData, andNumberValueType),
+        andIfMatch(isStringValueTypeData, andStringValueType),
+        andIfMatch(isArrayTypeData, andArrayType),
+        andIfMatch(isTupleTypeData, andTupleType),
+        andIfMatch(isObjectTypeData, andObjectType),
+        andIfMatch(isTemplateTypeData, andTemplateType),
+        andIfMatch(isMetaTypeData, andMetaType),
+    ];
+    export const regulateType = (compositeType: Type): Type =>
+    {
+        if (isAndCompositeTypeData(compositeType))
+        {
+            if (0 < compositeType.list.length)
+            {
+                let result: Type =
+                {
+                    ...compositeType.list[0],
+                };
+                for(let i = 1; i < compositeType.list.length; ++i)
+                {
+                    const current = compositeType.list[0];
+                    if (result.type !== current.type)
+                    {
+                        return { $arch: "type", type: "never", };
+                    }
+                    for(let j in andTypeEntryList)
+                    {
+                        const x = andTypeEntryList[j](result, current);
+                        if (undefined !== x)
+                        {
+                            result = x;
+                            break;
+                        }
+                    }
+                }
+                return result;
+            }
+            else
+            {
+                return { $arch: "type", type: "never", };
+            }
+        }
+        else
+        if (isOrCompositeTypeData(compositeType))
+        {
+            return <OrCompositeType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
+        }
+        else
+        if (isArrayTypeData(compositeType))
+        {
+            return <ArrayType>{ ...compareType, itemType: regulateType(compositeType.itemType), };
+        }
+        else
+        if (isTupleTypeData(compositeType))
+        {
+            return <TupleType>{ ...compareType, list: compositeType.list.map(i => regulateType(i)), };
+        }
+        else
+        if (isObjectTypeData(compositeType))
+        {
+            const member: { [key: string]: Type; } = { };
+            objectKeys(compositeType.member).forEach(key => member[key] = regulateType(compositeType.member[key]));
+            return <ObjectType>{ ...compositeType, member, };
+        }
+        else
+        {
+            return compositeType;
+        }
+    };
     export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);

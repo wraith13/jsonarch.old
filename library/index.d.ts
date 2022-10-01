@@ -222,37 +222,44 @@ export declare module Jsonarch {
     export const isAlphaTypeData: <Type_1 extends AlphaType>(type: Type_1["type"]) => (template: unknown) => template is Type_1;
     export interface AlphaEnumType<ValueType extends JsonableValue> extends AlphaType {
         enum?: ValueType[];
+        neverEnum?: ValueType[];
     }
     export interface TypeRefer extends AlphaType {
-        $arch: "type";
         type: "refer";
         refer: Refer;
         parameter?: Jsonable;
     }
     export const isTypeReferData: (template: unknown) => template is TypeRefer;
+    export interface NeverType extends AlphaType {
+        type: "never";
+    }
+    export const isNeverTypeData: (template: unknown) => template is NeverType;
+    export interface UnknownType extends AlphaType {
+        type: "unknown";
+    }
+    export const isUnknownTypeData: (template: unknown) => template is UnknownType;
+    export interface AnyType extends AlphaType {
+        type: "any";
+    }
+    export const isAnyTypeData: (template: unknown) => template is AnyType;
     export interface NullValueType extends AlphaType {
-        $arch: "type";
         type: "null";
     }
     export const isNullValueTypeData: (template: unknown) => template is NullValueType;
     export interface BooleanValueType extends AlphaEnumType<boolean> {
-        $arch: "type";
         type: "boolean";
     }
     export const isBooleanValueTypeData: (template: unknown) => template is BooleanValueType;
     export interface FormatStringValueType extends AlphaType {
-        $arch: "type";
         type: "string";
         format?: string;
     }
     export interface EnumStringValueType extends AlphaEnumType<string> {
-        $arch: "type";
         type: "string";
     }
     export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData: (template: unknown) => template is StringValueType;
     export interface NumberValueType extends AlphaEnumType<number> {
-        $arch: "type";
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
@@ -263,7 +270,6 @@ export declare module Jsonarch {
     export type PrimitiveValueType = ValueType["type"];
     export const isValueTypeData: (template: unknown) => template is ValueType;
     export interface ArrayType extends AlphaType {
-        $arch: "type";
         type: "array";
         itemType: Type;
         minLength?: number;
@@ -271,13 +277,11 @@ export declare module Jsonarch {
     }
     export const isArrayTypeData: (template: unknown) => template is ArrayType;
     export interface TupleType extends AlphaType {
-        $arch: "type";
         type: "tuple";
         list: Type[];
     }
     export const isTupleTypeData: (template: unknown) => template is TupleType;
     export interface ObjectType extends AlphaType {
-        $arch: "type";
         type: "object";
         member: {
             [key: string]: Type;
@@ -288,13 +292,11 @@ export declare module Jsonarch {
     export type PrimitiveStructureType = StructureType["type"];
     export const isStructureTypeData: (template: unknown) => template is StructureType;
     export interface OrCompositeType extends AlphaType {
-        $arch: "type";
         type: "or";
         list: Type[];
     }
     export const isOrCompositeTypeData: (template: unknown) => template is OrCompositeType;
     export interface AndCompositeType extends AlphaType {
-        $arch: "type";
         type: "and";
         list: Type[];
     }
@@ -303,20 +305,18 @@ export declare module Jsonarch {
     export type PrimitiveCompositeType = CompositeType["type"];
     export const isCompositeTypeData: (template: unknown) => template is CompositeType;
     export interface TemplateType extends AlphaType {
-        $arch: "type";
         type: "template";
         parameter: Type;
         return: Type;
     }
     export const isTemplateTypeData: (template: unknown) => template is TemplateType;
     export interface MetaType extends AlphaType {
-        $arch: "type";
         type: "meta";
         parameter: Type;
         return: Type;
     }
     export const isMetaTypeData: (template: unknown) => template is MetaType;
-    export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
+    export type Type = TypeRefer | NeverType | UnknownType | AnyType | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
     export type PrimitiveType = Type["type"];
     export const isTypeData: (template: unknown) => template is Type;
     export interface Call extends AlphaJsonarch {
@@ -343,6 +343,7 @@ export declare module Jsonarch {
     export const compositeCompareTypeResult: (list: Lazy<CompareTypeResult | undefined>[]) => CompareTypeResult;
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
+    export const compareTypeNeverEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
     export const compareTypeMinValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMinMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
@@ -353,6 +354,7 @@ export declare module Jsonarch {
     export const compareTypeList: (a: Type[], b: Type[]) => CompareTypeResult;
     export const compareTypeObjectMember: (a: ObjectType, b: ObjectType) => CompareTypeResult;
     export const compareTypeOrComposite: (a: OrCompositeType, b: Type) => CompareTypeResult;
+    export const compareTypeMeta: (_a: MetaType, _b: Type) => CompareTypeResult;
     export const compositeCompareType: <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) => (a: TargetType, b: TargetType) => CompareTypeResult;
     export const compareNullValueType: (a: NullValueType, b: NullValueType) => CompareTypeResult;
     export const compareBoolanValueType: (a: BooleanValueType, b: BooleanValueType) => CompareTypeResult;
