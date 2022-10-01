@@ -529,6 +529,24 @@ export module Jsonarch
         parameter?: Jsonable;
     }
     export const isTypeReferData = isAlphaTypeData<TypeRefer>("refer");
+    export interface NeverType extends AlphaType
+    {
+        $arch: "type";
+        type: "never";
+    }
+    export const isNeverTypeData = isAlphaTypeData<NeverType>("never");
+    export interface UnknownType extends AlphaType
+    {
+        $arch: "type";
+        type: "unknown";
+    }
+    export const isUnknownTypeData = isAlphaTypeData<UnknownType>("unknown");
+    export interface AnyType extends AlphaType
+    {
+        $arch: "type";
+        type: "any";
+    }
+    export const isAnyTypeData = isAlphaTypeData<AnyType>("any");
     export interface NullValueType extends AlphaType
     {
         $arch: "type";
@@ -634,7 +652,7 @@ export module Jsonarch
         return: Type;
     }
     export const isMetaTypeData = isAlphaTypeData<MetaType>("meta");
-    export type Type = TypeRefer | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
+    export type Type = TypeRefer | NeverType | UnknownType | AnyType | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
     export type PrimitiveType = Type["type"];
     export const isTypeData = isJsonarch<Type>("type");
     export interface Call extends AlphaJsonarch
