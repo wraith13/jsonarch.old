@@ -1175,16 +1175,42 @@ export module Jsonarch
             else
             if (undefined !== aEnum && undefined !== bEnum)
             {
-                const commonEnum = aEnum.filter(i => 0 <= bEnum.indexOf(i));
-                if (0 <= commonEnum.length)
+                result.enum = aEnum.filter(i => 0 <= bEnum.indexOf(i));
+            }
+        }
+        if ( ! isNeverTypeData(result))
+        {
+            const aNeverEnum = a.neverEnum;
+            const bNeverEnum = b.neverEnum;
+            if (undefined !== aNeverEnum || undefined !== bNeverEnum)
+            {
+                if (undefined === aNeverEnum)
                 {
-                    result.enum = commonEnum;
+                    result.neverEnum = bNeverEnum;
+                }
+                else
+                if (undefined !== aNeverEnum && undefined !== bNeverEnum)
+                {
+                    result.neverEnum = aNeverEnum.concat(bNeverEnum.filter(i => aNeverEnum.indexOf(i) < 0));
+                }
+            }
+            const neverEnum = result.neverEnum;
+            if (undefined !== neverEnum)
+            {
+                if (undefined !== result.enum)
+                {
+                    result.enum = result.enum.filter(i => neverEnum.indexOf(i) < 0);
+                    result.neverEnum = undefined;
                 }
                 else
                 {
-                    result = { $arch: "type", type: "never", };
+                    result.neverEnum = neverEnum;
                 }
             }
+        }
+        if (undefined !== result.enum && result.enum.length <= 0)
+        {
+            result = { $arch: "type", type: "never", };
         }
         return result;
     };
