@@ -1161,6 +1161,33 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeEnum = <ValueType extends JsonableValue, TargetType extends AlphaEnumType<ValueType>>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        const aEnum = a.enum;
+        const bEnum = b.enum;
+        if (undefined !== aEnum || undefined !== bEnum)
+        {
+            if (undefined === aEnum)
+            {
+                result.enum = bEnum;
+            }
+            else
+            if (undefined !== aEnum && undefined !== bEnum)
+            {
+                const commonEnum = aEnum.filter(i => 0 <= bEnum.indexOf(i));
+                if (0 <= commonEnum.length)
+                {
+                    result.enum = commonEnum;
+                }
+                else
+                {
+                    result = { $arch: "type", type: "never", };
+                }
+            }
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
