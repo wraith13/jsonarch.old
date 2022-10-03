@@ -1214,6 +1214,23 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeMinMaxValue = <TargetType extends NumberValueType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        if (undefined !== b.minValue && (undefined === result.minValue || result.minValue < b.minValue))
+        {
+            result.minValue = b.minValue;
+        }
+        if (undefined !== b.maxValue && (undefined === result.maxValue || b.maxValue < result.maxValue))
+        {
+            result.maxValue = b.maxValue;
+        }
+        if (isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue && result.maxValue < result.minValue)
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
@@ -1239,20 +1256,17 @@ export module Jsonarch
     ([
         andTypeOptional,
         andTypeEnum,
-        andTypeNeverEnum,
     ]);
     export const andNumberValueType = compositeAndType<NumberValueType>
     ([
         andTypeOptional,
         andTypeEnum,
-        andTypeNeverEnum,
         andTypeMinMaxValue,
     ]);
     export const andStringValueType = compositeAndType<StringValueType>
     ([
         andTypeOptional,
         andTypeEnum,
-        andTypeNeverEnum,
         andTypeFormat,
     ]);
     export const andArrayType = compositeAndType<ArrayType>
