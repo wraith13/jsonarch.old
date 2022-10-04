@@ -1258,6 +1258,23 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeMinMaxLength = <TargetType extends ArrayType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        if (undefined !== b.minLength && (undefined === result.minLength || result.minLength < b.minLength))
+        {
+            result.minLength = b.minLength;
+        }
+        if (undefined !== b.maxLength && (undefined === result.maxLength || b.maxLength < result.maxLength))
+        {
+            result.maxLength = b.maxLength;
+        }
+        if (isArrayTypeData(result) && undefined !== result.minLength && undefined !== result.maxLength && result.maxLength < result.minLength)
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
