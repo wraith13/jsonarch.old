@@ -1225,7 +1225,18 @@ export module Jsonarch
         {
             result.maxValue = b.maxValue;
         }
-        if (isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue && result.maxValue < result.minValue)
+        if (b.integerOnly ?? false)
+        {
+            result.integerOnly = b.integerOnly;
+        }
+        if
+        (
+            isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue &&
+            (
+                result.maxValue < result.minValue ||
+                ((result.integerOnly ?? false) && Math.floor(result.maxValue) < Math.ceil(result.minValue))
+            )
+        )
         {
             result = { $arch: "type", type: "never", };
         }
