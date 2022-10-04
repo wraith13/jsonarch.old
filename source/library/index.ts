@@ -1242,6 +1242,22 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeFormat = <TargetType extends StringValueType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        if (undefined !== b.format)
+        {
+            if (undefined === result.format)
+            {
+                result.minValue = b.minValue;
+            }
+            else
+            {
+                result = { $arch: "type", type: "never", };
+            }
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
