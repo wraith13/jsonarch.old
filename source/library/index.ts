@@ -1275,6 +1275,20 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeItemType = <TargetType extends ArrayType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        const itemType = andType([ a, b, ]);
+        if (isNeverTypeData(itemType))
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        else
+        {
+            result.itemType = itemType;
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
@@ -1317,7 +1331,7 @@ export module Jsonarch
     ([
         andTypeOptional,
         andTypeMinMaxLength,
-        (a: ArrayType, b: ArrayType) => compareType(a.itemType, b.itemType),
+        andTypeItemType,
     ]);
     export const andTupleType = compositeAndType<TupleType>
     ([
@@ -1362,39 +1376,43 @@ export module Jsonarch
         andIfMatch(isTemplateTypeData, andTemplateType),
         andIfMatch(isMetaTypeData, andMetaType),
     ];
+    export const andType = (list: Type[]): Type =>
+    {
+        if (0 < list.length)
+        {
+            let result: Type =
+            {
+                ...list[0],
+            };
+            for(let i = 1; i < list.length; ++i)
+            {
+                const current = list[0];
+                if (result.type !== current.type)
+                {
+                    return { $arch: "type", type: "never", };
+                }
+                for(let j in andTypeEntryList)
+                {
+                    const x = andTypeEntryList[j](result, current);
+                    if (undefined !== x)
+                    {
+                        result = x;
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+        else
+        {
+            return { $arch: "type", type: "never", };
+        }
+    };
     export const regulateType = (compositeType: Type): Type =>
     {
         if (isAndCompositeTypeData(compositeType))
         {
-            if (0 < compositeType.list.length)
-            {
-                let result: Type =
-                {
-                    ...compositeType.list[0],
-                };
-                for(let i = 1; i < compositeType.list.length; ++i)
-                {
-                    const current = compositeType.list[0];
-                    if (result.type !== current.type)
-                    {
-                        return { $arch: "type", type: "never", };
-                    }
-                    for(let j in andTypeEntryList)
-                    {
-                        const x = andTypeEntryList[j](result, current);
-                        if (undefined !== x)
-                        {
-                            result = x;
-                            break;
-                        }
-                    }
-                }
-                return result;
-            }
-            else
-            {
-                return { $arch: "type", type: "never", };
-            }
+            return andType(compositeType.list);
         }
         else
         if (isOrCompositeTypeData(compositeType))
