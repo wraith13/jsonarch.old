@@ -1278,7 +1278,7 @@ export module Jsonarch
     export const andTypeItemType = <TargetType extends ArrayType>(a: TargetType, b: TargetType): TargetType | NeverType =>
     {
         let result: TargetType | NeverType = { ...a };
-        const itemType = andType([ a, b, ]);
+        const itemType = andType([ a.itemType, b.itemType, ]);
         if (isNeverTypeData(itemType))
         {
             result = { $arch: "type", type: "never", };
@@ -1286,6 +1286,24 @@ export module Jsonarch
         else
         {
             result.itemType = itemType;
+        }
+        return result;
+    };
+    export const andTypeList = <TargetType extends TupleType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a };
+        const commonListLength = Math.min(a.list.length, b.list.length);
+        const list: Type[] = a.list
+            .map((i, ix) => andType([ i, b.list[ix] ]))
+            .concat(a.list.filter((_i, ix) => commonListLength <= ix))
+            .concat(b.list.filter((_i, ix) => commonListLength <= ix));
+        if (list.some(i => isNeverTypeData(i)))
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        else
+        {
+            result.list = list;
         }
         return result;
     };
@@ -1336,7 +1354,7 @@ export module Jsonarch
     export const andTupleType = compositeAndType<TupleType>
     ([
         andTypeOptional,
-        (a: TupleType, b: TupleType) => compareTypeList(a.list, b.list),
+        andTypeList,
     ]);
     export const andObjectType = compositeAndType<ObjectType>
     ([
