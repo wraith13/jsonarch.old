@@ -1307,6 +1307,31 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeObjectMember = <TargetType extends ObjectType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a, member: { ...a.member, ...b.member, }, };
+        const keys = objectKeys(result.member);
+        for(const i in keys)
+        {
+            const key = keys[i];
+            const ai = a.member[key];
+            const bi = b.member[key];
+            if (undefined !== ai && undefined !== bi)
+            {
+                const current = andType([ ai, bi, ]);
+                if (isNeverTypeData(current))
+                {
+                    result = { $arch: "type", type: "never", };
+                    break;
+                }
+                else
+                {
+                    result.member[key] = current;
+                }
+            }
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
