@@ -1477,7 +1477,7 @@ export module Jsonarch
     {
         if (isAndCompositeTypeData(compositeType))
         {
-            return andType(compositeType.list);
+            return regulateType(andType(compositeType.list));
         }
         else
         if (isOrCompositeTypeData(compositeType))

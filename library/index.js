@@ -1060,7 +1060,7 @@ var Jsonarch;
     };
     Jsonarch.regulateType = function (compositeType) {
         if (Jsonarch.isAndCompositeTypeData(compositeType)) {
-            return Jsonarch.andType(compositeType.list);
+            return Jsonarch.regulateType(Jsonarch.andType(compositeType.list));
         }
         else if (Jsonarch.isOrCompositeTypeData(compositeType)) {
             return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
