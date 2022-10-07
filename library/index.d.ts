@@ -335,7 +335,6 @@ export declare module Jsonarch {
             const json: (parameter: Jsonable | undefined) => string;
         }
     }
-    export const regulateType: (compositeType: Type) => Type;
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
@@ -368,6 +367,33 @@ export declare module Jsonarch {
     export const compareIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, compareTarget: (a: TargetType, b: TargetType) => CompareTypeResult) => (a: Type, b: Type) => CompareTypeResult | undefined;
     export const compareType: (a: Type, b: Type) => CompareTypeResult;
     export const isCompatibleType: (source: Type, destination: Type) => boolean;
+    export const andTypeOptional: <TargetType extends Type>(a: TargetType, b: TargetType) => TargetType;
+    export const andTypeEnum: <ValueType_1 extends JsonableValue, TargetType extends AlphaEnumType<ValueType_1>>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeMinMaxValue: <TargetType extends NumberValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeFormat: <TargetType extends StringValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeMinMaxLength: <TargetType extends ArrayType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeItemType: <TargetType extends ArrayType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeList: <TargetType extends TupleType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeObjectMember: <TargetType extends ObjectType>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeParameter: <TargetType extends Type & {
+        parameter: Type;
+    }>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andTypeReturn: <TargetType extends Type & {
+        return: Type;
+    }>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const compositeAndType: <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => NeverType | TargetType)[]) => (a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const andNullValueType: (a: NullValueType, b: NullValueType) => NeverType | NullValueType;
+    export const andBoolanValueType: (a: BooleanValueType, b: BooleanValueType) => NeverType | BooleanValueType;
+    export const andNumberValueType: (a: NumberValueType, b: NumberValueType) => NeverType | NumberValueType;
+    export const andStringValueType: (a: StringValueType, b: StringValueType) => NeverType | StringValueType;
+    export const andArrayType: (a: ArrayType, b: ArrayType) => NeverType | ArrayType;
+    export const andTupleType: (a: TupleType, b: TupleType) => NeverType | TupleType;
+    export const andObjectType: (a: ObjectType, b: ObjectType) => NeverType | ObjectType;
+    export const andTemplateType: (a: TemplateType, b: TemplateType) => NeverType | TemplateType;
+    export const andMetaType: (a: MetaType, b: MetaType) => NeverType | MetaType;
+    export const andIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, mergeTarget: (a: TargetType, b: TargetType) => NeverType | TargetType) => (a: Type, b: Type) => NeverType | TargetType | undefined;
+    export const andType: (list: Type[]) => Type;
+    export const regulateType: (compositeType: Type) => Type;
     export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;

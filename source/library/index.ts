@@ -1332,6 +1332,34 @@ export module Jsonarch
         }
         return result;
     };
+    export const andTypeParameter = <TargetType extends (Type & { parameter: Type })>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a, };
+        const parameter = andType([ a.parameter, b.parameter, ]);
+        if (isNeverTypeData(parameter))
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        else
+        {
+            result.parameter = parameter;
+        }
+        return result;
+    };
+    export const andTypeReturn = <TargetType extends (Type & { return: Type })>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    {
+        let result: TargetType | NeverType = { ...a, };
+        const returnType = andType([ a.return, b.return, ]);
+        if (isNeverTypeData(returnType))
+        {
+            result = { $arch: "type", type: "never", };
+        }
+        else
+        {
+            result.return = returnType;
+        }
+        return result;
+    };
     export const compositeAndType = <TargetType extends Type>(merger: ((a: TargetType, b: TargetType) => TargetType | NeverType)[]) =>
         (a: TargetType, b: TargetType): TargetType | NeverType =>
         {
@@ -1389,20 +1417,14 @@ export module Jsonarch
     export const andTemplateType = compositeAndType<TemplateType>
     ([
         andTypeOptional,
-        (a: TemplateType, b: TemplateType) => compositeCompareTypeResult
-        ([
-            () => compareType(a.parameter, b.parameter),
-            () => compareType(a.return, b.return),
-        ]),
+        andTypeParameter,
+        andTypeReturn,
     ]);
     export const andMetaType = compositeAndType<MetaType>
     ([
         andTypeOptional,
-        (a: MetaType, b: MetaType) => compositeCompareTypeResult
-        ([
-            () => compareType(a.parameter, b.parameter),
-            () => compareType(a.return, b.return),
-        ]),
+        andTypeParameter,
+        andTypeReturn,
     ]);
     export const andIfMatch = <TargetType extends Type>(isMatch: ((type: Type) => type is TargetType), mergeTarget: (a: TargetType, b: TargetType) => TargetType | NeverType) =>
         (a: Type, b: Type): TargetType | NeverType | undefined =>

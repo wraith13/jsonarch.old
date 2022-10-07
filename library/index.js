@@ -452,40 +452,6 @@ var Jsonarch;
             };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
-    Jsonarch.regulateType = function (compositeType) {
-        if (Jsonarch.isAndCompositeTypeData(compositeType)) {
-            if (compositeType.list.length <= 0) {
-                return { $arch: "type", type: "never", };
-            }
-            var types = compositeType.list.map(function (i) { return i.type; });
-            var commonType_1 = types[0];
-            if (types.some(function (i) { return i !== commonType_1; })) {
-                return { $arch: "type", type: "never", };
-            }
-            var result = {
-                $arch: "type",
-                type: commonType_1,
-            };
-            return result;
-        }
-        else if (Jsonarch.isOrCompositeTypeData(compositeType)) {
-            return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
-        }
-        else if (Jsonarch.isArrayTypeData(compositeType)) {
-            return __assign(__assign({}, Jsonarch.compareType), { itemType: Jsonarch.regulateType(compositeType.itemType) });
-        }
-        else if (Jsonarch.isTupleTypeData(compositeType)) {
-            return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
-        }
-        else if (Jsonarch.isObjectTypeData(compositeType)) {
-            var member_1 = {};
-            Jsonarch.objectKeys(compositeType.member).forEach(function (key) { return member_1[key] = Jsonarch.regulateType(compositeType.member[key]); });
-            return __assign(__assign({}, compositeType), { member: member_1 });
-        }
-        else {
-            return compositeType;
-        }
-    };
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
     Jsonarch.isEqualOrExtented = function (result) { return "equal" === result || "extended" === result; };
     Jsonarch.reverseCompareTypeResult = function (result) {
@@ -835,6 +801,284 @@ var Jsonarch;
     };
     Jsonarch.isCompatibleType = function (source, destination) {
         return Jsonarch.isEqualOrExtented(Jsonarch.compareType(source, destination));
+    };
+    Jsonarch.andTypeOptional = function (a, b) {
+        var _c, _d;
+        var result = __assign({}, a);
+        if (a.optional !== b.optional && ((_c = a.optional) !== null && _c !== void 0 ? _c : true) && !((_d = b.optional) !== null && _d !== void 0 ? _d : false)) {
+            if (undefined === b.optional) {
+                delete result.optional;
+            }
+            else {
+                result.optional = b.optional;
+            }
+        }
+        return result;
+    };
+    Jsonarch.andTypeEnum = function (a, b) {
+        var result = __assign({}, a);
+        var aEnum = a.enum;
+        var bEnum = b.enum;
+        if (undefined !== aEnum || undefined !== bEnum) {
+            if (undefined === aEnum) {
+                result.enum = bEnum;
+            }
+            else if (undefined !== aEnum && undefined !== bEnum) {
+                result.enum = aEnum.filter(function (i) { return 0 <= bEnum.indexOf(i); });
+            }
+        }
+        if (!Jsonarch.isNeverTypeData(result)) {
+            var aNeverEnum_1 = a.neverEnum;
+            var bNeverEnum = b.neverEnum;
+            if (undefined !== aNeverEnum_1 || undefined !== bNeverEnum) {
+                if (undefined === aNeverEnum_1) {
+                    result.neverEnum = bNeverEnum;
+                }
+                else if (undefined !== aNeverEnum_1 && undefined !== bNeverEnum) {
+                    result.neverEnum = aNeverEnum_1.concat(bNeverEnum.filter(function (i) { return aNeverEnum_1.indexOf(i) < 0; }));
+                }
+            }
+            var neverEnum_1 = result.neverEnum;
+            if (undefined !== neverEnum_1) {
+                if (undefined !== result.enum) {
+                    result.enum = result.enum.filter(function (i) { return neverEnum_1.indexOf(i) < 0; });
+                    result.neverEnum = undefined;
+                }
+                else {
+                    result.neverEnum = neverEnum_1;
+                }
+            }
+        }
+        if (undefined !== result.enum && result.enum.length <= 0) {
+            result = { $arch: "type", type: "never", };
+        }
+        return result;
+    };
+    Jsonarch.andTypeMinMaxValue = function (a, b) {
+        var _c, _d;
+        var result = __assign({}, a);
+        if (undefined !== b.minValue && (undefined === result.minValue || result.minValue < b.minValue)) {
+            result.minValue = b.minValue;
+        }
+        if (undefined !== b.maxValue && (undefined === result.maxValue || b.maxValue < result.maxValue)) {
+            result.maxValue = b.maxValue;
+        }
+        if ((_c = b.integerOnly) !== null && _c !== void 0 ? _c : false) {
+            result.integerOnly = b.integerOnly;
+        }
+        if (Jsonarch.isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue &&
+            (result.maxValue < result.minValue ||
+                (((_d = result.integerOnly) !== null && _d !== void 0 ? _d : false) && Math.floor(result.maxValue) < Math.ceil(result.minValue)))) {
+            result = { $arch: "type", type: "never", };
+        }
+        return result;
+    };
+    Jsonarch.andTypeFormat = function (a, b) {
+        var result = __assign({}, a);
+        if (undefined !== b.format) {
+            if (undefined === result.format) {
+                result.minValue = b.minValue;
+            }
+            else {
+                result = { $arch: "type", type: "never", };
+            }
+        }
+        return result;
+    };
+    Jsonarch.andTypeMinMaxLength = function (a, b) {
+        var result = __assign({}, a);
+        if (undefined !== b.minLength && (undefined === result.minLength || result.minLength < b.minLength)) {
+            result.minLength = b.minLength;
+        }
+        if (undefined !== b.maxLength && (undefined === result.maxLength || b.maxLength < result.maxLength)) {
+            result.maxLength = b.maxLength;
+        }
+        if (Jsonarch.isArrayTypeData(result) && undefined !== result.minLength && undefined !== result.maxLength && result.maxLength < result.minLength) {
+            result = { $arch: "type", type: "never", };
+        }
+        return result;
+    };
+    Jsonarch.andTypeItemType = function (a, b) {
+        var result = __assign({}, a);
+        var itemType = Jsonarch.andType([a.itemType, b.itemType,]);
+        if (Jsonarch.isNeverTypeData(itemType)) {
+            result = { $arch: "type", type: "never", };
+        }
+        else {
+            result.itemType = itemType;
+        }
+        return result;
+    };
+    Jsonarch.andTypeList = function (a, b) {
+        var result = __assign({}, a);
+        var commonListLength = Math.min(a.list.length, b.list.length);
+        var list = a.list
+            .map(function (i, ix) { return Jsonarch.andType([i, b.list[ix]]); })
+            .concat(a.list.filter(function (_i, ix) { return commonListLength <= ix; }))
+            .concat(b.list.filter(function (_i, ix) { return commonListLength <= ix; }));
+        if (list.some(function (i) { return Jsonarch.isNeverTypeData(i); })) {
+            result = { $arch: "type", type: "never", };
+        }
+        else {
+            result.list = list;
+        }
+        return result;
+    };
+    Jsonarch.andTypeObjectMember = function (a, b) {
+        var result = __assign(__assign({}, a), { member: __assign(__assign({}, a.member), b.member) });
+        var keys = Jsonarch.objectKeys(result.member);
+        for (var i in keys) {
+            var key = keys[i];
+            var ai = a.member[key];
+            var bi = b.member[key];
+            if (undefined !== ai && undefined !== bi) {
+                var current = Jsonarch.andType([ai, bi,]);
+                if (Jsonarch.isNeverTypeData(current)) {
+                    result = { $arch: "type", type: "never", };
+                    break;
+                }
+                else {
+                    result.member[key] = current;
+                }
+            }
+        }
+        return result;
+    };
+    Jsonarch.andTypeParameter = function (a, b) {
+        var result = __assign({}, a);
+        var parameter = Jsonarch.andType([a.parameter, b.parameter,]);
+        if (Jsonarch.isNeverTypeData(parameter)) {
+            result = { $arch: "type", type: "never", };
+        }
+        else {
+            result.parameter = parameter;
+        }
+        return result;
+    };
+    Jsonarch.andTypeReturn = function (a, b) {
+        var result = __assign({}, a);
+        var returnType = Jsonarch.andType([a.return, b.return,]);
+        if (Jsonarch.isNeverTypeData(returnType)) {
+            result = { $arch: "type", type: "never", };
+        }
+        else {
+            result.return = returnType;
+        }
+        return result;
+    };
+    Jsonarch.compositeAndType = function (merger) {
+        return function (a, b) {
+            var result = __assign({}, a);
+            for (var i in merger) {
+                if (Jsonarch.isNeverTypeData(result)) {
+                    break;
+                }
+                else {
+                    result = merger[i](result, b);
+                }
+            }
+            return result;
+        };
+    };
+    Jsonarch.andNullValueType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+    ]);
+    Jsonarch.andBoolanValueType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeEnum,
+    ]);
+    Jsonarch.andNumberValueType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeEnum,
+        Jsonarch.andTypeMinMaxValue,
+    ]);
+    Jsonarch.andStringValueType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeEnum,
+        Jsonarch.andTypeFormat,
+    ]);
+    Jsonarch.andArrayType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeMinMaxLength,
+        Jsonarch.andTypeItemType,
+    ]);
+    Jsonarch.andTupleType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeList,
+    ]);
+    Jsonarch.andObjectType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeObjectMember,
+    ]);
+    Jsonarch.andTemplateType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeParameter,
+        Jsonarch.andTypeReturn,
+    ]);
+    Jsonarch.andMetaType = Jsonarch.compositeAndType([
+        Jsonarch.andTypeOptional,
+        Jsonarch.andTypeParameter,
+        Jsonarch.andTypeReturn,
+    ]);
+    Jsonarch.andIfMatch = function (isMatch, mergeTarget) {
+        return function (a, b) {
+            return isMatch(a) && isMatch(b) ? mergeTarget(a, b) : undefined;
+        };
+    };
+    var andTypeEntryList = [
+        Jsonarch.andIfMatch(Jsonarch.isNullValueTypeData, Jsonarch.andNullValueType),
+        Jsonarch.andIfMatch(Jsonarch.isBooleanValueTypeData, Jsonarch.andBoolanValueType),
+        Jsonarch.andIfMatch(Jsonarch.isNumberValueTypeData, Jsonarch.andNumberValueType),
+        Jsonarch.andIfMatch(Jsonarch.isStringValueTypeData, Jsonarch.andStringValueType),
+        Jsonarch.andIfMatch(Jsonarch.isArrayTypeData, Jsonarch.andArrayType),
+        Jsonarch.andIfMatch(Jsonarch.isTupleTypeData, Jsonarch.andTupleType),
+        Jsonarch.andIfMatch(Jsonarch.isObjectTypeData, Jsonarch.andObjectType),
+        Jsonarch.andIfMatch(Jsonarch.isTemplateTypeData, Jsonarch.andTemplateType),
+        Jsonarch.andIfMatch(Jsonarch.isMetaTypeData, Jsonarch.andMetaType),
+    ];
+    Jsonarch.andType = function (list) {
+        if (0 < list.length) {
+            var result = __assign({}, list[0]);
+            for (var i = 1; i < list.length; ++i) {
+                var current = list[0];
+                if (result.type !== current.type) {
+                    return { $arch: "type", type: "never", };
+                }
+                for (var j in andTypeEntryList) {
+                    var x = andTypeEntryList[j](result, current);
+                    if (undefined !== x) {
+                        result = x;
+                        break;
+                    }
+                }
+            }
+            return result;
+        }
+        else {
+            return { $arch: "type", type: "never", };
+        }
+    };
+    Jsonarch.regulateType = function (compositeType) {
+        if (Jsonarch.isAndCompositeTypeData(compositeType)) {
+            return Jsonarch.andType(compositeType.list);
+        }
+        else if (Jsonarch.isOrCompositeTypeData(compositeType)) {
+            return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
+        }
+        else if (Jsonarch.isArrayTypeData(compositeType)) {
+            return __assign(__assign({}, Jsonarch.compareType), { itemType: Jsonarch.regulateType(compositeType.itemType) });
+        }
+        else if (Jsonarch.isTupleTypeData(compositeType)) {
+            return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
+        }
+        else if (Jsonarch.isObjectTypeData(compositeType)) {
+            var member_1 = {};
+            Jsonarch.objectKeys(compositeType.member).forEach(function (key) { return member_1[key] = Jsonarch.regulateType(compositeType.member[key]); });
+            return __assign(__assign({}, compositeType), { member: member_1 });
+        }
+        else {
+            return compositeType;
+        }
     };
     Jsonarch.turnRefer = function (root, refer) {
         var rest = refer.map(function (i) { return i; });
