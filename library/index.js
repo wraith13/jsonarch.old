@@ -86,6 +86,7 @@ exports.Jsonarch = exports.Locale = void 0;
 var System = __importStar(require("./system"));
 var boot_setting_json_1 = __importDefault(require("./boot.setting.json"));
 var setting_json_1 = __importDefault(require("./setting.json"));
+var library_json_1 = __importDefault(require("./library.json"));
 var Locale = __importStar(require("./locale"));
 exports.Locale = __importStar(require("./locale"));
 var Jsonarch;
@@ -1059,6 +1060,11 @@ var Jsonarch;
         }
     };
     Jsonarch.regulateType = function (compositeType) {
+        // if (isTypeReferData(compositeType))
+        // {
+        //     compositeType.refer
+        // }
+        // else
         if (Jsonarch.isAndCompositeTypeData(compositeType)) {
             return Jsonarch.regulateType(Jsonarch.andType(compositeType.list));
         }
@@ -1114,7 +1120,7 @@ var Jsonarch;
         }, entry.template.refer);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, _c, target;
+        var parameter, _c, target, functionTemplate, type, typeParameter;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -1134,6 +1140,15 @@ var Jsonarch;
                         template: entry.cache.template,
                     }, entry.template.refer);
                     if (!("function" === typeof target)) return [3 /*break*/, 4];
+                    functionTemplate = Jsonarch.turnRefer(library_json_1.default.library, entry.template.refer);
+                    if (Jsonarch.isTemplateData(functionTemplate)) {
+                        type = functionTemplate.type;
+                        if (type) {
+                            typeParameter = type.parameter;
+                            if (typeParameter) {
+                            }
+                        }
+                    }
                     return [2 /*return*/, target(parameter)];
                 case 4:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 6];

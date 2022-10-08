@@ -194,7 +194,10 @@ export declare module Jsonarch {
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
     export interface Template extends AlphaJsonarch {
         $arch: "template";
-        type?: string;
+        type?: {
+            parameter?: Type;
+            return?: Type;
+        };
         default?: {
             parameter?: Jsonable;
             setting?: Setting;

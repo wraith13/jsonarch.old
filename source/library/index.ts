@@ -1,6 +1,7 @@
 import * as System from "./system";
 import bootSettingJson from "./boot.setting.json";
 import settingJson from "./setting.json";
+import librarygJson from "./library.json";
 import * as Locale from "./locale";
 export * as Locale from "./locale";
 export module Jsonarch
@@ -444,7 +445,11 @@ export module Jsonarch
     export interface Template extends AlphaJsonarch
     {
         $arch: "template";
-        type?: string;
+        type?:
+        {
+            parameter?: Type;
+            return?: Type;
+        };
         default?:
         {
             parameter?: Jsonable;
@@ -1475,6 +1480,11 @@ export module Jsonarch
     };
     export const regulateType = (compositeType: Type): Type =>
     {
+        // if (isTypeReferData(compositeType))
+        // {
+        //     compositeType.refer
+        // }
+        // else
         if (isAndCompositeTypeData(compositeType))
         {
             return regulateType(andType(compositeType.list));
@@ -1540,7 +1550,7 @@ export module Jsonarch
             }
         }
     };
-    export const resolveRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer}>): Jsonable | undefined =>
+    export const resolveRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer }>): Jsonable | undefined =>
     {
         return turnRefer<JsonableValue>
         (
@@ -1573,6 +1583,24 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
+                const functionTemplate = turnRefer<JsonableValue | Function>
+                (
+                    librarygJson.library,
+                    entry.template.refer
+                );
+                if (isTemplateData(functionTemplate))
+                {
+                    const type = functionTemplate.type;
+                    if (type)
+                    {
+                        const typeParameter = type.parameter;
+                        if (typeParameter)
+                        {
+
+                        }
+                    }
+                    
+                }
                 return target(parameter);
             }
             else
