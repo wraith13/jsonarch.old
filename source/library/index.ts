@@ -1585,7 +1585,7 @@ export module Jsonarch
             {
                 const functionTemplate = turnRefer<JsonableValue | Function>
                 (
-                    librarygJson.library,
+                    librarygJson,
                     entry.template.refer
                 );
                 if (isTemplateData(functionTemplate))

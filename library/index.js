@@ -1140,7 +1140,7 @@ var Jsonarch;
                         template: entry.cache.template,
                     }, entry.template.refer);
                     if (!("function" === typeof target)) return [3 /*break*/, 4];
-                    functionTemplate = Jsonarch.turnRefer(library_json_1.default.library, entry.template.refer);
+                    functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
                     if (Jsonarch.isTemplateData(functionTemplate)) {
                         type = functionTemplate.type;
                         if (type) {
