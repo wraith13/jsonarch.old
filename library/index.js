@@ -434,6 +434,37 @@ var Jsonarch;
     Jsonarch.isTypeData = Jsonarch.isJsonarch("type");
     Jsonarch.isCallData = Jsonarch.isJsonarch("call");
     Jsonarch.isValueData = Jsonarch.isJsonarch("value");
+    Jsonarch.typeOfJsonable = function (json) {
+        if (undefined === json) {
+            return { $arch: "type", type: "never", };
+        }
+        else if (null === json) {
+            return { $arch: "type", type: "null", };
+        }
+        else if ("boolean" === typeof json) {
+            return { $arch: "type", type: "boolean", enum: [json,], };
+        }
+        else if ("number" === typeof json) {
+            if (isNaN(json) || isFinite(json)) {
+                return { $arch: "type", type: "null", };
+            }
+            else {
+                var integerOnly = json === Math.floor(json) ? true : undefined;
+                return { $arch: "type", type: "number", integerOnly: integerOnly, enum: [json,], minValue: json, maxValue: json, };
+            }
+        }
+        else if ("string" === typeof json) {
+            return { $arch: "type", type: "string", enum: [json,], };
+        }
+        else if (Array.isArray(json)) {
+        }
+        else if ("object" === typeof json) {
+        }
+        // else
+        // {
+        return { $arch: "type", type: "never", };
+        // }
+    };
     var Library;
     (function (Library) {
         var String;

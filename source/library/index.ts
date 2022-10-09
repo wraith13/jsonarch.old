@@ -657,6 +657,57 @@ export module Jsonarch
         refer: Refer;
     }
     export const isValueData = isJsonarch<Value>("value");
+    export const typeOfJsonable = (json: Jsonable): Type =>
+    {
+        if (undefined === json)
+        {
+            return { $arch: "type", type: "never", };
+        }
+        else
+        if (null === json)
+        {
+            return { $arch: "type", type: "null", };
+        }
+        else
+        if ("boolean" === typeof json)
+        {
+            return { $arch: "type", type: "boolean", enum: [ json, ], };
+        }
+        else
+        if ("number" === typeof json)
+        {
+            if (isNaN(json) || isFinite(json))
+            {
+                return { $arch: "type", type: "null", };
+            }
+            else
+            {
+                const integerOnly = json === Math.floor(json) ? true: undefined;
+                return { $arch: "type", type: "number", integerOnly, enum: [ json, ], minValue: json, maxValue: json, };
+            }
+        }
+        else
+        if ("string" === typeof json)
+        {
+            return { $arch: "type", type: "string", enum: [ json, ], };
+        }
+        else
+        if (Array.isArray(json))
+        {
+
+
+        }
+        else
+        if ("object" === typeof json)
+        {
+
+            
+        }
+        // else
+        // {
+            return { $arch: "type", type: "never", };
+        // }
+    };
     export module Library
     {
         export module String

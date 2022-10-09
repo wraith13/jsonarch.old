@@ -333,6 +333,7 @@ export declare module Jsonarch {
         refer: Refer;
     }
     export const isValueData: (template: unknown) => template is Value;
+    export const typeOfJsonable: (json: Jsonable) => Type;
     export module Library {
         module String {
             const json: (parameter: Jsonable | undefined) => string;
