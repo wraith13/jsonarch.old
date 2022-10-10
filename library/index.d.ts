@@ -343,7 +343,7 @@ export declare module Jsonarch {
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;
     export const reverseCompareTypeResult: (result: CompareTypeResult) => CompareTypeResult;
-    export const compositeCompareTypeResult: (list: Lazy<CompareTypeResult | undefined>[]) => CompareTypeResult;
+    export const compositeCompareTypeResult: (...list: Lazy<CompareTypeResult | undefined>[]) => CompareTypeResult;
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
     export const compareTypeNeverEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
@@ -369,6 +369,7 @@ export declare module Jsonarch {
     export const compareTemplateType: (a: TemplateType, b: TemplateType) => CompareTypeResult;
     export const compareMetaType: (a: MetaType, b: MetaType) => CompareTypeResult;
     export const compareIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, compareTarget: (a: TargetType, b: TargetType) => CompareTypeResult) => (a: Type, b: Type) => CompareTypeResult | undefined;
+    export const compareTypeArrayAndUple: (a: ArrayType, b: TupleType) => CompareTypeResult;
     export const compareType: (a: Type, b: Type) => CompareTypeResult;
     export const isCompatibleType: (source: Type, destination: Type) => boolean;
     export const andTypeOptional: <TargetType extends Type>(a: TargetType, b: TargetType) => TargetType;

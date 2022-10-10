@@ -496,7 +496,11 @@ var Jsonarch;
                 return result;
         }
     };
-    Jsonarch.compositeCompareTypeResult = function (list) {
+    Jsonarch.compositeCompareTypeResult = function () {
+        var list = [];
+        for (var _c = 0; _c < arguments.length; _c++) {
+            list[_c] = arguments[_c];
+        }
         var result = "equal";
         for (var i in list) {
             switch (Jsonarch.getLazyValue(list[i])) {
@@ -638,10 +642,7 @@ var Jsonarch;
             return "base";
         }
     };
-    Jsonarch.compareTypeMinMaxValue = function (a, b) { return Jsonarch.compositeCompareTypeResult([
-        Jsonarch.compareTypeMinValue(a, b),
-        Jsonarch.compareTypeMaxValue(a, b)
-    ]); };
+    Jsonarch.compareTypeMinMaxValue = function (a, b) { return Jsonarch.compositeCompareTypeResult(Jsonarch.compareTypeMinValue(a, b), Jsonarch.compareTypeMaxValue(a, b)); };
     Jsonarch.compareTypeFormat = function (a, b) {
         if (a.format === b.format) {
             return "equal";
@@ -691,18 +692,13 @@ var Jsonarch;
             return "base";
         }
     };
-    Jsonarch.compareTypeMinMaxLength = function (a, b) { return Jsonarch.compositeCompareTypeResult([
-        Jsonarch.compareTypeMinLength(a, b),
-        Jsonarch.compareTypeMaxLength(a, b),
-    ]); };
+    Jsonarch.compareTypeMinMaxLength = function (a, b) { return Jsonarch.compositeCompareTypeResult(Jsonarch.compareTypeMinLength(a, b), Jsonarch.compareTypeMaxLength(a, b)); };
     Jsonarch.compareTypeList = function (a, b) {
         var commonLength = Math.min(a.length, b.length);
-        return Jsonarch.compositeCompareTypeResult(__spreadArray(__spreadArray([], a
+        return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray(__spreadArray([], a
             .filter(function (_i, ix) { return ix < commonLength; })
-            .map(function (_i, ix) { return (function () { return Jsonarch.compareType(a[ix], b[ix]); }); }), true), [
-            commonLength < a.length ? "extended" : undefined,
-            commonLength < b.length ? "base" : undefined,
-        ], false));
+            .map(function (_i, ix) { return (function () { return Jsonarch.compareType(a[ix], b[ix]); }); }), false), [commonLength < a.length ? "extended" : undefined,
+            commonLength < b.length ? "base" : undefined], false));
     };
     Jsonarch.compareTypeObjectMember = function (a, b) {
         var aMemberList = Jsonarch.objectKeys(a.member);
@@ -710,8 +706,7 @@ var Jsonarch;
         var commonMemberList = aMemberList.filter(function (a) { return bMemberList.some(function (b) { return a === b; }); });
         var aOnlyMemberList = aMemberList.filter(function (a) { return !commonMemberList.some(function (i) { return a === i; }); });
         var bOnlyMemberList = bMemberList.filter(function (b) { return !commonMemberList.some(function (i) { return b === i; }); });
-        return Jsonarch.compositeCompareTypeResult(__spreadArray(__spreadArray([], commonMemberList.map(function (i) { return function () { return Jsonarch.compareType(a.member[i], b.member[i]); }; }), true), [
-            function () {
+        return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray(__spreadArray([], commonMemberList.map(function (i) { return function () { return Jsonarch.compareType(a.member[i], b.member[i]); }; }), false), [function () {
                 if (0 === aOnlyMemberList.length && 0 === bOnlyMemberList.length) {
                     return "equal";
                 }
@@ -724,8 +719,7 @@ var Jsonarch;
                 else {
                     return "unmatch";
                 }
-            }
-        ], false));
+            }], false));
     };
     Jsonarch.compareTypeOrComposite = function (a, b) {
         var resultList = a.list.map(function (i) { return Jsonarch.compareType(i, b); });
@@ -745,7 +739,7 @@ var Jsonarch;
     };
     Jsonarch.compositeCompareType = function (comparer) {
         return function (a, b) {
-            return Jsonarch.compositeCompareTypeResult(comparer.map(function (i) { return i(a, b); }));
+            return Jsonarch.compositeCompareTypeResult.apply(void 0, comparer.map(function (i) { return i(a, b); }));
         };
     };
     Jsonarch.compareNullValueType = Jsonarch.compositeCompareType([
@@ -783,17 +777,11 @@ var Jsonarch;
     ]);
     Jsonarch.compareTemplateType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
-        function (a, b) { return Jsonarch.compositeCompareTypeResult([
-            function () { return Jsonarch.compareType(a.parameter, b.parameter); },
-            function () { return Jsonarch.compareType(a.return, b.return); },
-        ]); },
+        function (a, b) { return Jsonarch.compositeCompareTypeResult(function () { return Jsonarch.compareType(a.parameter, b.parameter); }, function () { return Jsonarch.compareType(a.return, b.return); }); },
     ]);
     Jsonarch.compareMetaType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
-        function (a, b) { return Jsonarch.compositeCompareTypeResult([
-            function () { return Jsonarch.compareType(a.parameter, b.parameter); },
-            function () { return Jsonarch.compareType(a.return, b.return); },
-        ]); },
+        function (a, b) { return Jsonarch.compositeCompareTypeResult(function () { return Jsonarch.compareType(a.parameter, b.parameter); }, function () { return Jsonarch.compareType(a.return, b.return); }); },
     ]);
     Jsonarch.compareIfMatch = function (isMatch, compareTarget) {
         return function (a, b) {
@@ -811,9 +799,18 @@ var Jsonarch;
         Jsonarch.compareIfMatch(Jsonarch.isTemplateTypeData, Jsonarch.compareTemplateType),
         Jsonarch.compareIfMatch(Jsonarch.isMetaTypeData, Jsonarch.compareMetaType),
     ];
+    Jsonarch.compareTypeArrayAndUple = function (a, b) {
+        return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray([Jsonarch.compareTypeOptional(a, b)], b.list.map(function (i) { return Jsonarch.compareType(a.itemType, i); }), false));
+    };
     Jsonarch.compareType = function (a, b) {
         if (a.type === b.type) {
-            return Jsonarch.compositeCompareTypeResult(compareTypeEntryList.map(function (i) { return i(a, b); }));
+            return Jsonarch.compositeCompareTypeResult.apply(void 0, compareTypeEntryList.map(function (i) { return i(a, b); }));
+        }
+        else if (Jsonarch.isArrayTypeData(a) && Jsonarch.isTupleTypeData(b)) {
+            return Jsonarch.compareTypeArrayAndUple(a, b);
+        }
+        else if (Jsonarch.isTupleTypeData(a) && Jsonarch.isArrayTypeData(b)) {
+            return Jsonarch.reverseCompareTypeResult(Jsonarch.compareTypeArrayAndUple(b, a));
         }
         else if (Jsonarch.isOrCompositeTypeData(a)) {
             return Jsonarch.compareTypeOrComposite(a, b);

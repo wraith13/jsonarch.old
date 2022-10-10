@@ -746,7 +746,7 @@ export module Jsonarch
             return result;
         }
     };
-    export const compositeCompareTypeResult = (list: Lazy<CompareTypeResult | undefined>[]): CompareTypeResult =>
+    export const compositeCompareTypeResult = (...list: Lazy<CompareTypeResult | undefined>[]): CompareTypeResult =>
     {
         let result: CompareTypeResult = "equal";
         for(const i in list)
@@ -943,10 +943,10 @@ export module Jsonarch
         }
     };
     export const compareTypeMinMaxValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult => compositeCompareTypeResult
-    ([
+    (
         compareTypeMinValue(a, b),
         compareTypeMaxValue(a, b)
-    ]);
+    );
     export const compareTypeFormat = (a: StringValueType, b: StringValueType): CompareTypeResult =>
     {
         if (a.format === b.format)
@@ -1022,21 +1022,21 @@ export module Jsonarch
         }
     };
     export const compareTypeMinMaxLength = (a: ArrayType, b: ArrayType): CompareTypeResult => compositeCompareTypeResult
-    ([
+    (
         compareTypeMinLength(a, b),
         compareTypeMaxLength(a, b),
-    ]);
+    );
     export const compareTypeList = (a: Type[], b: Type[]): CompareTypeResult =>
     {
         const commonLength = Math.min(a.length, b.length);
         return compositeCompareTypeResult
-        ([
+        (
             ...a
                 .filter((_i, ix) => ix < commonLength)
                 .map((_i, ix) => <Lazy<CompareTypeResult | undefined>>(() => compareType(a[ix], b[ix]))),
             commonLength < a.length ? "extended": undefined,
             commonLength < b.length ? "base": undefined,
-        ]);
+        );
     };
     export const compareTypeObjectMember = (a: ObjectType, b: ObjectType): CompareTypeResult =>
     {
@@ -1046,7 +1046,7 @@ export module Jsonarch
         const aOnlyMemberList = aMemberList.filter(a => ! commonMemberList.some(i => a === i));
         const bOnlyMemberList = bMemberList.filter(b => ! commonMemberList.some(i => b === i));
         return compositeCompareTypeResult
-        ([
+        (
             ...commonMemberList.map(i => () => compareType(a.member[i], b.member[i])),
             () =>
             {
@@ -1069,7 +1069,7 @@ export module Jsonarch
                     return "unmatch";
                 }
             }
-        ]);
+        );
     };
     export const compareTypeOrComposite = (a: OrCompositeType, b: Type): CompareTypeResult =>
     {
@@ -1094,7 +1094,7 @@ export module Jsonarch
     };
     export const compositeCompareType = <TargetType extends Type>(comparer: ((a: TargetType, b: TargetType) => CompareTypeResult)[]) =>
         (a: TargetType, b: TargetType): CompareTypeResult =>
-            compositeCompareTypeResult(comparer.map(i => i(a,b)));
+            compositeCompareTypeResult(...comparer.map(i => i(a,b)));
     export const compareNullValueType = compositeCompareType<NullValueType>
     ([
         compareTypeOptional,
@@ -1139,19 +1139,19 @@ export module Jsonarch
     ([
         compareTypeOptional,
         (a: TemplateType, b: TemplateType) => compositeCompareTypeResult
-        ([
+        (
             () => compareType(a.parameter, b.parameter),
             () => compareType(a.return, b.return),
-        ]),
+        ),
     ]);
     export const compareMetaType = compositeCompareType<MetaType>
     ([
         compareTypeOptional,
         (a: MetaType, b: MetaType) => compositeCompareTypeResult
-        ([
+        (
             () => compareType(a.parameter, b.parameter),
             () => compareType(a.return, b.return),
-        ]),
+        ),
     ]);
     export const compareIfMatch = <TargetType extends Type>(isMatch: ((type: Type) => type is TargetType), compareTarget: (a: TargetType, b: TargetType) => CompareTypeResult) =>
         (a: Type, b: Type): CompareTypeResult | undefined =>
@@ -1168,11 +1168,29 @@ export module Jsonarch
         compareIfMatch(isTemplateTypeData, compareTemplateType),
         compareIfMatch(isMetaTypeData, compareMetaType),
     ];
+    export const compareTypeArrayAndUple = (a: ArrayType, b: TupleType): CompareTypeResult =>
+    {
+        return compositeCompareTypeResult
+        (
+            compareTypeOptional(a, b),
+            ...b.list.map(i => compareType(a.itemType, i))
+        );
+    };
     export const compareType = (a: Type, b: Type): CompareTypeResult =>
     {
         if (a.type === b.type)
         {
-            return compositeCompareTypeResult(compareTypeEntryList.map(i => i(a,b)));
+            return compositeCompareTypeResult(...compareTypeEntryList.map(i => i(a,b)));
+        }
+        else
+        if (isArrayTypeData(a) && isTupleTypeData(b))
+        {
+            return compareTypeArrayAndUple(a, b);
+        }
+        else
+        if (isTupleTypeData(a) && isArrayTypeData(b))
+        {
+            return reverseCompareTypeResult(compareTypeArrayAndUple(b, a));
         }
         else
         if (isOrCompositeTypeData(a))
