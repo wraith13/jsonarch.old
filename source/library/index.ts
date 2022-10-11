@@ -657,7 +657,7 @@ export module Jsonarch
         refer: Refer;
     }
     export const isValueData = isJsonarch<Value>("value");
-    export const typeOfJsonable = (json: Jsonable): Type =>
+    export const typeOfJsonable = (json: Jsonable | undefined): Type =>
     {
         if (undefined === json)
         {
@@ -1669,7 +1669,20 @@ export module Jsonarch
                         const typeParameter = type.parameter;
                         if (typeParameter)
                         {
-
+                            const parameterType = typeOfJsonable(parameter);
+                            if ( ! isBaseOrEqual(compareType(typeParameter, parameterType)))
+                            {
+                                throw new ErrorJson
+                                ({
+                                    "$arch": "error",
+                                    "message": "Unmatch parameter type",
+                                    "type":
+                                    {
+                                        "template.parameter": typeParameter,
+                                        "parameter": parameterType,
+                                    }
+                                });
+                            }
                         }
                     }
                     
