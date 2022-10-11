@@ -1168,11 +1168,15 @@ export module Jsonarch
         compareIfMatch(isTemplateTypeData, compareTemplateType),
         compareIfMatch(isMetaTypeData, compareMetaType),
     ];
-    export const compareTypeArrayAndUple = (a: ArrayType, b: TupleType): CompareTypeResult =>
+    export const compareTypeArrayAndTuple = (a: ArrayType, b: TupleType): CompareTypeResult =>
     {
+        const optionalCount = b.list.map(i => i.optional ?? false).reverse().indexOf(false);
+        const minLength = b.list.length -optionalCount;
+        const maxLength = b.list.length;
         return compositeCompareTypeResult
         (
             compareTypeOptional(a, b),
+            compareTypeMinMaxLength(a, { ...a, minLength, maxLength, }),
             ...b.list.map(i => compareType(a.itemType, i))
         );
     };
@@ -1185,12 +1189,12 @@ export module Jsonarch
         else
         if (isArrayTypeData(a) && isTupleTypeData(b))
         {
-            return compareTypeArrayAndUple(a, b);
+            return compareTypeArrayAndTuple(a, b);
         }
         else
         if (isTupleTypeData(a) && isArrayTypeData(b))
         {
-            return reverseCompareTypeResult(compareTypeArrayAndUple(b, a));
+            return reverseCompareTypeResult(compareTypeArrayAndTuple(b, a));
         }
         else
         if (isOrCompositeTypeData(a))

@@ -799,18 +799,22 @@ var Jsonarch;
         Jsonarch.compareIfMatch(Jsonarch.isTemplateTypeData, Jsonarch.compareTemplateType),
         Jsonarch.compareIfMatch(Jsonarch.isMetaTypeData, Jsonarch.compareMetaType),
     ];
-    Jsonarch.compareTypeArrayAndUple = function (a, b) {
-        return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray([Jsonarch.compareTypeOptional(a, b)], b.list.map(function (i) { return Jsonarch.compareType(a.itemType, i); }), false));
+    Jsonarch.compareTypeArrayAndTuple = function (a, b) {
+        var optionalCount = b.list.map(function (i) { var _c; return (_c = i.optional) !== null && _c !== void 0 ? _c : false; }).reverse().indexOf(false);
+        var minLength = b.list.length - optionalCount;
+        var maxLength = b.list.length;
+        return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray([Jsonarch.compareTypeOptional(a, b),
+            Jsonarch.compareTypeMinMaxLength(a, __assign(__assign({}, a), { minLength: minLength, maxLength: maxLength }))], b.list.map(function (i) { return Jsonarch.compareType(a.itemType, i); }), false));
     };
     Jsonarch.compareType = function (a, b) {
         if (a.type === b.type) {
             return Jsonarch.compositeCompareTypeResult.apply(void 0, compareTypeEntryList.map(function (i) { return i(a, b); }));
         }
         else if (Jsonarch.isArrayTypeData(a) && Jsonarch.isTupleTypeData(b)) {
-            return Jsonarch.compareTypeArrayAndUple(a, b);
+            return Jsonarch.compareTypeArrayAndTuple(a, b);
         }
         else if (Jsonarch.isTupleTypeData(a) && Jsonarch.isArrayTypeData(b)) {
-            return Jsonarch.reverseCompareTypeResult(Jsonarch.compareTypeArrayAndUple(b, a));
+            return Jsonarch.reverseCompareTypeResult(Jsonarch.compareTypeArrayAndTuple(b, a));
         }
         else if (Jsonarch.isOrCompositeTypeData(a)) {
             return Jsonarch.compareTypeOrComposite(a, b);
