@@ -1186,7 +1186,8 @@ var Jsonarch;
                                         "type": {
                                             "template.parameter": typeParameter,
                                             "parameter": parameterType,
-                                        }
+                                        },
+                                        "parameter": parameter,
                                     });
                                 }
                             }

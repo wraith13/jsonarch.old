@@ -1680,7 +1680,8 @@ export module Jsonarch
                                     {
                                         "template.parameter": typeParameter,
                                         "parameter": parameterType,
-                                    }
+                                    },
+                                    "parameter": parameter,
                                 });
                             }
                         }
