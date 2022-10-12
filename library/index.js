@@ -457,8 +457,12 @@ var Jsonarch;
             return { $arch: "type", type: "string", enum: [json,], };
         }
         else if (Array.isArray(json)) {
+            return { $arch: "type", type: "tuple", list: json.map(function (i) { return Jsonarch.typeOfJsonable(i); }), };
         }
         else if ("object" === typeof json) {
+            var member_1 = {};
+            Jsonarch.objectKeys(json).forEach(function (i) { return member_1[i] = Jsonarch.typeOfJsonable(json[i]); });
+            return { $arch: "type", type: "object", member: member_1, };
         }
         // else
         // {
@@ -1110,9 +1114,9 @@ var Jsonarch;
             return __assign(__assign({}, Jsonarch.compareType), { list: compositeType.list.map(function (i) { return Jsonarch.regulateType(i); }) });
         }
         else if (Jsonarch.isObjectTypeData(compositeType)) {
-            var member_1 = {};
-            Jsonarch.objectKeys(compositeType.member).forEach(function (key) { return member_1[key] = Jsonarch.regulateType(compositeType.member[key]); });
-            return __assign(__assign({}, compositeType), { member: member_1 });
+            var member_2 = {};
+            Jsonarch.objectKeys(compositeType.member).forEach(function (key) { return member_2[key] = Jsonarch.regulateType(compositeType.member[key]); });
+            return __assign(__assign({}, compositeType), { member: member_2 });
         }
         else {
             return compositeType;

@@ -694,14 +694,14 @@ export module Jsonarch
         else
         if (Array.isArray(json))
         {
-
-
+            return { $arch: "type", type: "tuple", list: json.map(i => typeOfJsonable(i)), };
         }
         else
         if ("object" === typeof json)
         {
-
-            
+            const member: { [key:string]: Type } = { };
+            objectKeys(json).forEach(i => member[i] = typeOfJsonable(json[i]));
+            return { $arch: "type", type: "object", member, };
         }
         // else
         // {
