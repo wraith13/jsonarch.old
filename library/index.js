@@ -544,7 +544,7 @@ var Jsonarch;
     };
     Jsonarch.compareTypeOptional = function (a, b) {
         var _c, _d, _e;
-        if ((_d = (_c = a.optional) !== null && _c !== void 0 ? _c : false === b.optional) !== null && _d !== void 0 ? _d : false) {
+        if (((_c = a.optional) !== null && _c !== void 0 ? _c : false) === ((_d = b.optional) !== null && _d !== void 0 ? _d : false)) {
             return "equal";
         }
         else if ((_e = a.optional) !== null && _e !== void 0 ? _e : false) {

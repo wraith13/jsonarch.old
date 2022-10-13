@@ -7,9 +7,10 @@
             "$arch": "template",
             "type": {
                 "parameter": {
-                    "$arch": "or",
-                    "value": [
-                        { "$arch": "type", "type": "array", "itemType": "string" },
+                    "$arch": "type",
+                    "type": "or",
+                    "list": [
+                        { "$arch": "type", "type": "array", "itemType": { "$arch": "type", "type": "string" } },
                         {
                             "$arch": "type",
                             "type": "object",

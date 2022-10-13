@@ -792,7 +792,7 @@ export module Jsonarch
     };
     export const compareTypeOptional = (a: Type, b: Type): CompareTypeResult =>
     {
-        if (a.optional ?? false === b.optional ?? false)
+        if ((a.optional ?? false) === (b.optional ?? false))
         {
             return "equal";
         }
