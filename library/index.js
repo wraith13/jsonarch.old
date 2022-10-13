@@ -1156,7 +1156,7 @@ var Jsonarch;
         }, entry.template.refer);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, _c, target, functionTemplate, type, typeParameter, parameterType;
+        var parameter, _c, target, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -1183,15 +1183,17 @@ var Jsonarch;
                             typeParameter = type.parameter;
                             if (typeParameter) {
                                 parameterType = Jsonarch.typeOfJsonable(parameter);
-                                if (!Jsonarch.isBaseOrEqual(Jsonarch.compareType(typeParameter, parameterType))) {
+                                comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
+                                if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
                                     throw new Jsonarch.ErrorJson({
                                         "$arch": "error",
                                         "message": "Unmatch parameter type",
+                                        comppareTypeResult: comppareTypeResult,
                                         "type": {
                                             "template.parameter": typeParameter,
                                             "parameter": parameterType,
                                         },
-                                        "parameter": parameter,
+                                        parameter: parameter,
                                     });
                                 }
                             }

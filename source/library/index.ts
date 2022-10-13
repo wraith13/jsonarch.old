@@ -1670,18 +1670,20 @@ export module Jsonarch
                         if (typeParameter)
                         {
                             const parameterType = typeOfJsonable(parameter);
-                            if ( ! isBaseOrEqual(compareType(typeParameter, parameterType)))
+                            const comppareTypeResult = compareType(typeParameter, parameterType);
+                            if ( ! isBaseOrEqual(comppareTypeResult))
                             {
                                 throw new ErrorJson
                                 ({
                                     "$arch": "error",
                                     "message": "Unmatch parameter type",
+                                    comppareTypeResult,
                                     "type":
                                     {
                                         "template.parameter": typeParameter,
                                         "parameter": parameterType,
                                     },
-                                    "parameter": parameter,
+                                    parameter,
                                 });
                             }
                         }
