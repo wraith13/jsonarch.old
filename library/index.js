@@ -94,19 +94,35 @@ var Jsonarch;
     var _this = this;
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
+    Jsonarch.isJsonableValue = function (value) {
+        return null === value || 0 <= ["boolean", "number", "string"].indexOf(typeof value);
+    };
+    Jsonarch.isJsonableObject = function (value) {
+        return null !== value &&
+            "object" === typeof value &&
+            !Array.isArray(value) &&
+            !Jsonarch.objectValues(value).some(function (i) { return !Jsonarch.isJsonable(i); });
+    };
+    Jsonarch.isJsonableArray = function (value) {
+        return Array.isArray(value) && !value.some(function (i) { return !Jsonarch.isJsonable(i); });
+    };
+    Jsonarch.isJsonable = function (value) {
+        return Jsonarch.isJsonableValue(value) || Jsonarch.isJsonableArray(value) || Jsonarch.isJsonableObject(value);
+    };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
-    Jsonarch.isObject = function (value, isMember) {
-        if (isMember === void 0) { isMember = {}; }
-        return null !== value &&
-            "object" === typeof value &&
-            !Array.isArray(value) &&
-            0 === Jsonarch.objectKeys(isMember).filter(function (key) { var _c; return !(((_c = isMember[key]) === null || _c === void 0 ? void 0 : _c.call(isMember, value[key])) || true); }).length;
+    Jsonarch.isObject = function (isMember) {
+        return function (value) {
+            return null !== value &&
+                "object" === typeof value &&
+                !Array.isArray(value) &&
+                0 === Jsonarch.objectKeys(isMember).filter(function (key) { var _c; return !(((_c = isMember[key]) === null || _c === void 0 ? void 0 : _c.call(isMember, value[key])) || true); }).length;
+        };
     };
-    Jsonarch.isArray = function (value, isType) {
-        return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length;
+    Jsonarch.isArray = function (isType) {
+        return function (value) { return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length; };
     };
     Jsonarch.getLazyValue = function (lazy) {
         return "function" === typeof lazy ?
@@ -445,7 +461,7 @@ var Jsonarch;
             return { $arch: "type", type: "boolean", enum: [json,], };
         }
         else if ("number" === typeof json) {
-            if (isNaN(json) || isFinite(json)) {
+            if (isNaN(json) || (!isFinite(json))) {
                 return { $arch: "type", type: "null", };
             }
             else {
@@ -474,8 +490,11 @@ var Jsonarch;
         var String;
         (function (String) {
             String.json = function (parameter) {
-                if (Jsonarch.isArray(parameter, Jsonarch.isString)) {
+                if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
                     return parameter.join("");
+                }
+                else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
+                    return parameter.list.join(parameter.separator);
                 }
                 else {
                     throw new Jsonarch.ErrorJson({
@@ -1422,8 +1441,8 @@ var Jsonarch;
         var nextIndent = "tab" === indent ?
             Jsonarch.multiplyString("\t", base + 1) :
             Jsonarch.multiplyString(" ", indent * (base + 1));
-        if (Jsonarch.isObject(json)) {
-            if (Jsonarch.objectValues(json).some(function (i) { return Jsonarch.isObject(i) || Array.isArray(i); })) {
+        if (Jsonarch.isJsonableObject(json)) {
+            if (Jsonarch.objectValues(json).some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i); })) {
                 result += baseIndent + "{\n";
                 var isFirst_1 = true;
                 Jsonarch.objectKeys(json).forEach(function (key) {
@@ -1466,7 +1485,7 @@ var Jsonarch;
             }
         }
         else if (Array.isArray(json)) {
-            if (json.some(function (i) { return Jsonarch.isObject(i) || Array.isArray(i); })) {
+            if (json.some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i); })) {
                 result += baseIndent + "[\n";
                 var isFirst_3 = true;
                 json.forEach(function (value) {

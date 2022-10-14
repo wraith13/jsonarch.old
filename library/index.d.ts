@@ -12,12 +12,16 @@ export declare module Jsonarch {
     } & JsonableObject;
     export const jsonStringify: <T extends Jsonable>(source: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number) => string;
     export const jsonParse: <T extends Jsonable = Jsonable>(text: string, reviver?: ((this: any, key: string, value: any) => any) | undefined) => T;
+    export const isJsonableValue: (value: unknown) => value is JsonableValue;
+    export const isJsonableObject: (value: unknown) => value is JsonableObject;
+    export const isJsonableArray: (value: unknown) => value is Jsonable[];
+    export const isJsonable: (value: unknown) => value is Jsonable;
     export const objectKeys: <T extends {}>(target: T) => (keyof T & string)[];
     export const objectValues: <T extends {}>(target: T) => T[keyof T][];
     export const isString: (value: unknown) => value is string;
     export const isNumber: (value: unknown) => value is number;
-    export const isObject: <T extends {}>(value: unknown, isMember?: { [key in keyof T]?: ((x: unknown) => x is T[key]) | undefined; }) => value is T;
-    export const isArray: <T>(value: unknown, isType: (x: unknown) => x is T) => value is T[];
+    export const isObject: <T extends {}>(isMember: { [key in keyof T]: (x: unknown) => x is T[key]; }) => (value: unknown) => value is T;
+    export const isArray: <T>(isType: (x: unknown) => x is T) => (value: unknown) => value is T[];
     export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
     export const getLazyValue: <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>) => T;
     export const getTemporaryDummy: "en" | "ja";

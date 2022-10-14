@@ -17,17 +17,29 @@ export module Jsonarch
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
     export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
     export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
+    export const isJsonableValue = (value: unknown): value is JsonableValue =>
+        null === value || 0 <= [ "boolean", "number", "string" ].indexOf(typeof value);
+    export const isJsonableObject = (value: unknown): value is JsonableObject =>
+        null !== value &&
+        "object" === typeof value &&
+        ! Array.isArray(value) &&
+        ! objectValues(value).some(i => ! isJsonable(i));
+    export const isJsonableArray = (value: unknown): value is Jsonable[] =>
+        Array.isArray(value) && ! value.some(i => ! isJsonable(i));
+    export const isJsonable = (value: unknown): value is Jsonable =>
+        isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
     export const isString = (value: unknown): value is string => "string" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
-    export const isObject = <T extends { }>(value: unknown, isMember: { [key in keyof T]?: (x: unknown) => x is T[key] } = { }): value is T =>
-        null !== value &&
-        "object" === typeof value &&
-        ! Array.isArray(value) &&
-        0 === objectKeys(isMember).filter(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true)).length;
-    export const isArray = <T>(value: unknown, isType: (x: unknown) => x is T): value is T[] =>
-        Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
+    export const isObject = <T extends { }>(isMember: { [key in keyof T]: (x: unknown) => x is T[key] }): (value: unknown) => value is T =>
+        (value: unknown): value is T =>
+            null !== value &&
+            "object" === typeof value &&
+            ! Array.isArray(value) &&
+            0 === objectKeys(isMember).filter(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true)).length;
+    export const isArray = <T>(isType: (x: unknown) => x is T): (value: unknown) => value is T[] =>
+        (value: unknown): value is T[] => Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
     export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
     export const getLazyValue = <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>): T =>
         "function" === typeof lazy ?
@@ -676,7 +688,7 @@ export module Jsonarch
         else
         if ("number" === typeof json)
         {
-            if (isNaN(json) || isFinite(json))
+            if (isNaN(json) || ( ! isFinite(json)))
             {
                 return { $arch: "type", type: "null", };
             }
@@ -714,9 +726,14 @@ export module Jsonarch
         {
             export const json = (parameter: Jsonable | undefined) =>
             {
-                if (isArray(parameter, isString))
+                if (isArray(isString)(parameter))
                 {
                     return parameter.join("");
+                }
+                else
+                if (isObject({ list: isArray(isString), separator: isString, })(parameter))
+                {
+                    return parameter.list.join(parameter.separator);
                 }
                 else
                 {
@@ -1907,9 +1924,9 @@ export module Jsonarch
         const nextIndent = "tab" === indent ?
             multiplyString("\t", base +1):
             multiplyString(" ", indent *(base +1));
-        if (isObject<JsonableObject>(json))
+        if (isJsonableObject(json))
         {
-            if (objectValues(json).some(i => isObject(i) || Array.isArray(i)))
+            if (objectValues(json).some(i => isJsonableObject(i) || Array.isArray(i)))
             {
                 result += baseIndent +"{\n";
                 let isFirst = true;
@@ -1972,7 +1989,7 @@ export module Jsonarch
         else
         if (Array.isArray(json))
         {
-            if (json.some(i => isObject(i) || Array.isArray(i)))
+            if (json.some(i => isJsonableObject(i) || Array.isArray(i)))
             {
                 result += baseIndent +"[\n";
                 let isFirst = true;
