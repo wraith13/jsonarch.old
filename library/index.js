@@ -111,8 +111,15 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
-    Jsonarch.isString = function (value) { return "string" === typeof value; };
+    Jsonarch.isUndefined = function (value) { return undefined === typeof value; };
+    Jsonarch.isNull = function (value) { return null === typeof value; };
+    Jsonarch.isBoolean = function (value) { return "boolean" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
+    Jsonarch.isString = function (value) { return "string" === typeof value; };
+    Jsonarch.isEnum = function (list) { return function (value) { return list.some(function (i) { return value === i; }); }; };
+    Jsonarch.isOr = function (isA, isB) {
+        return function (value) { return isA(value) || isB(value); };
+    };
     Jsonarch.isObject = function (isMember) {
         return function (value) {
             return null !== value &&

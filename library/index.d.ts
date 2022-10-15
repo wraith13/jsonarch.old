@@ -18,8 +18,13 @@ export declare module Jsonarch {
     export const isJsonable: (value: unknown) => value is Jsonable;
     export const objectKeys: <T extends {}>(target: T) => (keyof T & string)[];
     export const objectValues: <T extends {}>(target: T) => T[keyof T][];
-    export const isString: (value: unknown) => value is string;
+    export const isUndefined: (value: unknown) => value is undefined;
+    export const isNull: (value: unknown) => value is null;
+    export const isBoolean: (value: unknown) => value is boolean;
     export const isNumber: (value: unknown) => value is number;
+    export const isString: (value: unknown) => value is string;
+    export const isEnum: <Enum extends unknown[]>(list: Enum) => (value: unknown) => value is Enum;
+    export const isOr: <TypeA, TypeB>(isA: (value: unknown) => value is TypeA, isB: (value: unknown) => value is TypeB) => (value: unknown) => value is TypeA | TypeB;
     export const isObject: <T extends {}>(isMember: { [key in keyof T]: (x: unknown) => x is T[key]; }) => (value: unknown) => value is T;
     export const isArray: <T>(isType: (x: unknown) => x is T) => (value: unknown) => value is T[];
     export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);

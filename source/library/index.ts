@@ -30,8 +30,14 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
-    export const isString = (value: unknown): value is string => "string" === typeof value;
+    export const isUndefined = (value: unknown): value is undefined => undefined === typeof value;
+    export const isNull = (value: unknown): value is null => null === typeof value;
+    export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
+    export const isString = (value: unknown): value is string => "string" === typeof value;
+    export const isEnum = <Enum extends unknown[]>(list: Enum) => (value: unknown): value is Enum => list.some(i => value === i);
+    export const isOr = <TypeA, TypeB>(isA: (value: unknown) => value is TypeA, isB: (value: unknown) => value is TypeB) =>
+        (value: unknown): value is TypeA | TypeB => isA(value) || isB(value);
     export const isObject = <T extends { }>(isMember: { [key in keyof T]: (x: unknown) => x is T[key] }): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
