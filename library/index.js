@@ -111,26 +111,43 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
-    Jsonarch.isUndefined = function (value) { return undefined === typeof value; };
-    Jsonarch.isNull = function (value) { return null === typeof value; };
+    Jsonarch.isJust = function (type) { return function (value) { return type === typeof value; }; };
+    Jsonarch.isUndefined = Jsonarch.isJust(undefined);
+    Jsonarch.isNull = Jsonarch.isJust(null);
     Jsonarch.isBoolean = function (value) { return "boolean" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
-    Jsonarch.isEnum = function (list) { return function (value) { return list.some(function (i) { return value === i; }); }; };
-    Jsonarch.isOr = function (isA, isB) {
-        return function (value) { return isA(value) || isB(value); };
-    };
     Jsonarch.isObject = function (isMember) {
         return function (value) {
             return null !== value &&
                 "object" === typeof value &&
                 !Array.isArray(value) &&
-                0 === Jsonarch.objectKeys(isMember).filter(function (key) { var _c; return !(((_c = isMember[key]) === null || _c === void 0 ? void 0 : _c.call(isMember, value[key])) || true); }).length;
+                !Jsonarch.objectKeys(isMember).some(function (key) { var _c; return !(((_c = isMember[key]) === null || _c === void 0 ? void 0 : _c.call(isMember, value[key])) || true); });
         };
     };
     Jsonarch.isArray = function (isType) {
         return function (value) { return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length; };
     };
+    function isTuple() {
+        var isTypeList = [];
+        for (var _c = 0; _c < arguments.length; _c++) {
+            isTypeList[_c] = arguments[_c];
+        }
+        return function (value) { return Array.isArray(value) && !isTypeList.some(function (i, ix) { return !i(value[ix]); }); };
+    }
+    Jsonarch.isTuple = isTuple;
+    function isEnum(list) {
+        return function (value) { return list.some(function (i) { return i === value; }); };
+    }
+    Jsonarch.isEnum = isEnum;
+    function isTypeOr() {
+        var isTypeList = [];
+        for (var _c = 0; _c < arguments.length; _c++) {
+            isTypeList[_c] = arguments[_c];
+        }
+        return function (value) { return isTypeList.some(function (i) { return i(value); }); };
+    }
+    Jsonarch.isTypeOr = isTypeOr;
     Jsonarch.getLazyValue = function (lazy) {
         return "function" === typeof lazy ?
             lazy() :

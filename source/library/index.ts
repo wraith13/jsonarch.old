@@ -30,22 +30,95 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
-    export const isUndefined = (value: unknown): value is undefined => undefined === typeof value;
-    export const isNull = (value: unknown): value is null => null === typeof value;
+    export type IsType<Type> = (value: unknown) => value is Type;
+    export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === typeof value;
+    export const isUndefined = isJust(undefined);
+    export const isNull = isJust(null);
     export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
     export const isString = (value: unknown): value is string => "string" === typeof value;
-    export const isEnum = <Enum extends unknown[]>(list: Enum) => (value: unknown): value is Enum => list.some(i => value === i);
-    export const isOr = <TypeA, TypeB>(isA: (value: unknown) => value is TypeA, isB: (value: unknown) => value is TypeB) =>
-        (value: unknown): value is TypeA | TypeB => isA(value) || isB(value);
-    export const isObject = <T extends { }>(isMember: { [key in keyof T]: (x: unknown) => x is T[key] }): (value: unknown) => value is T =>
+    export const isObject = <T extends { }>(isMember: { [key in keyof T]: IsType<T[key]> }): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
             "object" === typeof value &&
             ! Array.isArray(value) &&
-            0 === objectKeys(isMember).filter(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true)).length;
-    export const isArray = <T>(isType: (x: unknown) => x is T): (value: unknown) => value is T[] =>
+            ! objectKeys(isMember).some(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true));
+    export const isArray = <T>(isType: IsType<T>): (value: unknown) => value is T[] =>
         (value: unknown): value is T[] => Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
+    export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
+        IsType<[ TypeA, TypeB, ]>;
+    export function isTuple<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>):
+        IsType<[ TypeA, TypeB, TypeC, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD, TypeE>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, ]>;
+    export function isTuple<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>, isI: IsType<TypeI>):
+        IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, ]>;
+    export function isTuple(...isTypeList: ((value: unknown) => boolean)[])
+    {
+        return (value: unknown) => Array.isArray(value) && ! isTypeList.some((i, ix) => ! i(value[ix]));
+    }
+    export function isEnum<TypeA, TypeB>(list: [TypeA, TypeB]):
+        IsType<TypeA | TypeB>;
+    export function isEnum<TypeA, TypeB, TypeC>(list: [TypeA, TypeB, TypeC]):
+        IsType<TypeA | TypeB | TypeC>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD>(list: [TypeA, TypeB, TypeC, TypeD]):
+        IsType<TypeA | TypeB | TypeC | TypeD>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE>(list: [TypeA, TypeB, TypeC, TypeD, TypeE]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL | TypeM>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL | TypeM | TypeN>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN, TypeO>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN, TypeO]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL | TypeM | TypeN | TypeO>;
+    export function isEnum<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN, TypeO, TypeP>(list: [TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, TypeJ, TypeK, TypeL, TypeM, TypeN, TypeO, TypeP]):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL | TypeM | TypeN | TypeO | TypeP>;
+    export function isEnum(list: unknown[])
+    {
+        return (value: unknown) => list.some(i => i === value);
+    }
+    export function isTypeOr<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
+        IsType<TypeA | TypeB>;
+    export function isTypeOr<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>):
+        IsType<TypeA | TypeB | TypeC>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>):
+        IsType<TypeA | TypeB | TypeC | TypeD>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH>;
+    export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>, isI: IsType<TypeI>):
+        IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI>;
+    export function isTypeOr(...isTypeList: ((value: unknown) => boolean)[])
+    {
+        return (value: unknown) => isTypeList.some(i => i(value));
+    }
     export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
     export const getLazyValue = <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>): T =>
         "function" === typeof lazy ?
