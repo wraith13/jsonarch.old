@@ -34,6 +34,9 @@ export module Jsonarch
     export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === typeof value;
     export const isUndefined = isJust(undefined);
     export const isNull = isJust(null);
+    export const isUndefinedOr = <T>(isType: IsType<T>) => isTypeOr(isUndefined, isType);
+    export const isNullOr = <T>(isType: IsType<T>) => isTypeOr(isNull, isType);
+    export const isUndefinedOrNullOr = <T>(isType: IsType<T>) => isTypeOr(isUndefined, isNull, isType);
     export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
     export const isString = (value: unknown): value is string => "string" === typeof value;
@@ -660,14 +663,28 @@ export module Jsonarch
     }
     export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
-    export interface NumberValueType extends AlphaEnumType<number>
+    export interface RangeNumberValueType extends AlphaType
     {
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
         maxValue?: number;
+        enum: never;
     }
+    export interface EnumNumberValueType extends AlphaEnumType<number>
+    {
+        type: "number";
+        integerOnly: never;
+        minValue: never;
+        maxValue: never;
+    }
+    export type NumberValueType = RangeNumberValueType | EnumNumberValueType;
     export const isNumberValueTypeData = isAlphaTypeData<NumberValueType>("number");
+    export const isRangeNumberValueTypeData = (value: unknown): value is RangeNumberValueType =>
+        isAlphaTypeData<NumberValueType>("number")(value) &&
+        isObject({ integerOnly: isUndefinedOr(isBoolean), minValue: isUndefinedOr(isNumber), maxValue: isUndefinedOr(isNumber), enum:isUndefined, })(value);
+    export const isEnumNumberValueTypeData = (value: unknown): value is EnumNumberValueType =>
+        isAlphaTypeData<NumberValueType>("number")(value) && isObject({ enum: isArray(isNumber), })(value);
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
     export type PrimitiveValueType = ValueType["type"];
     export const isValueTypeData = (template: unknown): template is ValueType =>
@@ -773,8 +790,7 @@ export module Jsonarch
             }
             else
             {
-                const integerOnly = json === Math.floor(json) ? true: undefined;
-                return { $arch: "type", type: "number", integerOnly, enum: [ json, ], minValue: json, maxValue: json, };
+                return <NumberValueType>{ $arch: "type", type: "number", enum: [ json, ], };
             }
         }
         else
@@ -988,22 +1004,24 @@ export module Jsonarch
     };
     export const compareTypeMinValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
-        if (a.minValue === b.minValue)
+        const aMinValue = a.minValue ?? undefined;
+        const bMinValue = b.minValue ?? undefined;
+        if (aMinValue === bMinValue)
         {
             return "equal";
         }
         else
-        if (undefined === a.minValue)
+        if (undefined === aMinValue)
         {
             return "base";
         }
         else
-        if (undefined === b.minValue)
+        if (undefined === bMinValue)
         {
             return "extended";
         }
         else
-        if (a.minValue < b.minValue)
+        if (aMinValue < bMinValue)
         {
             return "base";
         }
@@ -1014,22 +1032,24 @@ export module Jsonarch
     };
     export const compareTypeMaxValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
-        if (a.maxValue === b.maxValue)
+        const aMaxValue = a.maxValue ?? undefined;
+        const bMaxValue = b.maxValue ?? undefined;
+        if (aMaxValue === b.maxValue)
         {
             return "equal";
         }
         else
-        if (undefined === a.maxValue)
+        if (undefined === aMaxValue)
         {
             return "base";
         }
         else
-        if (undefined === b.maxValue)
+        if (undefined === bMaxValue)
         {
             return "extended";
         }
         else
-        if (a.maxValue < b.maxValue)
+        if (aMaxValue < bMaxValue)
         {
             return "extended";
         }
@@ -1391,13 +1411,17 @@ export module Jsonarch
     export const andTypeMinMaxValue = <TargetType extends NumberValueType>(a: TargetType, b: TargetType): TargetType | NeverType =>
     {
         let result: TargetType | NeverType = { ...a };
-        if (undefined !== b.minValue && (undefined === result.minValue || result.minValue < b.minValue))
+        let resultMinValue = <number | undefined>result.minValue;
+        const bMinValue = <number | undefined>b.minValue;
+        if (undefined !== bMinValue && (undefined === resultMinValue || resultMinValue < bMinValue))
         {
-            result.minValue = b.minValue;
+            result.minValue = resultMinValue = bMinValue;
         }
-        if (undefined !== b.maxValue && (undefined === result.maxValue || b.maxValue < result.maxValue))
+        let resultMaxValue = <number | undefined>result.maxValue;
+        const bMaxValue = <number | undefined>b.maxValue;
+        if (undefined !== bMaxValue && (undefined === resultMaxValue || bMaxValue < resultMaxValue))
         {
-            result.maxValue = b.maxValue;
+            result.maxValue = resultMaxValue = bMaxValue;
         }
         if (b.integerOnly ?? false)
         {
@@ -1405,10 +1429,10 @@ export module Jsonarch
         }
         if
         (
-            isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue &&
+            isNumberValueTypeData(result) && undefined !== resultMinValue && undefined !== resultMaxValue &&
             (
-                result.maxValue < result.minValue ||
-                ((result.integerOnly ?? false) && Math.floor(result.maxValue) < Math.ceil(result.minValue))
+                resultMaxValue < resultMinValue ||
+                ((result.integerOnly ?? false) && Math.floor(resultMaxValue) < Math.ceil(resultMinValue))
             )
         )
         {

@@ -114,6 +114,9 @@ var Jsonarch;
     Jsonarch.isJust = function (type) { return function (value) { return type === typeof value; }; };
     Jsonarch.isUndefined = Jsonarch.isJust(undefined);
     Jsonarch.isNull = Jsonarch.isJust(null);
+    Jsonarch.isUndefinedOr = function (isType) { return isTypeOr(Jsonarch.isUndefined, isType); };
+    Jsonarch.isNullOr = function (isType) { return isTypeOr(Jsonarch.isNull, isType); };
+    Jsonarch.isUndefinedOrNullOr = function (isType) { return isTypeOr(Jsonarch.isUndefined, Jsonarch.isNull, isType); };
     Jsonarch.isBoolean = function (value) { return "boolean" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
@@ -449,6 +452,13 @@ var Jsonarch;
     Jsonarch.isBooleanValueTypeData = Jsonarch.isAlphaTypeData("boolean");
     Jsonarch.isStringValueTypeData = Jsonarch.isAlphaTypeData("string");
     Jsonarch.isNumberValueTypeData = Jsonarch.isAlphaTypeData("number");
+    Jsonarch.isRangeNumberValueTypeData = function (value) {
+        return Jsonarch.isAlphaTypeData("number")(value) &&
+            Jsonarch.isObject({ integerOnly: Jsonarch.isUndefinedOr(Jsonarch.isBoolean), minValue: Jsonarch.isUndefinedOr(Jsonarch.isNumber), maxValue: Jsonarch.isUndefinedOr(Jsonarch.isNumber), enum: Jsonarch.isUndefined, })(value);
+    };
+    Jsonarch.isEnumNumberValueTypeData = function (value) {
+        return Jsonarch.isAlphaTypeData("number")(value) && Jsonarch.isObject({ enum: Jsonarch.isArray(Jsonarch.isNumber), })(value);
+    };
     Jsonarch.isValueTypeData = function (template) {
         return Jsonarch.isNullValueTypeData(template) ||
             Jsonarch.isBooleanValueTypeData(template) ||
@@ -489,8 +499,7 @@ var Jsonarch;
                 return { $arch: "type", type: "null", };
             }
             else {
-                var integerOnly = json === Math.floor(json) ? true : undefined;
-                return { $arch: "type", type: "number", integerOnly: integerOnly, enum: [json,], minValue: json, maxValue: json, };
+                return { $arch: "type", type: "number", enum: [json,], };
             }
         }
         else if ("string" === typeof json) {
@@ -656,16 +665,19 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMinValue = function (a, b) {
-        if (a.minValue === b.minValue) {
+        var _c, _d;
+        var aMinValue = (_c = a.minValue) !== null && _c !== void 0 ? _c : undefined;
+        var bMinValue = (_d = b.minValue) !== null && _d !== void 0 ? _d : undefined;
+        if (aMinValue === bMinValue) {
             return "equal";
         }
-        else if (undefined === a.minValue) {
+        else if (undefined === aMinValue) {
             return "base";
         }
-        else if (undefined === b.minValue) {
+        else if (undefined === bMinValue) {
             return "extended";
         }
-        else if (a.minValue < b.minValue) {
+        else if (aMinValue < bMinValue) {
             return "base";
         }
         else {
@@ -673,16 +685,19 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMaxValue = function (a, b) {
-        if (a.maxValue === b.maxValue) {
+        var _c, _d;
+        var aMaxValue = (_c = a.maxValue) !== null && _c !== void 0 ? _c : undefined;
+        var bMaxValue = (_d = b.maxValue) !== null && _d !== void 0 ? _d : undefined;
+        if (aMaxValue === b.maxValue) {
             return "equal";
         }
-        else if (undefined === a.maxValue) {
+        else if (undefined === aMaxValue) {
             return "base";
         }
-        else if (undefined === b.maxValue) {
+        else if (undefined === bMaxValue) {
             return "extended";
         }
-        else if (a.maxValue < b.maxValue) {
+        else if (aMaxValue < bMaxValue) {
             return "extended";
         }
         else {
@@ -937,18 +952,22 @@ var Jsonarch;
     Jsonarch.andTypeMinMaxValue = function (a, b) {
         var _c, _d;
         var result = __assign({}, a);
-        if (undefined !== b.minValue && (undefined === result.minValue || result.minValue < b.minValue)) {
-            result.minValue = b.minValue;
+        var resultMinValue = result.minValue;
+        var bMinValue = b.minValue;
+        if (undefined !== bMinValue && (undefined === resultMinValue || resultMinValue < bMinValue)) {
+            result.minValue = resultMinValue = bMinValue;
         }
-        if (undefined !== b.maxValue && (undefined === result.maxValue || b.maxValue < result.maxValue)) {
-            result.maxValue = b.maxValue;
+        var resultMaxValue = result.maxValue;
+        var bMaxValue = b.maxValue;
+        if (undefined !== bMaxValue && (undefined === resultMaxValue || bMaxValue < resultMaxValue)) {
+            result.maxValue = resultMaxValue = bMaxValue;
         }
         if ((_c = b.integerOnly) !== null && _c !== void 0 ? _c : false) {
             result.integerOnly = b.integerOnly;
         }
-        if (Jsonarch.isNumberValueTypeData(result) && undefined !== result.minValue && undefined !== result.maxValue &&
-            (result.maxValue < result.minValue ||
-                (((_d = result.integerOnly) !== null && _d !== void 0 ? _d : false) && Math.floor(result.maxValue) < Math.ceil(result.minValue)))) {
+        if (Jsonarch.isNumberValueTypeData(result) && undefined !== resultMinValue && undefined !== resultMaxValue &&
+            (resultMaxValue < resultMinValue ||
+                (((_d = result.integerOnly) !== null && _d !== void 0 ? _d : false) && Math.floor(resultMaxValue) < Math.ceil(resultMinValue)))) {
             result = { $arch: "type", type: "never", };
         }
         return result;

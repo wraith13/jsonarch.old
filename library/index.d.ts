@@ -22,6 +22,9 @@ export declare module Jsonarch {
     export const isJust: <Type_1>(type: Type_1) => (value: unknown) => value is Type_1;
     export const isUndefined: (value: unknown) => value is undefined;
     export const isNull: (value: unknown) => value is null;
+    export const isUndefinedOr: <T>(isType: IsType<T>) => IsType<T | undefined>;
+    export const isNullOr: <T>(isType: IsType<T>) => IsType<T | null>;
+    export const isUndefinedOrNullOr: <T>(isType: IsType<T>) => IsType<T | null | undefined>;
     export const isBoolean: (value: unknown) => value is boolean;
     export const isNumber: (value: unknown) => value is number;
     export const isString: (value: unknown) => value is string;
@@ -302,13 +305,23 @@ export declare module Jsonarch {
     }
     export type StringValueType = FormatStringValueType | EnumStringValueType;
     export const isStringValueTypeData: (template: unknown) => template is StringValueType;
-    export interface NumberValueType extends AlphaEnumType<number> {
+    export interface RangeNumberValueType extends AlphaType {
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
         maxValue?: number;
+        enum: never;
     }
+    export interface EnumNumberValueType extends AlphaEnumType<number> {
+        type: "number";
+        integerOnly: never;
+        minValue: never;
+        maxValue: never;
+    }
+    export type NumberValueType = RangeNumberValueType | EnumNumberValueType;
     export const isNumberValueTypeData: (template: unknown) => template is NumberValueType;
+    export const isRangeNumberValueTypeData: (value: unknown) => value is RangeNumberValueType;
+    export const isEnumNumberValueTypeData: (value: unknown) => value is EnumNumberValueType;
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
     export type PrimitiveValueType = ValueType["type"];
     export const isValueTypeData: (template: unknown) => template is ValueType;
