@@ -533,7 +533,7 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
-                        "refer": "string.join",
+                        "refer": ["string", "join"],
                         "parameter": parameter,
                     });
                 }
@@ -1250,6 +1250,7 @@ var Jsonarch;
                                     throw new Jsonarch.ErrorJson({
                                         "$arch": "error",
                                         "message": "Unmatch parameter type",
+                                        "refer": entry.template.refer,
                                         comppareTypeResult: comppareTypeResult,
                                         "type": {
                                             "template.parameter": typeParameter,

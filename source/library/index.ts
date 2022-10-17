@@ -836,7 +836,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
-                        "refer": "string.join",
+                        "refer": [ "string", "join" ],
                         "parameter": parameter,
                     });
                 }
@@ -1797,6 +1797,7 @@ export module Jsonarch
                                 ({
                                     "$arch": "error",
                                     "message": "Unmatch parameter type",
+                                    "refer": entry.template.refer,
                                     comppareTypeResult,
                                     "type":
                                     {
