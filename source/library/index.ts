@@ -819,8 +819,54 @@ export module Jsonarch
     {
         export module String
         {
-            export const json = (parameter: Jsonable | undefined) =>
+            export const json = async (entry: EvaluateEntry<Call>) =>
             {
+
+
+                
+                const parameter = undefined === entry.template.parameter ?
+                    undefined:
+                    await apply({...entry, template: entry.template.parameter, });
+
+
+
+                const functionTemplate = turnRefer<JsonableValue | Function>
+                (
+                    librarygJson,
+                    entry.template.refer
+                );
+                if (isTemplateData(functionTemplate))
+                {
+                    const type = functionTemplate.type;
+                    if (type)
+                    {
+                        const typeParameter = type.parameter;
+                        if (typeParameter)
+                        {
+                            const parameterType = typeOfJsonable(parameter);
+                            const comppareTypeResult = compareType(typeParameter, parameterType);
+                            if ( ! isBaseOrEqual(comppareTypeResult))
+                            {
+                                throw new ErrorJson
+                                ({
+                                    "$arch": "error",
+                                    "message": "Unmatch parameter type",
+                                    "refer": entry.template.refer,
+                                    comppareTypeResult,
+                                    "type":
+                                    {
+                                        "template.parameter": typeParameter,
+                                        "parameter": parameterType,
+                                    },
+                                    parameter,
+                                });
+                            }
+                        }
+                    }
+                }
+
+
+
                 if (isArray(isString)(parameter))
                 {
                     return parameter.join("");
@@ -1760,9 +1806,6 @@ export module Jsonarch
     (
         entry, "evaluateCall", async () =>
         {
-            const parameter = undefined === entry.template.parameter ?
-                undefined:
-                await apply({...entry, template: entry.template.parameter, });
             const target = turnRefer<JsonableValue | Function>
             (
                 {
@@ -1776,42 +1819,7 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                const functionTemplate = turnRefer<JsonableValue | Function>
-                (
-                    librarygJson,
-                    entry.template.refer
-                );
-                if (isTemplateData(functionTemplate))
-                {
-                    const type = functionTemplate.type;
-                    if (type)
-                    {
-                        const typeParameter = type.parameter;
-                        if (typeParameter)
-                        {
-                            const parameterType = typeOfJsonable(parameter);
-                            const comppareTypeResult = compareType(typeParameter, parameterType);
-                            if ( ! isBaseOrEqual(comppareTypeResult))
-                            {
-                                throw new ErrorJson
-                                ({
-                                    "$arch": "error",
-                                    "message": "Unmatch parameter type",
-                                    "refer": entry.template.refer,
-                                    comppareTypeResult,
-                                    "type":
-                                    {
-                                        "template.parameter": typeParameter,
-                                        "parameter": parameterType,
-                                    },
-                                    parameter,
-                                });
-                            }
-                        }
-                    }
-                    
-                }
-                return target(parameter);
+                return await target(entry);
             }
             else
             if (isTemplateData(target))

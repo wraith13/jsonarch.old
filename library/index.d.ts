@@ -389,7 +389,7 @@ export declare module Jsonarch {
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
     export module Library {
         module String {
-            const json: (parameter: Jsonable | undefined) => string;
+            const json: (entry: EvaluateEntry<Call>) => Promise<string>;
         }
     }
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";

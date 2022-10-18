@@ -522,22 +522,63 @@ var Jsonarch;
     (function (Library) {
         var String;
         (function (String) {
-            String.json = function (parameter) {
-                if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
-                    return parameter.join("");
-                }
-                else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
-                    return parameter.list.join(parameter.separator);
-                }
-                else {
-                    throw new Jsonarch.ErrorJson({
-                        "$arch": "error",
-                        "message": "Unmatch parameter type",
-                        "refer": ["string", "join"],
-                        "parameter": parameter,
-                    });
-                }
-            };
+            var _this = this;
+            String.json = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+                var parameter, _c, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
+                        case 0:
+                            if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
+                            _c = undefined;
+                            return [3 /*break*/, 3];
+                        case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
+                        case 2:
+                            _c = _d.sent();
+                            _d.label = 3;
+                        case 3:
+                            parameter = _c;
+                            functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
+                            if (Jsonarch.isTemplateData(functionTemplate)) {
+                                type = functionTemplate.type;
+                                if (type) {
+                                    typeParameter = type.parameter;
+                                    if (typeParameter) {
+                                        parameterType = Jsonarch.typeOfJsonable(parameter);
+                                        comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
+                                        if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
+                                            throw new Jsonarch.ErrorJson({
+                                                "$arch": "error",
+                                                "message": "Unmatch parameter type",
+                                                "refer": entry.template.refer,
+                                                comppareTypeResult: comppareTypeResult,
+                                                "type": {
+                                                    "template.parameter": typeParameter,
+                                                    "parameter": parameterType,
+                                                },
+                                                parameter: parameter,
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
+                                return [2 /*return*/, parameter.join("")];
+                            }
+                            else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
+                                return [2 /*return*/, parameter.list.join(parameter.separator)];
+                            }
+                            else {
+                                throw new Jsonarch.ErrorJson({
+                                    "$arch": "error",
+                                    "message": "Unmatch parameter type",
+                                    "refer": ["string", "join"],
+                                    "parameter": parameter,
+                                });
+                            }
+                            return [2 /*return*/];
+                    }
+                });
+            }); };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
@@ -1218,56 +1259,24 @@ var Jsonarch;
         }, entry.template.refer);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, _c, target, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var target;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
-                    _c = undefined;
-                    return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
-                case 2:
-                    _c = _d.sent();
-                    _d.label = 3;
-                case 3:
-                    parameter = _c;
                     target = Jsonarch.turnRefer({
                         string: {
                             join: Library.String.json,
                         },
                         template: entry.cache.template,
                     }, entry.template.refer);
-                    if (!("function" === typeof target)) return [3 /*break*/, 4];
-                    functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
-                    if (Jsonarch.isTemplateData(functionTemplate)) {
-                        type = functionTemplate.type;
-                        if (type) {
-                            typeParameter = type.parameter;
-                            if (typeParameter) {
-                                parameterType = Jsonarch.typeOfJsonable(parameter);
-                                comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
-                                if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
-                                    throw new Jsonarch.ErrorJson({
-                                        "$arch": "error",
-                                        "message": "Unmatch parameter type",
-                                        "refer": entry.template.refer,
-                                        comppareTypeResult: comppareTypeResult,
-                                        "type": {
-                                            "template.parameter": typeParameter,
-                                            "parameter": parameterType,
-                                        },
-                                        parameter: parameter,
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return [2 /*return*/, target(parameter)];
-                case 4:
-                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 6];
+                    if (!("function" === typeof target)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, target(entry)];
+                case 1: return [2 /*return*/, _c.sent()];
+                case 2:
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 4];
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, entry), { template: target }))];
-                case 5: return [2 /*return*/, _d.sent()];
-                case 6: throw new Jsonarch.ErrorJson({
+                case 3: return [2 /*return*/, _c.sent()];
+                case 4: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown refer call",
                     "refer": entry.template.refer,
