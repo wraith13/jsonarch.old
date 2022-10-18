@@ -518,25 +518,34 @@ var Jsonarch;
         return { $arch: "type", type: "never", };
         // }
     };
+    Jsonarch.makeParameter = function (entry) { return __awaiter(_this, void 0, void 0, function () {
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
+                    _c = undefined;
+                    return [3 /*break*/, 3];
+                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
+                case 2:
+                    _c = _d.sent();
+                    _d.label = 3;
+                case 3: return [2 /*return*/, _c];
+            }
+        });
+    }); };
     var Library;
     (function (Library) {
         var String;
         (function (String) {
             var _this = this;
             String.json = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-                var parameter, _c, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
-                return __generator(this, function (_d) {
-                    switch (_d.label) {
-                        case 0:
-                            if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
-                            _c = undefined;
-                            return [3 /*break*/, 3];
-                        case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
-                        case 2:
-                            _c = _d.sent();
-                            _d.label = 3;
-                        case 3:
-                            parameter = _c;
+                var parameter, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                        case 1:
+                            parameter = _c.sent();
                             functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
                             if (Jsonarch.isTemplateData(functionTemplate)) {
                                 type = functionTemplate.type;

@@ -815,18 +815,17 @@ export module Jsonarch
             return { $arch: "type", type: "never", };
         // }
     };
+    export const makeParameter = async (entry: EvaluateEntry<Call>) =>
+        undefined === entry.template.parameter ?
+            undefined:
+            await apply({...entry, template: entry.template.parameter, });
     export module Library
     {
         export module String
         {
             export const json = async (entry: EvaluateEntry<Call>) =>
             {
-
-
-                
-                const parameter = undefined === entry.template.parameter ?
-                    undefined:
-                    await apply({...entry, template: entry.template.parameter, });
+                const parameter = await makeParameter(entry);
 
 
 

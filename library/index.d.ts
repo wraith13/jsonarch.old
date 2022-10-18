@@ -387,6 +387,7 @@ export declare module Jsonarch {
     }
     export const isValueData: (template: unknown) => template is Value;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
+    export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export module Library {
         module String {
             const json: (entry: EvaluateEntry<Call>) => Promise<string>;
