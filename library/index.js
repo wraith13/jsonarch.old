@@ -596,30 +596,15 @@ var Jsonarch;
     (function (Library) {
         var String;
         (function (String) {
-            var _this = this;
-            String.json = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-                var parameter, _c, _d;
-                return __generator(this, function (_e) {
-                    switch (_e.label) {
-                        case 0:
-                            _c = Jsonarch.validateParameterType;
-                            _d = [entry];
-                            return [4 /*yield*/, Jsonarch.makeParameter(entry)];
-                        case 1:
-                            parameter = _c.apply(void 0, _d.concat([_e.sent()]));
-                            if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
-                                return [2 /*return*/, parameter.join("")];
-                            }
-                            else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
-                                return [2 /*return*/, parameter.list.join(parameter.separator)];
-                            }
-                            else {
-                                return [2 /*return*/, Jsonarch.UnmatchParameterTypeDefineError(entry, parameter)];
-                            }
-                            return [2 /*return*/];
-                    }
-                });
-            }); };
+            String.json = function (_entry, parameter) {
+                if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
+                    return parameter.join("");
+                }
+                else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
+                    return parameter.list.join(parameter.separator);
+                }
+                return undefined;
+            };
         })(String = Library.String || (Library.String = {}));
     })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
@@ -1300,9 +1285,9 @@ var Jsonarch;
         }, entry.template.refer);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var target;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var target, parameter, _c, _d, result;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     target = Jsonarch.turnRefer({
                         string: {
@@ -1310,14 +1295,24 @@ var Jsonarch;
                         },
                         template: entry.cache.template,
                     }, entry.template.refer);
-                    if (!("function" === typeof target)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, target(entry)];
-                case 1: return [2 /*return*/, _c.sent()];
+                    if (!("function" === typeof target)) return [3 /*break*/, 3];
+                    _c = Jsonarch.validateParameterType;
+                    _d = [entry];
+                    return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                case 1:
+                    parameter = _c.apply(void 0, _d.concat([_e.sent()]));
+                    return [4 /*yield*/, target(entry, parameter)];
                 case 2:
-                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 4];
+                    result = _e.sent();
+                    if (undefined === result) {
+                        throw Jsonarch.UnmatchParameterTypeDefineError(entry, parameter);
+                    }
+                    return [2 /*return*/, result];
+                case 3:
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, entry), { template: target }))];
-                case 3: return [2 /*return*/, _c.sent()];
-                case 4: throw new Jsonarch.ErrorJson({
+                case 4: return [2 /*return*/, _e.sent()];
+                case 5: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown refer call",
                     "refer": entry.template.refer,

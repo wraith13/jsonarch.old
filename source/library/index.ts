@@ -899,9 +899,8 @@ export module Jsonarch
     {
         export module String
         {
-            export const json = async (entry: EvaluateEntry<Call>) =>
+            export const json = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
-                const parameter = validateParameterType(entry, await makeParameter(entry));
                 if (isArray(isString)(parameter))
                 {
                     return parameter.join("");
@@ -911,10 +910,7 @@ export module Jsonarch
                 {
                     return parameter.list.join(parameter.separator);
                 }
-                else
-                {
-                    return UnmatchParameterTypeDefineError(entry, parameter);
-                }
+                return undefined;
             };
         }
     }
@@ -1848,7 +1844,13 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                return await target(entry);
+                const parameter = validateParameterType(entry, await makeParameter(entry));
+                const result = await target(entry, parameter);
+                if (undefined === result)
+                {
+                    throw UnmatchParameterTypeDefineError(entry, parameter);
+                }
+                return result;
             }
             else
             if (isTemplateData(target))

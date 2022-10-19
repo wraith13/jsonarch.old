@@ -392,7 +392,7 @@ export declare module Jsonarch {
     export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export module Library {
         module String {
-            const json: (entry: EvaluateEntry<Call>) => Promise<string | Error>;
+            const json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         }
     }
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
