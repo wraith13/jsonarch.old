@@ -819,53 +819,89 @@ export module Jsonarch
         undefined === entry.template.parameter ?
             undefined:
             await apply({...entry, template: entry.template.parameter, });
+    export const validateParameterType = <parameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: parameterType): parameterType =>
+    {
+        const functionTemplate = turnRefer<JsonableValue | Function>
+        (
+            librarygJson,
+            entry.template.refer
+        );
+        if (isTemplateData(functionTemplate))
+        {
+            const type = functionTemplate.type;
+            if (type)
+            {
+                const typeParameter = type.parameter;
+                if (typeParameter)
+                {
+                    const parameterType = typeOfJsonable(parameter);
+                    const comppareTypeResult = compareType(typeParameter, parameterType);
+                    if ( ! isBaseOrEqual(comppareTypeResult))
+                    {
+                        throw new ErrorJson
+                        ({
+                            "$arch": "error",
+                            "message": "Unmatch parameter type",
+                            "refer": entry.template.refer,
+                            comppareTypeResult,
+                            "type":
+                            {
+                                "template.parameter": typeParameter,
+                                "parameter": parameterType,
+                            },
+                            parameter,
+                        });
+                    }
+                    else
+                    {
+                        return parameter;
+                    }
+                }
+                else
+                {
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "Not found parameter type define",
+                        "refer": entry.template.refer,
+                    });
+                }
+            }
+            else
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Not found type define",
+                    "refer": entry.template.refer,
+                });
+            }
+        }
+        else
+        {
+            throw new ErrorJson
+            ({
+                "$arch": "error",
+                "message": "Not found template",
+                "refer": entry.template.refer,
+            });
+        }
+    };
+    export const UnmatchParameterTypeDefineError = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
+        new ErrorJson
+        ({
+            "$arch": "error",
+            "message": "Internal Error ( Unmatch parameter type define )",
+            "refer": [ "string", "join" ],
+            "parameter": parameter,
+        });
     export module Library
     {
         export module String
         {
             export const json = async (entry: EvaluateEntry<Call>) =>
             {
-                const parameter = await makeParameter(entry);
-
-
-
-                const functionTemplate = turnRefer<JsonableValue | Function>
-                (
-                    librarygJson,
-                    entry.template.refer
-                );
-                if (isTemplateData(functionTemplate))
-                {
-                    const type = functionTemplate.type;
-                    if (type)
-                    {
-                        const typeParameter = type.parameter;
-                        if (typeParameter)
-                        {
-                            const parameterType = typeOfJsonable(parameter);
-                            const comppareTypeResult = compareType(typeParameter, parameterType);
-                            if ( ! isBaseOrEqual(comppareTypeResult))
-                            {
-                                throw new ErrorJson
-                                ({
-                                    "$arch": "error",
-                                    "message": "Unmatch parameter type",
-                                    "refer": entry.template.refer,
-                                    comppareTypeResult,
-                                    "type":
-                                    {
-                                        "template.parameter": typeParameter,
-                                        "parameter": parameterType,
-                                    },
-                                    parameter,
-                                });
-                            }
-                        }
-                    }
-                }
-
-
-
+                const parameter = validateParameterType(entry, await makeParameter(entry));
                 if (isArray(isString)(parameter))
                 {
                     return parameter.join("");
@@ -877,13 +913,7 @@ export module Jsonarch
                 }
                 else
                 {
-                    throw new ErrorJson
-                    ({
-                        "$arch": "error",
-                        "message": "Unmatch parameter type",
-                        "refer": [ "string", "join" ],
-                        "parameter": parameter,
-                    });
+                    return UnmatchParameterTypeDefineError(entry, parameter);
                 }
             };
         }

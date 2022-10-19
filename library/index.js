@@ -534,42 +534,79 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.validateParameterType = function (entry, parameter) {
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
+        if (Jsonarch.isTemplateData(functionTemplate)) {
+            var type = functionTemplate.type;
+            if (type) {
+                var typeParameter = type.parameter;
+                if (typeParameter) {
+                    var parameterType = Jsonarch.typeOfJsonable(parameter);
+                    var comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
+                    if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch parameter type",
+                            "refer": entry.template.refer,
+                            comppareTypeResult: comppareTypeResult,
+                            "type": {
+                                "template.parameter": typeParameter,
+                                "parameter": parameterType,
+                            },
+                            parameter: parameter,
+                        });
+                    }
+                    else {
+                        return parameter;
+                    }
+                }
+                else {
+                    throw new Jsonarch.ErrorJson({
+                        "$arch": "error",
+                        "message": "Not found parameter type define",
+                        "refer": entry.template.refer,
+                    });
+                }
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Not found type define",
+                    "refer": entry.template.refer,
+                });
+            }
+        }
+        else {
+            throw new Jsonarch.ErrorJson({
+                "$arch": "error",
+                "message": "Not found template",
+                "refer": entry.template.refer,
+            });
+        }
+    };
+    Jsonarch.UnmatchParameterTypeDefineError = function (_entry, parameter) {
+        return new Jsonarch.ErrorJson({
+            "$arch": "error",
+            "message": "Internal Error ( Unmatch parameter type define )",
+            "refer": ["string", "join"],
+            "parameter": parameter,
+        });
+    };
     var Library;
     (function (Library) {
         var String;
         (function (String) {
             var _this = this;
             String.json = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-                var parameter, functionTemplate, type, typeParameter, parameterType, comppareTypeResult;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
-                        case 0: return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                var parameter, _c, _d;
+                return __generator(this, function (_e) {
+                    switch (_e.label) {
+                        case 0:
+                            _c = Jsonarch.validateParameterType;
+                            _d = [entry];
+                            return [4 /*yield*/, Jsonarch.makeParameter(entry)];
                         case 1:
-                            parameter = _c.sent();
-                            functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
-                            if (Jsonarch.isTemplateData(functionTemplate)) {
-                                type = functionTemplate.type;
-                                if (type) {
-                                    typeParameter = type.parameter;
-                                    if (typeParameter) {
-                                        parameterType = Jsonarch.typeOfJsonable(parameter);
-                                        comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
-                                        if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
-                                            throw new Jsonarch.ErrorJson({
-                                                "$arch": "error",
-                                                "message": "Unmatch parameter type",
-                                                "refer": entry.template.refer,
-                                                comppareTypeResult: comppareTypeResult,
-                                                "type": {
-                                                    "template.parameter": typeParameter,
-                                                    "parameter": parameterType,
-                                                },
-                                                parameter: parameter,
-                                            });
-                                        }
-                                    }
-                                }
-                            }
+                            parameter = _c.apply(void 0, _d.concat([_e.sent()]));
                             if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
                                 return [2 /*return*/, parameter.join("")];
                             }
@@ -577,12 +614,7 @@ var Jsonarch;
                                 return [2 /*return*/, parameter.list.join(parameter.separator)];
                             }
                             else {
-                                throw new Jsonarch.ErrorJson({
-                                    "$arch": "error",
-                                    "message": "Unmatch parameter type",
-                                    "refer": ["string", "join"],
-                                    "parameter": parameter,
-                                });
+                                return [2 /*return*/, Jsonarch.UnmatchParameterTypeDefineError(entry, parameter)];
                             }
                             return [2 /*return*/];
                     }

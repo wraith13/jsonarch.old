@@ -388,9 +388,11 @@ export declare module Jsonarch {
     export const isValueData: (template: unknown) => template is Value;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
+    export const validateParameterType: <parameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: parameterType) => parameterType;
+    export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export module Library {
         module String {
-            const json: (entry: EvaluateEntry<Call>) => Promise<string>;
+            const json: (entry: EvaluateEntry<Call>) => Promise<string | Error>;
         }
     }
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
