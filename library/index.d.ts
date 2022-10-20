@@ -253,13 +253,28 @@ export declare module Jsonarch {
         return: Jsonable;
         catch?: Case[];
     }
-    export interface Case extends AlphaJsonarch {
+    export const isTemplateData: (template: unknown) => template is Template;
+    export interface Match extends AlphaJsonarch {
+        $arch: "match";
+        type?: {
+            parameter?: Type;
+            return?: Type;
+        };
+        default: {
+            parameter?: Jsonable;
+            return: Jsonable;
+        };
+        parameter?: Jsonable;
+        cases: Case[];
+    }
+    export const isMatchData: (template: unknown) => template is Match;
+    export interface Case extends JsonableObject {
         if: Jsonable;
         return: Jsonable;
     }
-    export const isTemplateData: (template: unknown) => template is Template;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
+    export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     type ReferKeyElement = string;
     type ReferIndextElement = number;

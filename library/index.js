@@ -408,6 +408,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
+    Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
     Jsonarch.applyDefault = function (defaults, parameter) {
         if (undefined === defaults) {
             return parameter;
@@ -445,6 +446,22 @@ var Jsonarch;
                 case 5: return [3 /*break*/, 7];
                 case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateMatch = function (entry) { return Jsonarch.profile(entry, "evaluateMatch", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    parameter = Jsonarch.applyDefault(entry.template.default, entry.parameter);
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.cases, parameter: parameter }))];
+                case 1:
+                    result = _c.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    return [2 /*return*/, entry.template.default.return];
             }
         });
     }); }); };

@@ -558,12 +558,29 @@ export module Jsonarch
         return: Jsonable;
         catch?: Case[];
     }
-    export interface Case extends AlphaJsonarch
+    export const isTemplateData = isJsonarch<Template>("template");
+    export interface Match extends AlphaJsonarch
+    {
+        $arch: "match";
+        type?:
+        {
+            parameter?: Type;
+            return?: Type;
+        };
+        default:
+        {
+            parameter?: Jsonable;
+            return: Jsonable;
+        };
+        parameter?: Jsonable;
+        cases: Case[];
+    }
+    export const isMatchData = isJsonarch<Match>("match");
+    export interface Case extends JsonableObject
     {
         if: Jsonable;
         return: Jsonable;
     }
-    export const isTemplateData = isJsonarch<Template>("template");
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
     {
         if (undefined === defaults)
@@ -612,6 +629,19 @@ export module Jsonarch
             {
                 return apply({...entry, template: entry.template.return, parameter, });
             }
+        }
+    );
+    export const evaluateMatch = (entry: EvaluateEntry<Match>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateMatch", async () =>
+        {
+            const parameter = applyDefault(entry.template.default, entry.parameter);
+            const result = await evaluateCases({...entry, template: entry.template.cases, parameter, });
+            if (undefined !== result)
+            {
+                return result;
+            }
+            return entry.template.default.return;
         }
     );
     export const evaluateCases = (entry: EvaluateEntry<Case[]>): Promise<Jsonable | undefined> => profile
