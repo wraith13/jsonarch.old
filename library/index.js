@@ -420,23 +420,58 @@ var Jsonarch;
         }
     };
     Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter;
+        var parameter, error_1, result;
         var _c;
         return __generator(this, function (_d) {
-            parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_c = entry.template.override) === null || _c === void 0 ? void 0 : _c.setting);
-            if (entry.template.catch) {
-                try {
+            switch (_d.label) {
+                case 0:
+                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_c = entry.template.override) === null || _c === void 0 ? void 0 : _c.setting);
+                    if (!entry.template.catch) return [3 /*break*/, 6];
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, 2, , 5]);
                     return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
-                }
-                catch (error) {
-                    //  🚧 call match(entry.template.catch, error)
-                    throw error;
-                }
+                case 2:
+                    error_1 = _d.sent();
+                    if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.catch, parameter: error_1 }))];
+                case 3:
+                    result = _d.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    _d.label = 4;
+                case 4: throw error_1;
+                case 5: return [3 /*break*/, 7];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+                case 7: return [2 /*return*/];
             }
-            else {
-                return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+        });
+    }); }); };
+    Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, case_;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in entry.template)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 5];
+                    i = _c[_e];
+                    case_ = entry.template[i];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.if }))];
+                case 2:
+                    if (!_f.sent()) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.return }))];
+                case 3: return [2 /*return*/, _f.sent()];
+                case 4:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 5: return [2 /*return*/, undefined];
             }
-            return [2 /*return*/];
         });
     }); }); };
     Jsonarch.isAlphaTypeData = function (type) {
@@ -1411,7 +1446,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, rootEvaluateEntry, output, result, error_1, result;
+        var handler, context, rootEvaluateEntry, output, result, error_2, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1444,10 +1479,10 @@ var Jsonarch;
                     };
                     return [2 /*return*/, result];
                 case 3:
-                    error_1 = _c.sent();
+                    error_2 = _c.sent();
                     result = {
                         $arch: "result",
-                        output: Jsonarch.parseErrorJson(error_1),
+                        output: Jsonarch.parseErrorJson(error_2),
                         cache: cache,
                         setting: setting,
                     };

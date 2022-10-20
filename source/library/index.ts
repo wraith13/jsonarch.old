@@ -556,7 +556,12 @@ export module Jsonarch
         };
         member?: JsonableObject;
         return: Jsonable;
-        catch?: JsonableObject;
+        catch?: Case[];
+    }
+    export interface Case extends AlphaJsonarch
+    {
+        if: Jsonable;
+        return: Jsonable;
     }
     export const isTemplateData = isJsonarch<Template>("template");
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
@@ -592,7 +597,14 @@ export module Jsonarch
                 }
                 catch(error)
                 {
-                    //  🚧 call match(entry.template.catch, error)
+                    if (isJsonable(error))
+                    {
+                        const result = await evaluateCases({...entry, template: entry.template.catch, parameter: error, });
+                        if (undefined !== result)
+                        {
+                            return result;
+                        }
+                    }
                     throw error;
                 }
             }
@@ -600,6 +612,21 @@ export module Jsonarch
             {
                 return apply({...entry, template: entry.template.return, parameter, });
             }
+        }
+    );
+    export const evaluateCases = (entry: EvaluateEntry<Case[]>): Promise<Jsonable | undefined> => profile
+    (
+        entry, "evaluateCases", async () =>
+        {
+            for(let i in entry.template)
+            {
+                const case_ = entry.template[i];
+                if (await apply({...entry, template: case_.if, }))
+                {
+                    return await apply({...entry, template: case_.return, });
+                }
+            }
+            return undefined;
         }
     );
     type ReferKeyElement = string;

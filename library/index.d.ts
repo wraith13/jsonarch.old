@@ -251,11 +251,16 @@ export declare module Jsonarch {
         };
         member?: JsonableObject;
         return: Jsonable;
-        catch?: JsonableObject;
+        catch?: Case[];
+    }
+    export interface Case extends AlphaJsonarch {
+        if: Jsonable;
+        return: Jsonable;
     }
     export const isTemplateData: (template: unknown) => template is Template;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
+    export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     type ReferKeyElement = string;
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
