@@ -407,90 +407,6 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
-    Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
-    Jsonarch.applyDefault = function (defaults, parameter) {
-        if (undefined === defaults) {
-            return parameter;
-        }
-        else if (undefined === parameter || "object" !== typeof defaults || "object" !== typeof parameter) {
-            return defaults;
-        }
-        else {
-            return __assign(__assign({}, defaults), parameter);
-        }
-    };
-    Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, error_1, result;
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_c = entry.template.override) === null || _c === void 0 ? void 0 : _c.setting);
-                    if (!entry.template.catch) return [3 /*break*/, 6];
-                    _d.label = 1;
-                case 1:
-                    _d.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
-                case 2:
-                    error_1 = _d.sent();
-                    if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.catch, parameter: error_1 }))];
-                case 3:
-                    result = _d.sent();
-                    if (undefined !== result) {
-                        return [2 /*return*/, result];
-                    }
-                    _d.label = 4;
-                case 4: throw error_1;
-                case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
-                case 7: return [2 /*return*/];
-            }
-        });
-    }); }); };
-    Jsonarch.evaluateMatch = function (entry) { return Jsonarch.profile(entry, "evaluateMatch", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, result;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    parameter = Jsonarch.applyDefault(entry.template.default, entry.parameter);
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.cases, parameter: parameter }))];
-                case 1:
-                    result = _c.sent();
-                    if (undefined !== result) {
-                        return [2 /*return*/, result];
-                    }
-                    return [2 /*return*/, entry.template.default.return];
-            }
-        });
-    }); }); };
-    Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, case_;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
-                case 0:
-                    _c = [];
-                    for (_d in entry.template)
-                        _c.push(_d);
-                    _e = 0;
-                    _f.label = 1;
-                case 1:
-                    if (!(_e < _c.length)) return [3 /*break*/, 5];
-                    i = _c[_e];
-                    case_ = entry.template[i];
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.if }))];
-                case 2:
-                    if (!_f.sent()) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.return }))];
-                case 3: return [2 /*return*/, _f.sent()];
-                case 4:
-                    _e++;
-                    return [3 /*break*/, 1];
-                case 5: return [2 /*return*/, undefined];
-            }
-        });
-    }); }); };
     Jsonarch.isAlphaTypeData = function (type) {
         return (function (template) {
             return Jsonarch.isTypeData(template) && type === template.type;
@@ -570,6 +486,184 @@ var Jsonarch;
         return { $arch: "type", type: "never", };
         // }
     };
+    Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
+    Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
+    Jsonarch.isValueCasePattern = Jsonarch.isObject({ value: Jsonarch.isJsonable, });
+    Jsonarch.isTypeCasePattern = Jsonarch.isObject({ type: Jsonarch.isTypeData, });
+    Jsonarch.isIfCasePattern = Jsonarch.isObject({ if: Jsonarch.isJsonable, });
+    Jsonarch.applyDefault = function (defaults, parameter) {
+        if (undefined === defaults) {
+            return parameter;
+        }
+        else if (undefined === parameter || "object" !== typeof defaults || "object" !== typeof parameter) {
+            return defaults;
+        }
+        else {
+            return __assign(__assign({}, defaults), parameter);
+        }
+    };
+    Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, error_1, result;
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_c = entry.template.override) === null || _c === void 0 ? void 0 : _c.setting);
+                    if (!entry.template.catch) return [3 /*break*/, 6];
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, 2, , 5]);
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+                case 2:
+                    error_1 = _d.sent();
+                    if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.catch, parameter: error_1 }))];
+                case 3:
+                    result = _d.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    _d.label = 4;
+                case 4: throw error_1;
+                case 5: return [3 /*break*/, 7];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+                case 7: return [2 /*return*/];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateMatch = function (entry) { return Jsonarch.profile(entry, "evaluateMatch", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    parameter = Jsonarch.applyDefault(entry.template.default, entry.parameter);
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.cases, parameter: parameter }))];
+                case 1:
+                    result = _c.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    return [2 /*return*/, entry.template.default.return];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateValueCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateValueCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_c) {
+            if (undefined !== entry.parameter) {
+                return [2 /*return*/, Jsonarch.jsonStringify(entry.parameter) === Jsonarch.jsonStringify(entry.template.value)];
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+            return [2 /*return*/];
+        });
+    }); }); };
+    Jsonarch.evaluateTypeCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateTypeCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameterType, comppareTypeResult;
+        return __generator(this, function (_c) {
+            if (undefined !== entry.parameter) {
+                parameterType = Jsonarch.typeOfJsonable(entry.parameter);
+                comppareTypeResult = Jsonarch.compareType(entry.template.type, parameterType);
+                return [2 /*return*/, Jsonarch.isBaseOrEqual(comppareTypeResult)];
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+            return [2 /*return*/];
+        });
+    }); }); };
+    Jsonarch.evaluateIfCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateIfCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.if }))];
+                case 1:
+                    result = _c.sent();
+                    if ("boolean" !== typeof result) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch if result type",
+                            "if": entry.template.if,
+                            result: result,
+                        });
+                    }
+                    return [2 /*return*/, result];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateIfMatchCasePattern = function (isMatch, evaluateTarget) {
+        return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+            return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
+        }); }); };
+    };
+    var casePatternEvaluatorList = [
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isValueCasePattern, Jsonarch.evaluateValueCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isTypeCasePattern, Jsonarch.evaluateTypeCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isIfCasePattern, Jsonarch.evaluateIfCasePattern),
+    ];
+    Jsonarch.evaluateCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, result;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in casePatternEvaluatorList)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    i = _c[_e];
+                    return [4 /*yield*/, casePatternEvaluatorList[i](entry)];
+                case 2:
+                    result = _f.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    _f.label = 3;
+                case 3:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 4: throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown Case Pattern",
+                    "template": entry.template,
+                });
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, case_;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in entry.template)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 5];
+                    i = _c[_e];
+                    case_ = entry.template[i];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: case_.case }))];
+                case 2:
+                    if (!_f.sent()) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.return }))];
+                case 3: return [2 /*return*/, _f.sent()];
+                case 4:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 5: return [2 /*return*/, undefined];
+            }
+        });
+    }); }); };
     Jsonarch.makeParameter = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
         return __generator(this, function (_d) {

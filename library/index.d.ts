@@ -235,47 +235,6 @@ export declare module Jsonarch {
     }
     export const isIncludeStaticJsonData: (template: unknown) => template is IncludeStaticJsonTemplate;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
-    export interface Template extends AlphaJsonarch {
-        $arch: "template";
-        type?: {
-            parameter?: Type;
-            return?: Type;
-        };
-        default?: {
-            parameter?: Jsonable;
-            setting?: Setting;
-        };
-        override?: {
-            parameter?: Jsonable;
-            setting?: Setting;
-        };
-        member?: JsonableObject;
-        return: Jsonable;
-        catch?: Case[];
-    }
-    export const isTemplateData: (template: unknown) => template is Template;
-    export interface Match extends AlphaJsonarch {
-        $arch: "match";
-        type?: {
-            parameter?: Type;
-            return?: Type;
-        };
-        default: {
-            parameter?: Jsonable;
-            return: Jsonable;
-        };
-        parameter?: Jsonable;
-        cases: Case[];
-    }
-    export const isMatchData: (template: unknown) => template is Match;
-    export interface Case extends JsonableObject {
-        if: Jsonable;
-        return: Jsonable;
-    }
-    export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
-    export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
-    export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
-    export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     type ReferKeyElement = string;
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
@@ -407,6 +366,65 @@ export declare module Jsonarch {
     }
     export const isValueData: (template: unknown) => template is Value;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
+    export interface Template extends AlphaJsonarch {
+        $arch: "template";
+        type?: {
+            parameter?: Type;
+            return?: Type;
+        };
+        default?: {
+            parameter?: Jsonable;
+            setting?: Setting;
+        };
+        override?: {
+            parameter?: Jsonable;
+            setting?: Setting;
+        };
+        member?: JsonableObject;
+        return: Jsonable;
+        catch?: Case[];
+    }
+    export const isTemplateData: (template: unknown) => template is Template;
+    export interface Match extends AlphaJsonarch {
+        $arch: "match";
+        type?: {
+            parameter?: Type;
+            return?: Type;
+        };
+        default: {
+            parameter?: Jsonable;
+            return: Jsonable;
+        };
+        parameter?: Jsonable;
+        cases: Case[];
+    }
+    export const isMatchData: (template: unknown) => template is Match;
+    export interface Case extends JsonableObject {
+        case: CasePattern;
+        return: Jsonable;
+    }
+    export interface ValueCasePattern extends JsonableObject {
+        value: Jsonable;
+    }
+    export interface TypeCasePattern extends JsonableObject {
+        type: Type;
+    }
+    export interface IfCasePattern extends JsonableObject {
+        if: Jsonable;
+    }
+    export const isValueCasePattern: (value: unknown) => value is ValueCasePattern;
+    export const isTypeCasePattern: (value: unknown) => value is TypeCasePattern;
+    export const isIfCasePattern: (value: unknown) => value is IfCasePattern;
+    export type CasePattern = ValueCasePattern | TypeCasePattern | IfCasePattern;
+    export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
+    export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
+    export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
+    export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;
+    export const evaluateTypeCasePattern: (entry: EvaluateEntry<TypeCasePattern>) => Promise<boolean>;
+    export const evaluateIfCasePattern: (entry: EvaluateEntry<IfCasePattern>) => Promise<boolean>;
+    export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
+    export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
+    export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export const validateParameterType: <parameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: parameterType) => parameterType;
     export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;

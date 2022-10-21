@@ -794,10 +794,6 @@ export module Jsonarch
         case: CasePattern;
         return: Jsonable;
     }
-    export interface IfCasePattern extends JsonableObject
-    {
-        if: Jsonable;
-    }
     export interface ValueCasePattern extends JsonableObject
     {
         value: Jsonable;
@@ -806,10 +802,14 @@ export module Jsonarch
     {
         type: Type;
     }
-    export const isIfCase = isObject<IfCasePattern>({ if: isJsonable, });
-    export const isValueCase = isObject<ValueCasePattern>({ value: isJsonable, });
-    export const isTypeCase = isObject<TypeCasePattern>({ type: isTypeData, });
-    export type CasePattern = IfCasePattern | ValueCasePattern | TypeCasePattern;
+    export interface IfCasePattern extends JsonableObject
+    {
+        if: Jsonable;
+    }
+    export const isValueCasePattern = isObject<ValueCasePattern>({ value: isJsonable, });
+    export const isTypeCasePattern = isObject<TypeCasePattern>({ type: isTypeData, });
+    export const isIfCasePattern = isObject<IfCasePattern>({ if: isJsonable, });
+    export type CasePattern = ValueCasePattern | TypeCasePattern | IfCasePattern;
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
     {
         if (undefined === defaults)
@@ -873,8 +873,64 @@ export module Jsonarch
             return entry.template.default.return;
         }
     );
-    export const evaluateIfMatchCasePattern = <CasePatternType extends CasePattern>(isMatch: ((entry: Jsonable) => entry is CasePatternType), evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<Jsonable>) =>
-        async (entry: EvaluateEntry<CasePatternType>): Promise<Jsonable | undefined> =>
+    export const evaluateValueCasePattern = (entry: EvaluateEntry<ValueCasePattern>): Promise<boolean> => profile
+    (
+        entry, "evaluateValueCasePattern", async () =>
+        {
+            if (undefined !== entry.parameter)
+            {
+                return jsonStringify(entry.parameter) === jsonStringify(entry.template.value);
+            }
+            else
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+        }
+    );
+    export const evaluateTypeCasePattern = (entry: EvaluateEntry<TypeCasePattern>): Promise<boolean> => profile
+    (
+        entry, "evaluateTypeCasePattern", async () =>
+        {
+            if (undefined !== entry.parameter)
+            {
+                const parameterType = typeOfJsonable(entry.parameter);
+                const comppareTypeResult = compareType(entry.template.type, parameterType);
+                return isBaseOrEqual(comppareTypeResult);
+            }
+            else
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+        }
+    );
+    export const evaluateIfCasePattern = (entry: EvaluateEntry<IfCasePattern>): Promise<boolean> => profile
+    (
+        entry, "evaluateIfCasePattern", async () =>
+        {
+            const result = await apply({ ...entry, template: entry.template.if, });
+            if ("boolean" !== typeof result)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unmatch if result type",
+                    "if": entry.template.if,
+                    result,
+                });
+            }
+            return result;
+        }
+    );
+    export const evaluateIfMatchCasePattern = <CasePatternType extends CasePattern>(isMatch: ((entry: Jsonable) => entry is CasePatternType), evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) =>
+        async (entry: EvaluateEntry<CasePattern>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<CasePatternType>>entry): undefined;
     const casePatternEvaluatorList: ((entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>)[] =
     [
