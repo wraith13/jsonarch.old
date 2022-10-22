@@ -1055,6 +1055,41 @@ export module Jsonarch
         });
     export module Library
     {
+        export module Boolean
+        {
+            export const not = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isBoolean(parameter))
+                {
+                    return ! parameter;
+                }
+                return undefined;
+            };
+            export const or = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isBoolean)(parameter))
+                {
+                    return parameter.some(i => i);
+                }
+                return undefined;
+            };
+            export const and = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isBoolean)(parameter))
+                {
+                    return ! parameter.some(i => ! i);
+                }
+                return undefined;
+            };
+            export const xor = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isBoolean)(parameter) && 2 === parameter.length)
+                {
+                    return parameter[0] !== parameter[1];
+                }
+                return undefined;
+            };
+        }
         export module String
         {
             export const json = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
@@ -1992,6 +2027,13 @@ export module Jsonarch
             const target = turnRefer<JsonableValue | Function>
             (
                 {
+                    boolean:
+                    {
+                        not: Library.Boolean.not,
+                        or: Library.Boolean.or,
+                        and: Library.Boolean.and,
+                        xor: Library.Boolean.xor,
+                    },
                     string:
                     {
                         join: Library.String.json,

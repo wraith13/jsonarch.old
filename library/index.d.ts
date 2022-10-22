@@ -429,6 +429,12 @@ export declare module Jsonarch {
     export const validateParameterType: <parameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: parameterType) => parameterType;
     export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export module Library {
+        module Boolean {
+            const not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            const or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            const and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            const xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+        }
         module String {
             const json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         }
