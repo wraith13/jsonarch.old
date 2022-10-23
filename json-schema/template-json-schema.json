@@ -24,10 +24,10 @@
                 },
                 {
                     "$ref": "#/definitions/ResourceValue"
+                },
+                {
+                    "$ref": "#/definitions/Type"
                 }
-            ],
-            "required": [
-                "$arch"
             ]
         },
         "JsonObject": {
@@ -67,6 +67,166 @@
                 {
                     "$ref": "#/definitions/JsonObject"
                 }
+            ]
+        },
+        "Type": {
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/SystemType"
+                },
+                {
+                    "$ref": "#/definitions/ValueType"
+                },
+                {
+                    "$ref": "#/definitions/ArrayType"
+                },
+                {
+                    "$ref": "#/definitions/TupleType"
+                },
+                {
+                    "$ref": "#/definitions/ObjectType"
+                },
+                {
+                    "$ref": "#/definitions/CompositeType"
+                },
+                {
+                    "$ref": "#/definitions/TemplateType"
+                },
+                {
+                    "$ref": "#/definitions/MetaType"
+                }
+            ]
+        },
+        "SystemType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "never", "unknown", "any", "null" ]
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "ValueType": {
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/NullType"
+                },
+                {
+                    "$ref": "#/definitions/BooleanType"
+                },
+                {
+                    "$ref": "#/definitions/NumberType"
+                },
+                {
+                    "$ref": "#/definitions/StringType"
+                }
+            ]
+        },
+        "NullType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "null" ]
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "BooleanType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "boolean" ]
+                },
+                "enum":
+                {
+                    "type": "array",
+                    "items":
+                    {
+                        "type": "boolean"
+                    }
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "NumberType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "number" ]
+                },
+                "integerOnly":
+                {
+                    "type": "boolean"
+                },
+                "minValue":
+                {
+                    "type": "number"
+                },
+                "mimaxValuenValue":
+                {
+                    "type": "number"
+                },
+                "enum":
+                {
+                    "type": "array",
+                    "items":
+                    {
+                        "type": "number"
+                    }
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
             ]
         }
     }
