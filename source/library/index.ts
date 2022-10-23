@@ -546,6 +546,11 @@ export module Jsonarch
         type: PrimitiveType;
         optional?: boolean;
     }
+    export interface TypeHasMinMaxLength extends AlphaType
+    {
+        minValue?: number;
+        maxValue?: number;
+    }
     export const isAlphaTypeData = <Type extends AlphaType>(type: Type["type"]) =>
         ((template: unknown): template is Type =>
             isTypeData(template) && type === template.type);
@@ -586,18 +591,7 @@ export module Jsonarch
         type: "boolean";
     }
     export const isBooleanValueTypeData = isAlphaTypeData<BooleanValueType>("boolean");
-    export interface FormatStringValueType extends AlphaType
-    {
-        type: "string";
-        format?: string;
-    }
-    export interface EnumStringValueType extends AlphaEnumType<string>
-    {
-        type: "string";
-    }
-    export type StringValueType = FormatStringValueType | EnumStringValueType;
-    export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
-    export interface RangeNumberValueType extends AlphaType
+    export interface RegularNumberValueType extends AlphaType
     {
         type: "number";
         integerOnly?: boolean;
@@ -612,13 +606,26 @@ export module Jsonarch
         minValue: never;
         maxValue: never;
     }
-    export type NumberValueType = RangeNumberValueType | EnumNumberValueType;
+    export type NumberValueType = RegularNumberValueType | EnumNumberValueType;
     export const isNumberValueTypeData = isAlphaTypeData<NumberValueType>("number");
-    export const isRangeNumberValueTypeData = (value: unknown): value is RangeNumberValueType =>
+    export const isRangeNumberValueTypeData = (value: unknown): value is RegularNumberValueType =>
         isAlphaTypeData<NumberValueType>("number")(value) &&
         isObject({ integerOnly: isUndefinedOr(isBoolean), minValue: isUndefinedOr(isNumber), maxValue: isUndefinedOr(isNumber), enum:isUndefined, })(value);
     export const isEnumNumberValueTypeData = (value: unknown): value is EnumNumberValueType =>
         isAlphaTypeData<NumberValueType>("number")(value) && isObject({ enum: isArray(isNumber), })(value);
+    export interface RegularStringValueType extends AlphaType
+    {
+        type: "string";
+        format?: string;
+        minLength?: number;
+        maxLength?: number;
+    }
+    export interface EnumStringValueType extends AlphaEnumType<string>
+    {
+        type: "string";
+    }
+    export type StringValueType = RegularStringValueType | EnumStringValueType;
+    export const isStringValueTypeData = isAlphaTypeData<StringValueType>("string");
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
     export type PrimitiveValueType = ValueType["type"];
     export const isValueTypeData = (template: unknown): template is ValueType =>
@@ -1349,24 +1356,26 @@ export module Jsonarch
             return "unmatch";
         }
     };
-    export const compareTypeMinLength = (a: ArrayType, b: ArrayType): CompareTypeResult =>
+    export const compareTypeMinLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult =>
     {
-        if (a.minLength === b.minLength)
+        const aMinLength = a.minLength ?? undefined;
+        const bMinLength = b.minLength ?? undefined;
+        if (aMinLength === bMinLength)
         {
             return "equal";
         }
         else
-        if (undefined === a.minLength)
+        if (undefined === aMinLength)
         {
             return "base";
         }
         else
-        if (undefined === b.minLength)
+        if (undefined === bMinLength)
         {
             return "extended";
         }
         else
-        if (a.minLength < b.minLength)
+        if (aMinLength < bMinLength)
         {
             return "base";
         }
@@ -1375,24 +1384,26 @@ export module Jsonarch
             return "extended";
         }
     };
-    export const compareTypeMaxLength = (a: ArrayType, b: ArrayType): CompareTypeResult =>
+    export const compareTypeMaxLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult =>
     {
-        if (a.maxLength === b.maxLength)
+        const aMaxLength = a.maxLength ?? undefined;
+        const bMaxLength = b.maxLength ?? undefined;
+        if (aMaxLength === bMaxLength)
         {
             return "equal";
         }
         else
-        if (undefined === a.maxLength)
+        if (undefined === aMaxLength)
         {
             return "base";
         }
         else
-        if (undefined === b.maxLength)
+        if (undefined === bMaxLength)
         {
             return "extended";
         }
         else
-        if (a.maxLength < b.maxLength)
+        if (aMaxLength < bMaxLength)
         {
             return "extended";
         }
@@ -1401,7 +1412,7 @@ export module Jsonarch
             return "base";
         }
     };
-    export const compareTypeMinMaxLength = (a: ArrayType, b: ArrayType): CompareTypeResult => compositeCompareTypeResult
+    export const compareTypeMinMaxLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult => compositeCompareTypeResult
     (
         compareTypeMinLength(a, b),
         compareTypeMaxLength(a, b),
@@ -1498,6 +1509,7 @@ export module Jsonarch
         compareTypeEnum,
         compareTypeNeverEnum,
         compareTypeFormat,
+        compareTypeMinMaxLength,
     ]);
     export const compareArrayType = compositeCompareType<ArrayType>
     ([

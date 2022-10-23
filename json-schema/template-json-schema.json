@@ -187,6 +187,16 @@
             ]
         },
         "NumberType": {
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/RegularNumberType"
+                },
+                {
+                    "$ref": "#/definitions/EnumNumberType"
+                }
+            ]
+        },
+        "RegularNumberType": {
             "type": "object",
             "properties": {
                 "$arch":
@@ -207,9 +217,32 @@
                 {
                     "type": "number"
                 },
-                "mimaxValuenValue":
+                "maxValue":
                 {
                     "type": "number"
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "EnumNumberType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "number" ]
                 },
                 "enum":
                 {
@@ -217,6 +250,78 @@
                     "items":
                     {
                         "type": "number"
+                    }
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "StringType": {
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/RegularStringType"
+                },
+                {
+                    "$ref": "#/definitions/EnumStringType"
+                }
+            ]
+        },
+        "RegularStringType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "string" ]
+                },
+                "minLength":
+                {
+                    "type": "number"
+                },
+                "maxLength":
+                {
+                    "type": "number"
+                },
+                "optional":
+                {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "$arch",
+                "type"
+            ]
+        },
+        "EnumStringType": {
+            "type": "object",
+            "properties": {
+                "$arch":
+                {
+                    "type": "string",
+                    "enum": [ "type" ]
+                },
+                "type":
+                {
+                    "type": "string",
+                    "enum": [ "string" ]
+                },
+                "enum":
+                {
+                    "type": "array",
+                    "items":
+                    {
+                        "type": "string"
                     }
                 },
                 "optional":

@@ -244,6 +244,10 @@ export declare module Jsonarch {
         type: PrimitiveType;
         optional?: boolean;
     }
+    export interface TypeHasMinMaxLength extends AlphaType {
+        minValue?: number;
+        maxValue?: number;
+    }
     export const isAlphaTypeData: <Type_1 extends AlphaType>(type: Type_1["type"]) => (template: unknown) => template is Type_1;
     export interface AlphaEnumType<ValueType extends JsonableValue> extends AlphaType {
         enum?: ValueType[];
@@ -275,16 +279,7 @@ export declare module Jsonarch {
         type: "boolean";
     }
     export const isBooleanValueTypeData: (template: unknown) => template is BooleanValueType;
-    export interface FormatStringValueType extends AlphaType {
-        type: "string";
-        format?: string;
-    }
-    export interface EnumStringValueType extends AlphaEnumType<string> {
-        type: "string";
-    }
-    export type StringValueType = FormatStringValueType | EnumStringValueType;
-    export const isStringValueTypeData: (template: unknown) => template is StringValueType;
-    export interface RangeNumberValueType extends AlphaType {
+    export interface RegularNumberValueType extends AlphaType {
         type: "number";
         integerOnly?: boolean;
         minValue?: number;
@@ -297,10 +292,21 @@ export declare module Jsonarch {
         minValue: never;
         maxValue: never;
     }
-    export type NumberValueType = RangeNumberValueType | EnumNumberValueType;
+    export type NumberValueType = RegularNumberValueType | EnumNumberValueType;
     export const isNumberValueTypeData: (template: unknown) => template is NumberValueType;
-    export const isRangeNumberValueTypeData: (value: unknown) => value is RangeNumberValueType;
+    export const isRangeNumberValueTypeData: (value: unknown) => value is RegularNumberValueType;
     export const isEnumNumberValueTypeData: (value: unknown) => value is EnumNumberValueType;
+    export interface RegularStringValueType extends AlphaType {
+        type: "string";
+        format?: string;
+        minLength?: number;
+        maxLength?: number;
+    }
+    export interface EnumStringValueType extends AlphaEnumType<string> {
+        type: "string";
+    }
+    export type StringValueType = RegularStringValueType | EnumStringValueType;
+    export const isStringValueTypeData: (template: unknown) => template is StringValueType;
     export type ValueType = NullValueType | BooleanValueType | NumberValueType | StringValueType;
     export type PrimitiveValueType = ValueType["type"];
     export const isValueTypeData: (template: unknown) => template is ValueType;
@@ -451,9 +457,9 @@ export declare module Jsonarch {
     export const compareTypeMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMinMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeFormat: (a: StringValueType, b: StringValueType) => CompareTypeResult;
-    export const compareTypeMinLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
-    export const compareTypeMaxLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
-    export const compareTypeMinMaxLength: (a: ArrayType, b: ArrayType) => CompareTypeResult;
+    export const compareTypeMinLength: <Type_1 extends TypeHasMinMaxLength>(a: Type_1, b: Type_1) => CompareTypeResult;
+    export const compareTypeMaxLength: <Type_1 extends TypeHasMinMaxLength>(a: Type_1, b: Type_1) => CompareTypeResult;
+    export const compareTypeMinMaxLength: <Type_1 extends TypeHasMinMaxLength>(a: Type_1, b: Type_1) => CompareTypeResult;
     export const compareTypeList: (a: Type[], b: Type[]) => CompareTypeResult;
     export const compareTypeObjectMember: (a: ObjectType, b: ObjectType) => CompareTypeResult;
     export const compareTypeOrComposite: (a: OrCompositeType, b: Type) => CompareTypeResult;

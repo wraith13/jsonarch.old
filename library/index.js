@@ -418,7 +418,6 @@ var Jsonarch;
     Jsonarch.isAnyTypeData = Jsonarch.isAlphaTypeData("any");
     Jsonarch.isNullValueTypeData = Jsonarch.isAlphaTypeData("null");
     Jsonarch.isBooleanValueTypeData = Jsonarch.isAlphaTypeData("boolean");
-    Jsonarch.isStringValueTypeData = Jsonarch.isAlphaTypeData("string");
     Jsonarch.isNumberValueTypeData = Jsonarch.isAlphaTypeData("number");
     Jsonarch.isRangeNumberValueTypeData = function (value) {
         return Jsonarch.isAlphaTypeData("number")(value) &&
@@ -427,6 +426,7 @@ var Jsonarch;
     Jsonarch.isEnumNumberValueTypeData = function (value) {
         return Jsonarch.isAlphaTypeData("number")(value) && Jsonarch.isObject({ enum: Jsonarch.isArray(Jsonarch.isNumber), })(value);
     };
+    Jsonarch.isStringValueTypeData = Jsonarch.isAlphaTypeData("string");
     Jsonarch.isValueTypeData = function (template) {
         return Jsonarch.isNullValueTypeData(template) ||
             Jsonarch.isBooleanValueTypeData(template) ||
@@ -961,16 +961,19 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMinLength = function (a, b) {
-        if (a.minLength === b.minLength) {
+        var _c, _d;
+        var aMinLength = (_c = a.minLength) !== null && _c !== void 0 ? _c : undefined;
+        var bMinLength = (_d = b.minLength) !== null && _d !== void 0 ? _d : undefined;
+        if (aMinLength === bMinLength) {
             return "equal";
         }
-        else if (undefined === a.minLength) {
+        else if (undefined === aMinLength) {
             return "base";
         }
-        else if (undefined === b.minLength) {
+        else if (undefined === bMinLength) {
             return "extended";
         }
-        else if (a.minLength < b.minLength) {
+        else if (aMinLength < bMinLength) {
             return "base";
         }
         else {
@@ -978,16 +981,19 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMaxLength = function (a, b) {
-        if (a.maxLength === b.maxLength) {
+        var _c, _d;
+        var aMaxLength = (_c = a.maxLength) !== null && _c !== void 0 ? _c : undefined;
+        var bMaxLength = (_d = b.maxLength) !== null && _d !== void 0 ? _d : undefined;
+        if (aMaxLength === bMaxLength) {
             return "equal";
         }
-        else if (undefined === a.maxLength) {
+        else if (undefined === aMaxLength) {
             return "base";
         }
-        else if (undefined === b.maxLength) {
+        else if (undefined === bMaxLength) {
             return "extended";
         }
-        else if (a.maxLength < b.maxLength) {
+        else if (aMaxLength < bMaxLength) {
             return "extended";
         }
         else {
@@ -1063,6 +1069,7 @@ var Jsonarch;
         Jsonarch.compareTypeEnum,
         Jsonarch.compareTypeNeverEnum,
         Jsonarch.compareTypeFormat,
+        Jsonarch.compareTypeMinMaxLength,
     ]);
     Jsonarch.compareArrayType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
