@@ -752,14 +752,15 @@ export module Jsonarch
             return { $arch: "type", type: "never", };
         // }
     };
+    export interface CallTypeInterface extends AlphaJsonarch
+    {
+        parameter: Type;
+        return: Type;
+    }
     export interface Template extends AlphaJsonarch
     {
         $arch: "template";
-        type?:
-        {
-            parameter?: Type;
-            return?: Type;
-        };
+        type?: CallTypeInterface | CallTypeInterface[];
         default?:
         {
             parameter?: Jsonable;
@@ -992,39 +993,28 @@ export module Jsonarch
             const type = functionTemplate.type;
             if (type)
             {
-                const typeParameter = type.parameter;
-                if (typeParameter)
+                const parameterType = typeOfJsonable(parameter);
+                const comppareTypeResult = Array.isArray(type) ?
+                    type.map(t => compareType(t.parameter, parameterType)):
+                    [compareType(type.parameter, parameterType)];
+                if (comppareTypeResult.some(r => isBaseOrEqual(r)))
                 {
-                    const parameterType = typeOfJsonable(parameter);
-                    const comppareTypeResult = compareType(typeParameter, parameterType);
-                    if ( ! isBaseOrEqual(comppareTypeResult))
-                    {
-                        throw new ErrorJson
-                        ({
-                            "$arch": "error",
-                            "message": "Unmatch parameter type",
-                            "refer": entry.template.refer,
-                            comppareTypeResult,
-                            "type":
-                            {
-                                "template.parameter": typeParameter,
-                                "parameter": parameterType,
-                            },
-                            parameter,
-                        });
-                    }
-                    else
-                    {
-                        return parameter;
-                    }
+                    return parameter;
                 }
                 else
                 {
                     throw new ErrorJson
                     ({
                         "$arch": "error",
-                        "message": "Not found parameter type define",
+                        "message": "Unmatch parameter type",
                         "refer": entry.template.refer,
+                        comppareTypeResult,
+                        "type":
+                        {
+                            "template": type,
+                            "parameter": parameterType,
+                        },
+                        parameter,
                     });
                 }
             }

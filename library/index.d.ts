@@ -368,12 +368,13 @@ export declare module Jsonarch {
     }
     export const isValueData: (template: unknown) => template is Value;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
+    export interface CallTypeInterface extends AlphaJsonarch {
+        parameter: Type;
+        return: Type;
+    }
     export interface Template extends AlphaJsonarch {
         $arch: "template";
-        type?: {
-            parameter?: Type;
-            return?: Type;
-        };
+        type?: CallTypeInterface | CallTypeInterface[];
         default?: {
             parameter?: Jsonable;
             setting?: Setting;

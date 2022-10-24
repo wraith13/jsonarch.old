@@ -685,32 +685,24 @@ var Jsonarch;
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
-                var typeParameter = type.parameter;
-                if (typeParameter) {
-                    var parameterType = Jsonarch.typeOfJsonable(parameter);
-                    var comppareTypeResult = Jsonarch.compareType(typeParameter, parameterType);
-                    if (!Jsonarch.isBaseOrEqual(comppareTypeResult)) {
-                        throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch parameter type",
-                            "refer": entry.template.refer,
-                            comppareTypeResult: comppareTypeResult,
-                            "type": {
-                                "template.parameter": typeParameter,
-                                "parameter": parameterType,
-                            },
-                            parameter: parameter,
-                        });
-                    }
-                    else {
-                        return parameter;
-                    }
+                var parameterType_1 = Jsonarch.typeOfJsonable(parameter);
+                var comppareTypeResult = Array.isArray(type) ?
+                    type.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); }) :
+                    [Jsonarch.compareType(type.parameter, parameterType_1)];
+                if (comppareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
+                    return parameter;
                 }
                 else {
                     throw new Jsonarch.ErrorJson({
                         "$arch": "error",
-                        "message": "Not found parameter type define",
+                        "message": "Unmatch parameter type",
                         "refer": entry.template.refer,
+                        comppareTypeResult: comppareTypeResult,
+                        "type": {
+                            "template": type,
+                            "parameter": parameterType_1,
+                        },
+                        parameter: parameter,
                     });
                 }
             }
