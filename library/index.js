@@ -961,19 +961,16 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMinLength = function (a, b) {
-        var _c, _d;
-        var aMinLength = (_c = a.minLength) !== null && _c !== void 0 ? _c : undefined;
-        var bMinLength = (_d = b.minLength) !== null && _d !== void 0 ? _d : undefined;
-        if (aMinLength === bMinLength) {
+        if (a.minLength === b.minLength) {
             return "equal";
         }
-        else if (undefined === aMinLength) {
+        else if (undefined === a.minLength) {
             return "base";
         }
-        else if (undefined === bMinLength) {
+        else if (undefined === b.minLength) {
             return "extended";
         }
-        else if (aMinLength < bMinLength) {
+        else if (a.minLength < b.minLength) {
             return "base";
         }
         else {
@@ -981,19 +978,16 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMaxLength = function (a, b) {
-        var _c, _d;
-        var aMaxLength = (_c = a.maxLength) !== null && _c !== void 0 ? _c : undefined;
-        var bMaxLength = (_d = b.maxLength) !== null && _d !== void 0 ? _d : undefined;
-        if (aMaxLength === bMaxLength) {
+        if (a.maxLength === b.maxLength) {
             return "equal";
         }
-        else if (undefined === aMaxLength) {
+        else if (undefined === a.maxLength) {
             return "base";
         }
-        else if (undefined === bMaxLength) {
+        else if (undefined === b.maxLength) {
             return "extended";
         }
-        else if (aMaxLength < bMaxLength) {
+        else if (a.maxLength < b.maxLength) {
             return "extended";
         }
         else {
@@ -1342,6 +1336,7 @@ var Jsonarch;
         Jsonarch.andTypeOptional,
         Jsonarch.andTypeEnum,
         Jsonarch.andTypeFormat,
+        Jsonarch.andTypeMinMaxLength,
     ]);
     Jsonarch.andArrayType = Jsonarch.compositeAndType([
         Jsonarch.andTypeOptional,

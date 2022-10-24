@@ -548,8 +548,8 @@ export module Jsonarch
     }
     export interface TypeHasMinMaxLength extends AlphaType
     {
-        minValue?: number;
-        maxValue?: number;
+        minLength?: number;
+        maxLength?: number;
     }
     export const isAlphaTypeData = <Type extends AlphaType>(type: Type["type"]) =>
         ((template: unknown): template is Type =>
@@ -613,12 +613,10 @@ export module Jsonarch
         isObject({ integerOnly: isUndefinedOr(isBoolean), minValue: isUndefinedOr(isNumber), maxValue: isUndefinedOr(isNumber), enum:isUndefined, })(value);
     export const isEnumNumberValueTypeData = (value: unknown): value is EnumNumberValueType =>
         isAlphaTypeData<NumberValueType>("number")(value) && isObject({ enum: isArray(isNumber), })(value);
-    export interface RegularStringValueType extends AlphaType
+    export interface RegularStringValueType extends TypeHasMinMaxLength
     {
         type: "string";
         format?: string;
-        minLength?: number;
-        maxLength?: number;
     }
     export interface EnumStringValueType extends AlphaEnumType<string>
     {
@@ -633,12 +631,10 @@ export module Jsonarch
         isBooleanValueTypeData(template) ||
         isNumberValueTypeData(template) ||
         isStringValueTypeData(template);
-    export interface ArrayType extends AlphaType
+    export interface ArrayType extends TypeHasMinMaxLength
     {
         type: "array";
         itemType: Type;
-        minLength?: number;
-        maxLength?: number;
     }
     export const isArrayTypeData = isAlphaTypeData<ArrayType>("array");
     export interface TupleType extends AlphaType
@@ -1356,26 +1352,24 @@ export module Jsonarch
             return "unmatch";
         }
     };
-    export const compareTypeMinLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult =>
+    export const compareTypeMinLength = <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType): CompareTypeResult =>
     {
-        const aMinLength = a.minLength ?? undefined;
-        const bMinLength = b.minLength ?? undefined;
-        if (aMinLength === bMinLength)
+        if (a.minLength === b.minLength)
         {
             return "equal";
         }
         else
-        if (undefined === aMinLength)
+        if (undefined === a.minLength)
         {
             return "base";
         }
         else
-        if (undefined === bMinLength)
+        if (undefined === b.minLength)
         {
             return "extended";
         }
         else
-        if (aMinLength < bMinLength)
+        if (a.minLength < b.minLength)
         {
             return "base";
         }
@@ -1384,26 +1378,24 @@ export module Jsonarch
             return "extended";
         }
     };
-    export const compareTypeMaxLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult =>
+    export const compareTypeMaxLength = <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType): CompareTypeResult =>
     {
-        const aMaxLength = a.maxLength ?? undefined;
-        const bMaxLength = b.maxLength ?? undefined;
-        if (aMaxLength === bMaxLength)
+        if (a.maxLength === b.maxLength)
         {
             return "equal";
         }
         else
-        if (undefined === aMaxLength)
+        if (undefined === a.maxLength)
         {
             return "base";
         }
         else
-        if (undefined === bMaxLength)
+        if (undefined === b.maxLength)
         {
             return "extended";
         }
         else
-        if (aMaxLength < bMaxLength)
+        if (a.maxLength < b.maxLength)
         {
             return "extended";
         }
@@ -1412,7 +1404,7 @@ export module Jsonarch
             return "base";
         }
     };
-    export const compareTypeMinMaxLength = <Type extends TypeHasMinMaxLength>(a: Type, b: Type): CompareTypeResult => compositeCompareTypeResult
+    export const compareTypeMinMaxLength = <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType): CompareTypeResult => compositeCompareTypeResult
     (
         compareTypeMinLength(a, b),
         compareTypeMaxLength(a, b),
@@ -1732,7 +1724,7 @@ export module Jsonarch
         }
         return result;
     };
-    export const andTypeMinMaxLength = <TargetType extends ArrayType>(a: TargetType, b: TargetType): TargetType | NeverType =>
+    export const andTypeMinMaxLength = <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType): TargetType | NeverType =>
     {
         let result: TargetType | NeverType = { ...a };
         if (undefined !== b.minLength && (undefined === result.minLength || result.minLength < b.minLength))
@@ -1871,6 +1863,7 @@ export module Jsonarch
         andTypeOptional,
         andTypeEnum,
         andTypeFormat,
+        andTypeMinMaxLength,
     ]);
     export const andArrayType = compositeAndType<ArrayType>
     ([
