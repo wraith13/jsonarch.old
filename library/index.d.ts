@@ -429,7 +429,8 @@ export declare module Jsonarch {
     export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
-    export const validateParameterType: <parameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: parameterType) => parameterType;
+    export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
+    export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export module Library {
         module Boolean {

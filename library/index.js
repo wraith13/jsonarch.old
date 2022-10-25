@@ -686,9 +686,8 @@ var Jsonarch;
             var type = functionTemplate.type;
             if (type) {
                 var parameterType_1 = Jsonarch.typeOfJsonable(parameter);
-                var comppareTypeResult = Array.isArray(type) ?
-                    type.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); }) :
-                    [Jsonarch.compareType(type.parameter, parameterType_1)];
+                var types = Array.isArray(type) ? type : [type];
+                var comppareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
                 if (comppareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
                     return parameter;
                 }
@@ -701,6 +700,49 @@ var Jsonarch;
                         "type": {
                             "template": type,
                             "parameter": parameterType_1,
+                        },
+                        parameter: parameter,
+                    });
+                }
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Not found type define",
+                    "refer": entry.template.refer,
+                });
+            }
+        }
+        else {
+            throw new Jsonarch.ErrorJson({
+                "$arch": "error",
+                "message": "Not found template",
+                "refer": entry.template.refer,
+            });
+        }
+    };
+    Jsonarch.validateReturnType = function (entry, parameter, result) {
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
+        if (Jsonarch.isTemplateData(functionTemplate)) {
+            var type = functionTemplate.type;
+            if (type) {
+                var parameterType_2 = Jsonarch.typeOfJsonable(parameter);
+                var resultType_1 = Jsonarch.typeOfJsonable(result);
+                var types = Array.isArray(type) ? type : [type];
+                var comppareTypeResult = types.map(function (t) { return ({ parameter: Jsonarch.compareType(t.parameter, parameterType_2), return: Jsonarch.compareType(t.return, resultType_1), }); });
+                if (comppareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r.parameter) && Jsonarch.isBaseOrEqual(r.return); })) {
+                    return result;
+                }
+                else {
+                    throw new Jsonarch.ErrorJson({
+                        "$arch": "error",
+                        "message": "Unmatch return type",
+                        "refer": entry.template.refer,
+                        comppareTypeResult: comppareTypeResult,
+                        "type": {
+                            "template": type,
+                            "parameter": parameterType_2,
+                            "result": resultType_1,
                         },
                         parameter: parameter,
                     });
@@ -1480,7 +1522,7 @@ var Jsonarch;
                     if (undefined === result) {
                         throw Jsonarch.UnmatchParameterTypeDefineError(entry, parameter);
                     }
-                    return [2 /*return*/, result];
+                    return [2 /*return*/, Jsonarch.validateReturnType(entry, parameter, result)];
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, entry), { template: target }))];
