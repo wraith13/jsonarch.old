@@ -489,6 +489,7 @@ var Jsonarch;
     Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
     Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
     Jsonarch.isValueCasePattern = Jsonarch.isObject({ value: Jsonarch.isJsonable, });
+    Jsonarch.isListCasePattern = Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isJsonable), });
     Jsonarch.isTypeCasePattern = Jsonarch.isObject({ type: Jsonarch.isTypeData, });
     Jsonarch.isIfCasePattern = Jsonarch.isObject({ if: Jsonarch.isJsonable, });
     Jsonarch.applyDefault = function (defaults, parameter) {
@@ -561,6 +562,22 @@ var Jsonarch;
             return [2 /*return*/];
         });
     }); }); };
+    Jsonarch.evaluateListCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateListCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var entryParameter;
+        return __generator(this, function (_c) {
+            entryParameter = entry.parameter;
+            if (undefined !== entryParameter) {
+                return [2 /*return*/, entry.template.list.some(function (i) { return Jsonarch.jsonStringify(entryParameter) === Jsonarch.jsonStringify(i); })];
+            }
+            else {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+            return [2 /*return*/];
+        });
+    }); }); };
     Jsonarch.evaluateTypeCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateTypeCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
         var parameterType, comppareTypeResult;
         return __generator(this, function (_c) {
@@ -604,6 +621,7 @@ var Jsonarch;
     };
     var casePatternEvaluatorList = [
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isValueCasePattern, Jsonarch.evaluateValueCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isListCasePattern, Jsonarch.evaluateListCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isTypeCasePattern, Jsonarch.evaluateTypeCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isIfCasePattern, Jsonarch.evaluateIfCasePattern),
     ];

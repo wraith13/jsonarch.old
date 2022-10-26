@@ -40,7 +40,7 @@ export module Jsonarch
     export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
     export const isString = (value: unknown): value is string => "string" === typeof value;
-    export const isObject = <T extends { }>(isMember: { [key in keyof T]: IsType<T[key]> }): (value: unknown) => value is T =>
+    export const isObject = <T extends { }>(isMember: Required<{ [key in keyof T]: IsType<T[key]> }>): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
             "object" === typeof value &&
@@ -802,6 +802,10 @@ export module Jsonarch
     {
         value: Jsonable;
     }
+    export interface ListCasePattern extends JsonableObject
+    {
+        list: Jsonable[];
+    }
     export interface TypeCasePattern extends JsonableObject
     {
         type: Type;
@@ -811,9 +815,10 @@ export module Jsonarch
         if: Jsonable;
     }
     export const isValueCasePattern = isObject<ValueCasePattern>({ value: isJsonable, });
+    export const isListCasePattern = isObject<ListCasePattern>({ list: isArray(isJsonable), });
     export const isTypeCasePattern = isObject<TypeCasePattern>({ type: isTypeData, });
     export const isIfCasePattern = isObject<IfCasePattern>({ if: isJsonable, });
-    export type CasePattern = ValueCasePattern | TypeCasePattern | IfCasePattern;
+    export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern;
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
     {
         if (undefined === defaults)
@@ -895,6 +900,25 @@ export module Jsonarch
             }
         }
     );
+    export const evaluateListCasePattern = (entry: EvaluateEntry<ListCasePattern>): Promise<boolean> => profile
+    (
+        entry, "evaluateListCasePattern", async () =>
+        {
+            const entryParameter = entry.parameter;
+            if (undefined !== entryParameter)
+            {
+                return entry.template.list.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
+            }
+            else
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                });
+            }
+        }
+    );
     export const evaluateTypeCasePattern = (entry: EvaluateEntry<TypeCasePattern>): Promise<boolean> => profile
     (
         entry, "evaluateTypeCasePattern", async () =>
@@ -939,6 +963,7 @@ export module Jsonarch
     const casePatternEvaluatorList: ((entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>)[] =
     [
         evaluateIfMatchCasePattern(isValueCasePattern, evaluateValueCasePattern),
+        evaluateIfMatchCasePattern(isListCasePattern, evaluateListCasePattern),
         evaluateIfMatchCasePattern(isTypeCasePattern, evaluateTypeCasePattern),
         evaluateIfMatchCasePattern(isIfCasePattern, evaluateIfCasePattern),
     ];

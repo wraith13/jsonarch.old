@@ -28,7 +28,7 @@ export declare module Jsonarch {
     export const isBoolean: (value: unknown) => value is boolean;
     export const isNumber: (value: unknown) => value is number;
     export const isString: (value: unknown) => value is string;
-    export const isObject: <T extends {}>(isMember: { [key in keyof T]: IsType<T[key]>; }) => (value: unknown) => value is T;
+    export const isObject: <T extends {}>(isMember: Required<{ [key in keyof T]: IsType<T[key]>; }>) => (value: unknown) => value is T;
     export const isArray: <T>(isType: IsType<T>) => (value: unknown) => value is T[];
     export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>): IsType<[TypeA, TypeB]>;
     export function isTuple<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>): IsType<[TypeA, TypeB, TypeC]>;
@@ -409,6 +409,9 @@ export declare module Jsonarch {
     export interface ValueCasePattern extends JsonableObject {
         value: Jsonable;
     }
+    export interface ListCasePattern extends JsonableObject {
+        list: Jsonable[];
+    }
     export interface TypeCasePattern extends JsonableObject {
         type: Type;
     }
@@ -416,13 +419,15 @@ export declare module Jsonarch {
         if: Jsonable;
     }
     export const isValueCasePattern: (value: unknown) => value is ValueCasePattern;
+    export const isListCasePattern: (value: unknown) => value is ListCasePattern;
     export const isTypeCasePattern: (value: unknown) => value is TypeCasePattern;
     export const isIfCasePattern: (value: unknown) => value is IfCasePattern;
-    export type CasePattern = ValueCasePattern | TypeCasePattern | IfCasePattern;
+    export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;
+    export const evaluateListCasePattern: (entry: EvaluateEntry<ListCasePattern>) => Promise<boolean>;
     export const evaluateTypeCasePattern: (entry: EvaluateEntry<TypeCasePattern>) => Promise<boolean>;
     export const evaluateIfCasePattern: (entry: EvaluateEntry<IfCasePattern>) => Promise<boolean>;
     export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
