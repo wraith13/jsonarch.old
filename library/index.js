@@ -492,6 +492,10 @@ var Jsonarch;
     Jsonarch.isListCasePattern = Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isJsonable), });
     Jsonarch.isTypeCasePattern = Jsonarch.isObject({ type: Jsonarch.isTypeData, });
     Jsonarch.isIfCasePattern = Jsonarch.isObject({ if: Jsonarch.isJsonable, });
+    Jsonarch.isNotCasePattern = function (value) { return Jsonarch.isObject({ not: Jsonarch.isCasePattern, })(value); };
+    Jsonarch.isOrCasePattern = function (value) { return Jsonarch.isObject({ or: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
+    Jsonarch.isAndCasePattern = function (value) { return Jsonarch.isObject({ and: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
+    Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.applyDefault = function (defaults, parameter) {
         if (undefined === defaults) {
             return parameter;
@@ -614,6 +618,97 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateNotCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateNotCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: entry.template.not }))];
+                case 1:
+                    result = _c.sent();
+                    if ("boolean" !== typeof result) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch if result type",
+                            "if": entry.template.if,
+                            result: result,
+                        });
+                    }
+                    return [2 /*return*/, !result];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateOrCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateOrCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, template, result;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in entry.template.or)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    i = _c[_e];
+                    template = entry.template.or[i];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: template }))];
+                case 2:
+                    result = _f.sent();
+                    if ("boolean" !== typeof result) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch if result type",
+                            "if": entry.template.if,
+                            result: result,
+                        });
+                    }
+                    if (result) {
+                        return [2 /*return*/, true];
+                    }
+                    _f.label = 3;
+                case 3:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, false];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateAndCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateAndCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, template, result;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in entry.template.and)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    i = _c[_e];
+                    template = entry.template.and[i];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: template }))];
+                case 2:
+                    result = _f.sent();
+                    if ("boolean" !== typeof result) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch if result type",
+                            "if": entry.template.if,
+                            result: result,
+                        });
+                    }
+                    if (!result) {
+                        return [2 /*return*/, false];
+                    }
+                    _f.label = 3;
+                case 3:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, true];
+            }
+        });
+    }); }); };
     Jsonarch.evaluateIfMatchCasePattern = function (isMatch, evaluateTarget) {
         return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
             return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
@@ -624,6 +719,9 @@ var Jsonarch;
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isListCasePattern, Jsonarch.evaluateListCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isTypeCasePattern, Jsonarch.evaluateTypeCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isIfCasePattern, Jsonarch.evaluateIfCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isNotCasePattern, Jsonarch.evaluateNotCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isOrCasePattern, Jsonarch.evaluateOrCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isAndCasePattern, Jsonarch.evaluateAndCasePattern),
     ];
     Jsonarch.evaluateCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
         var _c, _d, _e, i, result;
