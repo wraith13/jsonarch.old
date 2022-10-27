@@ -992,8 +992,8 @@ export module Jsonarch
                 throw new ErrorJson
                 ({
                     "$arch": "error",
-                    "message": "Unmatch if result type",
-                    "if": entry.template.if,
+                    "message": "Unmatch not result type",
+                    "not": entry.template.if,
                     result,
                 });
             }
@@ -1013,8 +1013,8 @@ export module Jsonarch
                     throw new ErrorJson
                     ({
                         "$arch": "error",
-                        "message": "Unmatch if result type",
-                        "if": entry.template.if,
+                        "message": "Unmatch or result type",
+                        template,
                         result,
                     });
                 }
@@ -1039,8 +1039,8 @@ export module Jsonarch
                     throw new ErrorJson
                     ({
                         "$arch": "error",
-                        "message": "Unmatch if result type",
-                        "if": entry.template.if,
+                        "message": "Unmatch and result type",
+                        template,
                         result,
                     });
                 }

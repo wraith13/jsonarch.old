@@ -628,8 +628,8 @@ var Jsonarch;
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
-                            "message": "Unmatch if result type",
-                            "if": entry.template.if,
+                            "message": "Unmatch not result type",
+                            "not": entry.template.if,
                             result: result,
                         });
                     }
@@ -657,8 +657,8 @@ var Jsonarch;
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
-                            "message": "Unmatch if result type",
-                            "if": entry.template.if,
+                            "message": "Unmatch or result type",
+                            template: template,
                             result: result,
                         });
                     }
@@ -693,8 +693,8 @@ var Jsonarch;
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
-                            "message": "Unmatch if result type",
-                            "if": entry.template.if,
+                            "message": "Unmatch and result type",
+                            template: template,
                             result: result,
                         });
                     }
