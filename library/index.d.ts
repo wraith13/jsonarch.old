@@ -184,6 +184,7 @@ export declare module Jsonarch {
     interface EvaluateEntry<TemplateType> {
         context: Context;
         template: TemplateType;
+        scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
         setting: Setting;
@@ -403,7 +404,7 @@ export declare module Jsonarch {
     }
     export const isMatchData: (template: unknown) => template is Match;
     export interface Case extends JsonableObject {
-        case: CasePattern;
+        case?: CasePattern;
         return: Jsonable;
     }
     export interface ValueCasePattern extends JsonableObject {
@@ -436,6 +437,14 @@ export declare module Jsonarch {
     export const isAndCasePattern: (value: unknown) => value is AndCasePattern;
     export const isCasePattern: IsType<ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | NotCasePattern | OrCasePattern | AndCasePattern>;
     export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
+    export interface Loop extends AlphaJsonarch {
+        $arch: "loop";
+        loop: {
+            continue: AlphaJsonarch;
+            return: Jsonable;
+        };
+    }
+    export const isLoopData: (template: unknown) => template is Loop;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
@@ -449,6 +458,7 @@ export declare module Jsonarch {
     export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
     export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>;
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
+    export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;

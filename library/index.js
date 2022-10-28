@@ -496,6 +496,7 @@ var Jsonarch;
     Jsonarch.isOrCasePattern = function (value) { return Jsonarch.isObject({ or: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
     Jsonarch.isAndCasePattern = function (value) { return Jsonarch.isObject({ and: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
     Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
+    Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
     Jsonarch.applyDefault = function (defaults, parameter) {
         if (undefined === defaults) {
             return parameter;
@@ -755,28 +756,60 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, case_;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var _c, _d, _e, i, case_, _f;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     _c = [];
                     for (_d in entry.template)
                         _c.push(_d);
                     _e = 0;
-                    _f.label = 1;
+                    _g.label = 1;
                 case 1:
-                    if (!(_e < _c.length)) return [3 /*break*/, 5];
+                    if (!(_e < _c.length)) return [3 /*break*/, 6];
                     i = _c[_e];
                     case_ = entry.template[i];
+                    _f = undefined === case_.case;
+                    if (_f) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: case_.case }))];
                 case 2:
-                    if (!_f.sent()) return [3 /*break*/, 4];
+                    _f = (_g.sent());
+                    _g.label = 3;
+                case 3:
+                    if (!_f) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.return }))];
-                case 3: return [2 /*return*/, _f.sent()];
-                case 4:
+                case 4: return [2 /*return*/, _g.sent()];
+                case 5:
                     _e++;
                     return [3 /*break*/, 1];
-                case 5: return [2 /*return*/, undefined];
+                case 6: return [2 /*return*/, undefined];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateLoop = function (entry) { return Jsonarch.profile(entry, "evaluateLoop", function () { return __awaiter(_this, void 0, void 0, function () {
+        var result, index, scope, _c, _d, _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    result = [];
+                    index = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!true) return [3 /*break*/, 4];
+                    scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
+                    _c = true;
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop.continue, scope: scope }))];
+                case 2:
+                    if (_c !== (_f.sent())) {
+                        return [3 /*break*/, 4];
+                    }
+                    _e = (_d = result).push;
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop.return, scope: scope }))];
+                case 3:
+                    _e.apply(_d, [_f.sent()]);
+                    ++index;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, result];
             }
         });
     }); }); };
@@ -1606,6 +1639,7 @@ var Jsonarch;
             template: entry.cache.template,
             type: entry.cache.type,
             value: entry.cache.value,
+            scope: entry.scope,
             parameter: entry.parameter,
         }, entry.template.refer);
     };

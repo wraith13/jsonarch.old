@@ -334,6 +334,7 @@ export module Jsonarch
     {
         context: Context;
         template: TemplateType;
+        scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
         setting: Setting;
@@ -795,7 +796,7 @@ export module Jsonarch
     export const isMatchData = isJsonarch<Match>("match");
     export interface Case extends JsonableObject
     {
-        case: CasePattern;
+        case?: CasePattern;
         return: Jsonable;
     }
     export interface ValueCasePattern extends JsonableObject
@@ -844,6 +845,16 @@ export module Jsonarch
         isAndCasePattern
     );
     export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
+    export interface Loop extends AlphaJsonarch
+    {
+        $arch: "loop";
+        loop:
+        {
+            continue: AlphaJsonarch,
+            return: Jsonable,
+        };
+    }
+    export const isLoopData = isJsonarch<Loop>("loop");
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
     {
         if (undefined === defaults)
@@ -1092,12 +1103,31 @@ export module Jsonarch
             for(let i in entry.template)
             {
                 const case_ = entry.template[i];
-                if (await evaluateCasePattern({...entry, template: case_.case, }))
+                if (undefined === case_.case || await evaluateCasePattern({...entry, template: case_.case, }))
                 {
                     return await apply({...entry, template: case_.return, });
                 }
             }
             return undefined;
+        }
+    );
+    export const evaluateLoop = (entry: EvaluateEntry<Loop>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateLoop", async () =>
+        {
+            const result = [];
+            let index = 0;
+            while(true)
+            {
+                const scope = { ...entry.scope, $loop: { index, } };
+                if (true !== await apply({...entry, template: entry.template.loop.continue, scope, }))
+                {
+                    break;
+                }
+                result.push(await apply({...entry, template: entry.template.loop.return, scope, }));
+                ++index;
+            }
+            return result;
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
@@ -2190,6 +2220,7 @@ export module Jsonarch
                 template: entry.cache.template,
                 type: entry.cache.type,
                 value: entry.cache.value,
+                scope: entry.scope,
                 parameter: entry.parameter,
             },
             entry.template.refer
