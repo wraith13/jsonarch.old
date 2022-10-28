@@ -1,0 +1,124 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "template",
+    "default":
+    {
+        "parameter": { "length": 100 }
+    },
+    "return":
+    {
+        "$arch": "loop",
+        "loop":
+        {
+            "continue":
+            {
+                "$arch": "call",
+                "refer": [ "object", "equal" ],
+                "parameter":
+                [
+                    {
+                        "$arch": "call",
+                        "refer": [ "number", "compare" ],
+                        "parameter":
+                        [
+                            {
+                                "$arch": "value",
+                                "refer": [ "$loop", "index" ]
+                            },
+                            100
+                        ]
+                    },
+                    "<"
+                ]
+            },
+            "return":
+            {
+                "$arch": "match",
+                "parameter":
+                {
+                    "$arch": "call", "refer": [ "number", "sum" ],
+                    "parameter":
+                    [
+                        { "$arch": "value", "refer": [ "$loop", "index" ] },
+                        1
+                    ]
+                },
+                "cases":
+                [
+                    {
+                        "case":
+                        {
+                            "if":
+                            {
+                                "$arch": "call",
+                                "refer": [ "object", "equal" ],
+                                "parameter":
+                                [
+                                    {
+                                        "$arch": "call", "refer": [ "number", "remainder" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            15
+                                        ]
+                                    },
+                                    0
+                                ]
+                            }
+                        },
+                        "return": "FizzBuzz"
+                    },
+                    {
+                        "case":
+                        {
+                            "if":
+                            {
+                                "$arch": "call",
+                                "refer": [ "object", "equal" ],
+                                "parameter":
+                                [
+                                    {
+                                        "$arch": "call", "refer": [ "number", "remainder" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            3
+                                        ]
+                                    },
+                                    0
+                                ]
+                            }
+                        },
+                        "return": "Fizz"
+                    },
+                    {
+                        "case":
+                        {
+                            "if":
+                            {
+                                "$arch": "call",
+                                "refer": [ "object", "equal" ],
+                                "parameter":
+                                [
+                                    {
+                                        "$arch": "call", "refer": [ "number", "remainder" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            5
+                                        ]
+                                    },
+                                    0
+                                ]
+                            }
+                        },
+                        "return": "Fizz"
+                    },
+                    {
+                        "return": { "$arch": "value", "refer": [ "parameter" ] }
+                    }
+                ]
+            }
+        }
+    }
+}
