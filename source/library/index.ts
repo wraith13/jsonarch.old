@@ -37,6 +37,7 @@ export module Jsonarch
     export const isUndefinedOr = <T>(isType: IsType<T>) => isTypeOr(isUndefined, isType);
     export const isNullOr = <T>(isType: IsType<T>) => isTypeOr(isNull, isType);
     export const isUndefinedOrNullOr = <T>(isType: IsType<T>) => isTypeOr(isUndefined, isNull, isType);
+    export const isJustValue = <Type>(type: Type) => (value: unknown): value is Type => type === value;
     export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
     export const isString = (value: unknown): value is string => "string" === typeof value;
@@ -848,13 +849,22 @@ export module Jsonarch
     export interface Loop extends AlphaJsonarch
     {
         $arch: "loop";
-        loop:
-        {
-            continue: AlphaJsonarch,
-            return: Jsonable,
-        };
+        loop: AlphaJsonarch;
     }
     export const isLoopData = isJsonarch<Loop>("loop");
+    export interface LoopFalseResult extends JsonableObject
+    {
+        continue: false;
+    }
+    export interface LoopRegularResult extends JsonableObject
+    {
+        continue?: boolean;
+        return: Jsonable;
+    }
+    export type LoopResult = LoopFalseResult | LoopRegularResult;
+    export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
+    export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isTypeOr(isUndefined, isBoolean), return: isJsonable, });
+    export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
     export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
     {
         if (undefined === defaults)
@@ -1120,11 +1130,21 @@ export module Jsonarch
             while(true)
             {
                 const scope = { ...entry.scope, $loop: { index, } };
-                if (true !== await apply({...entry, template: entry.template.loop.continue, scope, }))
+                const current = await apply({...entry, template: entry.template.loop, scope, }) as LoopResult;
+                if ( ! isLoopResultData(current))
+                {
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "Unknown Lopp Result",
+                        "result": current,
+                    });
+                }
+                if (true !== (current.continue ?? true) || undefined === current.return)
                 {
                     break;
                 }
-                result.push(await apply({...entry, template: entry.template.loop.return, scope, }));
+                result.push(current.return);
                 ++index;
             }
             return result;

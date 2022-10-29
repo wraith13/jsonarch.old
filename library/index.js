@@ -117,6 +117,7 @@ var Jsonarch;
     Jsonarch.isUndefinedOr = function (isType) { return isTypeOr(Jsonarch.isUndefined, isType); };
     Jsonarch.isNullOr = function (isType) { return isTypeOr(Jsonarch.isNull, isType); };
     Jsonarch.isUndefinedOrNullOr = function (isType) { return isTypeOr(Jsonarch.isUndefined, Jsonarch.isNull, isType); };
+    Jsonarch.isJustValue = function (type) { return function (value) { return type === value; }; };
     Jsonarch.isBoolean = function (value) { return "boolean" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
@@ -497,6 +498,9 @@ var Jsonarch;
     Jsonarch.isAndCasePattern = function (value) { return Jsonarch.isObject({ and: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
     Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
+    Jsonarch.isLoopFalseResultData = Jsonarch.isObject({ continue: Jsonarch.isJustValue(false), });
+    Jsonarch.isLoopRegularResultData = Jsonarch.isObject({ continue: isTypeOr(Jsonarch.isUndefined, Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
+    Jsonarch.isLoopResultData = isTypeOr(Jsonarch.isLoopFalseResultData, Jsonarch.isLoopRegularResultData);
     Jsonarch.applyDefault = function (defaults, parameter) {
         if (undefined === defaults) {
             return parameter;
@@ -787,29 +791,34 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateLoop = function (entry) { return Jsonarch.profile(entry, "evaluateLoop", function () { return __awaiter(_this, void 0, void 0, function () {
-        var result, index, scope, _c, _d, _e;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var result, index, scope, current;
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     result = [];
                     index = 0;
-                    _f.label = 1;
+                    _d.label = 1;
                 case 1:
-                    if (!true) return [3 /*break*/, 4];
+                    if (!true) return [3 /*break*/, 3];
                     scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
-                    _c = true;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop.continue, scope: scope }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop, scope: scope }))];
                 case 2:
-                    if (_c !== (_f.sent())) {
-                        return [3 /*break*/, 4];
+                    current = _d.sent();
+                    if (!Jsonarch.isLoopResultData(current)) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unknown Lopp Result",
+                            "result": current,
+                        });
                     }
-                    _e = (_d = result).push;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop.return, scope: scope }))];
-                case 3:
-                    _e.apply(_d, [_f.sent()]);
+                    if (true !== ((_c = current.continue) !== null && _c !== void 0 ? _c : true) || undefined === current.return) {
+                        return [3 /*break*/, 3];
+                    }
+                    result.push(current.return);
                     ++index;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/, result];
+                case 3: return [2 /*return*/, result];
             }
         });
     }); }); };

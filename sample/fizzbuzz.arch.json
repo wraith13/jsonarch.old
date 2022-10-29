@@ -10,115 +10,133 @@
         "$arch": "loop",
         "loop":
         {
-            "continue":
+            "$arch": "match",
+            "parameter":
             {
-                "$arch": "call",
-                "refer": [ "object", "equal" ],
+                "$arch": "call", "refer": [ "number", "sum" ],
                 "parameter":
                 [
-                    {
-                        "$arch": "call",
-                        "refer": [ "number", "compare" ],
-                        "parameter":
-                        [
-                            {
-                                "$arch": "value",
-                                "refer": [ "$loop", "index" ]
-                            },
-                            100
-                        ]
-                    },
-                    "<"
+                    { "$arch": "value", "refer": [ "$loop", "index" ] },
+                    1
                 ]
             },
-            "return":
-            {
-                "$arch": "match",
-                "parameter":
+            "cases":
+            [
                 {
-                    "$arch": "call", "refer": [ "number", "sum" ],
-                    "parameter":
-                    [
-                        { "$arch": "value", "refer": [ "$loop", "index" ] },
-                        1
-                    ]
+                    "case":
+                    {
+                        "if":
+                        {
+                            "$arch": "call",
+                            "refer": [ "object", "equal" ],
+                            "parameter":
+                            [
+                                {
+                                    "$arch": "call",
+                                    "refer": [ "number", "compare" ],
+                                    "parameter":
+                                    [
+                                        100,
+                                        {
+                                            "$arch": "value",
+                                            "refer": [ "$loop", "index" ]
+                                        }
+                                    ]
+                                },
+                                "<"
+                            ]
+                        }
+                    },
+                    "return":
+                    {
+                        "continue": false
+                    }
                 },
-                "cases":
-                [
+                {
+                    "case":
                     {
-                        "case":
+                        "if":
                         {
-                            "if":
-                            {
-                                "$arch": "call",
-                                "refer": [ "object", "equal" ],
-                                "parameter":
-                                [
-                                    {
-                                        "$arch": "call", "refer": [ "number", "remainder" ],
-                                        "parameter":
-                                        [
-                                            { "$arch": "value", "refer": [ "parameter" ] },
-                                            15
-                                        ]
-                                    },
-                                    0
-                                ]
-                            }
-                        },
+                            "$arch": "call",
+                            "refer": [ "object", "equal" ],
+                            "parameter":
+                            [
+                                {
+                                    "$arch": "call", "refer": [ "number", "remainder" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        15
+                                    ]
+                                },
+                                0
+                            ]
+                        }
+                    },
+                    "return":
+                    {
                         "return": "FizzBuzz"
-                    },
+                    }
+                },
+                {
+                    "case":
                     {
-                        "case":
+                        "if":
                         {
-                            "if":
-                            {
-                                "$arch": "call",
-                                "refer": [ "object", "equal" ],
-                                "parameter":
-                                [
-                                    {
-                                        "$arch": "call", "refer": [ "number", "remainder" ],
-                                        "parameter":
-                                        [
-                                            { "$arch": "value", "refer": [ "parameter" ] },
-                                            3
-                                        ]
-                                    },
-                                    0
-                                ]
-                            }
-                        },
-                        "return": "Fizz"
+                            "$arch": "call",
+                            "refer": [ "object", "equal" ],
+                            "parameter":
+                            [
+                                {
+                                    "$arch": "call", "refer": [ "number", "remainder" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        3
+                                    ]
+                                },
+                                0
+                            ]
+                        }
                     },
+                    "return":
                     {
-                        "case":
-                        {
-                            "if":
-                            {
-                                "$arch": "call",
-                                "refer": [ "object", "equal" ],
-                                "parameter":
-                                [
-                                    {
-                                        "$arch": "call", "refer": [ "number", "remainder" ],
-                                        "parameter":
-                                        [
-                                            { "$arch": "value", "refer": [ "parameter" ] },
-                                            5
-                                        ]
-                                    },
-                                    0
-                                ]
-                            }
-                        },
                         "return": "Fizz"
+                    }
+                },
+                {
+                    "case":
+                    {
+                        "if":
+                        {
+                            "$arch": "call",
+                            "refer": [ "object", "equal" ],
+                            "parameter":
+                            [
+                                {
+                                    "$arch": "call", "refer": [ "number", "remainder" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        5
+                                    ]
+                                },
+                                0
+                            ]
+                        }
                     },
+                    "return":
+                    {
+                        "return": "Buzz"
+                    }
+                },
+                {
+                    "return":
                     {
                         "return": { "$arch": "value", "refer": [ "parameter" ] }
                     }
-                ]
-            }
+                }
+            ]
         }
     }
 }

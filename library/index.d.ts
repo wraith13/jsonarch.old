@@ -25,6 +25,7 @@ export declare module Jsonarch {
     export const isUndefinedOr: <T>(isType: IsType<T>) => IsType<T | undefined>;
     export const isNullOr: <T>(isType: IsType<T>) => IsType<T | null>;
     export const isUndefinedOrNullOr: <T>(isType: IsType<T>) => IsType<T | null | undefined>;
+    export const isJustValue: <Type_1>(type: Type_1) => (value: unknown) => value is Type_1;
     export const isBoolean: (value: unknown) => value is boolean;
     export const isNumber: (value: unknown) => value is number;
     export const isString: (value: unknown) => value is string;
@@ -439,12 +440,20 @@ export declare module Jsonarch {
     export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
     export interface Loop extends AlphaJsonarch {
         $arch: "loop";
-        loop: {
-            continue: AlphaJsonarch;
-            return: Jsonable;
-        };
+        loop: AlphaJsonarch;
     }
     export const isLoopData: (template: unknown) => template is Loop;
+    export interface LoopFalseResult extends JsonableObject {
+        continue: false;
+    }
+    export interface LoopRegularResult extends JsonableObject {
+        continue?: boolean;
+        return: Jsonable;
+    }
+    export type LoopResult = LoopFalseResult | LoopRegularResult;
+    export const isLoopFalseResultData: (value: unknown) => value is LoopFalseResult;
+    export const isLoopRegularResultData: (value: unknown) => value is LoopRegularResult;
+    export const isLoopResultData: IsType<LoopFalseResult | LoopRegularResult>;
     export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
