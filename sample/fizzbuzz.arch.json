@@ -13,12 +13,16 @@
             "$arch": "match",
             "parameter":
             {
-                "$arch": "call", "refer": [ "number", "sum" ],
-                "parameter":
-                [
-                    { "$arch": "value", "refer": [ "$loop", "index" ] },
-                    1
-                ]
+                "i":
+                {
+                    "$arch": "call", "refer": [ "number", "sum" ],
+                    "parameter":
+                    [
+                        { "$arch": "value", "refer": [ "$loop", "index" ] },
+                        1
+                    ]
+                },
+                "max": { "$arch": "value", "refer": [ "parameter" ] }
             },
             "cases":
             [
@@ -36,14 +40,11 @@
                                     "refer": [ "number", "compare" ],
                                     "parameter":
                                     [
-                                        100,
-                                        {
-                                            "$arch": "value",
-                                            "refer": [ "$loop", "index" ]
-                                        }
+                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                        { "$arch": "value", "refer": [ "parameter", "max" ] }
                                     ]
                                 },
-                                "<"
+                                ">"
                             ]
                         }
                     },
@@ -65,7 +66,7 @@
                                     "$arch": "call", "refer": [ "number", "remainder" ],
                                     "parameter":
                                     [
-                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
                                         15
                                     ]
                                 },
@@ -91,7 +92,7 @@
                                     "$arch": "call", "refer": [ "number", "remainder" ],
                                     "parameter":
                                     [
-                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
                                         3
                                     ]
                                 },
@@ -117,7 +118,7 @@
                                     "$arch": "call", "refer": [ "number", "remainder" ],
                                     "parameter":
                                     [
-                                        { "$arch": "value", "refer": [ "parameter" ] },
+                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
                                         5
                                     ]
                                 },
@@ -133,7 +134,7 @@
                 {
                     "return":
                     {
-                        "return": { "$arch": "value", "refer": [ "parameter" ] }
+                        "return": { "$arch": "value", "refer": [ "parameter", "i" ] }
                     }
                 }
             ]
