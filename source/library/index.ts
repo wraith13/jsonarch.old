@@ -2316,6 +2316,7 @@ export module Jsonarch
         evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
         evaluateIfMatch(isTemplateData, evaluateTemplate),
         evaluateIfMatch(isMatchData, evaluateMatch),
+        evaluateIfMatch(isLoopData, evaluateLoop),
         evaluateIfMatch(isCallData, evaluateCall),
         evaluateIfMatch(isValueData, evaluateValue),
     ];

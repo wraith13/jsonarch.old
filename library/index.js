@@ -1710,6 +1710,7 @@ var Jsonarch;
         Jsonarch.evaluateIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
         Jsonarch.evaluateIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplate),
         Jsonarch.evaluateIfMatch(Jsonarch.isMatchData, Jsonarch.evaluateMatch),
+        Jsonarch.evaluateIfMatch(Jsonarch.isLoopData, Jsonarch.evaluateLoop),
         Jsonarch.evaluateIfMatch(Jsonarch.isCallData, Jsonarch.evaluateCall),
         Jsonarch.evaluateIfMatch(Jsonarch.isValueData, Jsonarch.evaluateValue),
     ];
