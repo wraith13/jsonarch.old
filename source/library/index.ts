@@ -2228,6 +2228,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch refer path",
+                    refer,
                 });
             }
         }
@@ -2302,9 +2303,17 @@ export module Jsonarch
     (
         entry, "evaluateValue", async () =>
         {
-            //entry.template.refer;
-
-            return (entry.parameter as any).name;
+            const result = resolveRefer(entry);
+            if (undefined === result)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unknown refer value",
+                    "value": entry.template,
+                });
+            }
+            return result;
         }
     );
     export const evaluateIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>

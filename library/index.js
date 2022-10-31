@@ -1639,6 +1639,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unmatch refer path",
+                    refer: refer,
                 });
             }
         }
@@ -1695,9 +1696,17 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateValue = function (entry) { return Jsonarch.profile(entry, "evaluateValue", function () { return __awaiter(_this, void 0, void 0, function () {
+        var result;
         return __generator(this, function (_c) {
-            //entry.template.refer;
-            return [2 /*return*/, entry.parameter.name];
+            result = Jsonarch.resolveRefer(entry);
+            if (undefined === result) {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Unknown refer value",
+                    "value": entry.template,
+                });
+            }
+            return [2 /*return*/, result];
         });
     }); }); };
     Jsonarch.evaluateIfMatch = function (isMatch, evaluateTarget) {
