@@ -315,6 +315,15 @@ export module Jsonarch
     //     "$schema": settingSchema,
     //     "$arch": "setting"
     // };
+    export interface SourceMap extends JsonableObject
+    {
+        template: Refer;
+        parameter:
+        {
+            instance: Refer;
+            source: Refer;
+        }[];
+    }
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
@@ -322,6 +331,7 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
         file: ContextType;
+        sourceMap?: SourceMap;
     }
     export const isSystemFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<SystemFileContext> => isSystemFileContext(entry.file);
     export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
@@ -335,6 +345,7 @@ export module Jsonarch
     {
         context: Context;
         template: TemplateType;
+        sourceMap?: SourceMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
@@ -365,6 +376,7 @@ export module Jsonarch
     {
         $arch: "error";
         message: string;
+        sourceMap?: SourceMap;
     }
     export const isError = isJsonarch<JsonarchError>("error");
     export const getTicks = () => new Date().getTime();
@@ -942,6 +954,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    sourceMap: entry.sourceMap,
                 });
             }
         }
@@ -961,6 +974,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    sourceMap: entry.sourceMap,
                 });
             }
         }
@@ -981,6 +995,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    sourceMap: entry.sourceMap,
                 });
             }
         }
@@ -996,6 +1011,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch if result type",
+                    sourceMap: entry.sourceMap,
                     "if": entry.template.if,
                     result,
                 });
@@ -1014,6 +1030,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch not result type",
+                    sourceMap: entry.sourceMap,
                     "not": entry.template.if,
                     result,
                 });
@@ -1035,6 +1052,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch or result type",
+                        sourceMap: entry.sourceMap,
                         template,
                         result,
                     });
@@ -1061,6 +1079,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch and result type",
+                        sourceMap: entry.sourceMap,
                         template,
                         result,
                     });
@@ -1102,6 +1121,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Unknown Case Pattern",
+                sourceMap: entry.sourceMap,
                 "template": entry.template,
             });
         }
@@ -1137,6 +1157,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unknown Lopp Result",
+                        sourceMap: entry.sourceMap,
                         "result": current,
                     });
                 }
@@ -1179,6 +1200,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
+                        sourceMap: entry.sourceMap,
                         "refer": entry.template.refer,
                         comppareTypeResult,
                         "type":
@@ -1196,6 +1218,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Not found type define",
+                    sourceMap: entry.sourceMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -1206,6 +1229,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Not found template",
+                sourceMap: entry.sourceMap,
                 "refer": entry.template.refer,
             });
         }
@@ -1236,6 +1260,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch return type",
+                        sourceMap: entry.sourceMap,
                         "refer": entry.template.refer,
                         comppareTypeResult,
                         "type":
@@ -1254,6 +1279,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Not found type define",
+                    sourceMap: entry.sourceMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -1264,15 +1290,17 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Not found template",
+                sourceMap: entry.sourceMap,
                 "refer": entry.template.refer,
             });
         }
     };
-    export const UnmatchParameterTypeDefineError = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
+    export const UnmatchParameterTypeDefineError = (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
         new ErrorJson
         ({
             "$arch": "error",
             "message": "Internal Error ( Unmatch parameter type define )",
+            sourceMap: entry.sourceMap,
             "refer": [ "string", "join" ],
             "parameter": parameter,
         });
@@ -2228,6 +2256,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch refer path",
+                    // sourceMap: entry.sourceMap,
                     refer,
                 });
             }
@@ -2294,6 +2323,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown refer call",
+                    sourceMap: entry.sourceMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -2310,6 +2340,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown refer value",
+                    sourceMap: entry.sourceMap,
                     "value": entry.template,
                 });
             }
@@ -2345,6 +2376,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Unknown Jsonarch Type",
+                sourceMap: entry.sourceMap,
                 "template": entry.template,
             });
             // return entry.template;

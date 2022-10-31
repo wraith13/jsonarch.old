@@ -168,12 +168,20 @@ export declare module Jsonarch {
         callGraph?: boolean;
     }
     export const isSetting: (template: unknown) => template is Setting;
+    export interface SourceMap extends JsonableObject {
+        template: Refer;
+        parameter: {
+            instance: Refer;
+            source: Refer;
+        }[];
+    }
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
         cache: Cache;
         setting: Setting;
         handler: Handler;
         file: ContextType;
+        sourceMap?: SourceMap;
     }
     export const isSystemFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<SystemFileContext>;
     export const isNoneFileLoadEntry: <DataType extends Jsonable = Jsonable>(entry: LoadEntry) => entry is LoadEntry<NoneFileContext<DataType>>;
@@ -185,6 +193,7 @@ export declare module Jsonarch {
     interface EvaluateEntry<TemplateType> {
         context: Context;
         template: TemplateType;
+        sourceMap?: SourceMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
@@ -209,6 +218,7 @@ export declare module Jsonarch {
     export interface JsonarchError extends AlphaJsonarch {
         $arch: "error";
         message: string;
+        sourceMap?: SourceMap;
     }
     export const isError: (template: unknown) => template is JsonarchError;
     export const getTicks: () => number;
@@ -471,7 +481,7 @@ export declare module Jsonarch {
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
-    export const UnmatchParameterTypeDefineError: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
+    export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export module Library {
         module Boolean {
             const not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
