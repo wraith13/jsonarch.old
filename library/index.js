@@ -848,7 +848,7 @@ var Jsonarch;
         });
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.sourceMap);
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -892,7 +892,7 @@ var Jsonarch;
         }
     };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.sourceMap);
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -1634,7 +1634,7 @@ var Jsonarch;
             return compositeType;
         }
     };
-    Jsonarch.turnRefer = function (root, refer) {
+    Jsonarch.turnRefer = function (root, refer, sourceMap) {
         var rest = refer.map(function (i) { return i; });
         var current = root;
         while (true) {
@@ -1655,7 +1655,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unmatch refer path",
-                    // sourceMap: entry.sourceMap,
+                    sourceMap: sourceMap,
                     refer: refer,
                 });
             }
@@ -1668,7 +1668,7 @@ var Jsonarch;
             value: entry.cache.value,
             scope: entry.scope,
             parameter: entry.parameter,
-        }, entry.template.refer);
+        }, entry.template.refer, entry.sourceMap);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
         var target, parameter, _c, _d, result;
@@ -1686,7 +1686,7 @@ var Jsonarch;
                             join: Library.String.json,
                         },
                         template: entry.cache.template,
-                    }, entry.template.refer);
+                    }, entry.template.refer, entry.sourceMap);
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     _c = Jsonarch.validateParameterType;
                     _d = [entry];

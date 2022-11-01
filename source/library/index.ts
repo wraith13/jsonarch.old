@@ -1180,7 +1180,8 @@ export module Jsonarch
         const functionTemplate = turnRefer<JsonableValue | Function>
         (
             librarygJson,
-            entry.template.refer
+            entry.template.refer,
+            entry.sourceMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -1239,7 +1240,8 @@ export module Jsonarch
         const functionTemplate = turnRefer<JsonableValue | Function>
         (
             librarygJson,
-            entry.template.refer
+            entry.template.refer,
+            entry.sourceMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -2226,7 +2228,7 @@ export module Jsonarch
             return compositeType;
         }
     };
-    export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer): Structure<Element> | undefined =>
+    export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer, sourceMap?: SourceMap): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);
         let current: Structure<Element> | undefined = root;
@@ -2256,7 +2258,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch refer path",
-                    // sourceMap: entry.sourceMap,
+                    sourceMap,
                     refer,
                 });
             }
@@ -2273,7 +2275,8 @@ export module Jsonarch
                 scope: entry.scope,
                 parameter: entry.parameter,
             },
-            entry.template.refer
+            entry.template.refer,
+            entry.sourceMap
         );
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
@@ -2296,7 +2299,8 @@ export module Jsonarch
                     },
                     template: entry.cache.template,
                 },
-                entry.template.refer
+                entry.template.refer,
+                entry.sourceMap
             );
             if ("function" === typeof target)
             {

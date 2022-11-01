@@ -553,7 +553,7 @@ export declare module Jsonarch {
     export const andIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, mergeTarget: (a: TargetType, b: TargetType) => NeverType | TargetType) => (a: Type, b: Type) => NeverType | TargetType | undefined;
     export const andType: (list: Type[]) => Type;
     export const regulateType: (compositeType: Type) => Type;
-    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer) => Structure<Element_1> | undefined;
+    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer, sourceMap?: SourceMap) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
     }>) => Jsonable | undefined;
