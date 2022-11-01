@@ -96,22 +96,22 @@ export declare module Jsonarch {
     }
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export type HashType = string;
-    export interface SystemFileContext {
+    export interface SystemFileContext extends JsonableObject {
         category: "system";
         id: SystemFileType;
         hash?: HashType;
     }
-    export interface NoneFileContext<DataType extends Jsonable = Jsonable> {
+    export interface NoneFileContext<DataType extends Jsonable = Jsonable> extends JsonableObject {
         category: "none";
         data: DataType;
         hash?: HashType;
     }
-    export interface NetFileContext {
+    export interface NetFileContext extends JsonableObject {
         category: "net";
         path: string;
         hash?: HashType;
     }
-    export interface LocalFileContext {
+    export interface LocalFileContext extends JsonableObject {
         category: "local";
         path: string;
         hash?: HashType;
@@ -172,7 +172,10 @@ export declare module Jsonarch {
         template: Refer;
         parameter: {
             instance: Refer;
-            source: Refer;
+            source: {
+                file: FileContext;
+                path: Refer;
+            };
         }[];
     }
     interface LoadEntry<ContextType extends FileContext = FileContext> {
