@@ -168,12 +168,18 @@ export declare module Jsonarch {
         callGraph?: boolean;
     }
     export const isSetting: (template: unknown) => template is Setting;
-    export interface Source extends JsonableObject {
-        file: FileContext;
+    export interface Origin extends JsonableObject {
+        root: OriginRoot;
         path: Refer;
     }
-    export type SourceMap = {
-        [key: string]: Source | SourceMap;
+    export interface ReturnOrigin extends JsonableObject {
+        root: OriginRoot;
+        template: Refer;
+        parameter: Origin | OriginRoot | OriginMap;
+    }
+    export type OriginRoot = FileContext | ReturnOrigin;
+    export type OriginMap = {
+        [key: string]: Origin | OriginRoot | OriginMap;
     };
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
@@ -181,7 +187,7 @@ export declare module Jsonarch {
         setting: Setting;
         handler: Handler;
         file: ContextType;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
     }
     export const isSystemFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<SystemFileContext>;
     export const isNoneFileLoadEntry: <DataType extends Jsonable = Jsonable>(entry: LoadEntry) => entry is LoadEntry<NoneFileContext<DataType>>;
@@ -193,7 +199,7 @@ export declare module Jsonarch {
     interface EvaluateEntry<TemplateType> {
         context: Context;
         template: TemplateType;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
@@ -218,7 +224,7 @@ export declare module Jsonarch {
     export interface JsonarchError extends AlphaJsonarch {
         $arch: "error";
         message: string;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
     }
     export const isError: (template: unknown) => template is JsonarchError;
     export const getTicks: () => number;
@@ -553,7 +559,7 @@ export declare module Jsonarch {
     export const andIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, mergeTarget: (a: TargetType, b: TargetType) => NeverType | TargetType) => (a: Type, b: Type) => NeverType | TargetType | undefined;
     export const andType: (list: Type[]) => Type;
     export const regulateType: (compositeType: Type) => Type;
-    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer, sourceMap?: SourceMap) => Structure<Element_1> | undefined;
+    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
     }>) => Jsonable | undefined;

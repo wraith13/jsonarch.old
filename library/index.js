@@ -566,7 +566,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
             return [2 /*return*/];
@@ -583,7 +583,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
             return [2 /*return*/];
@@ -601,7 +601,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
             return [2 /*return*/];
@@ -618,7 +618,7 @@ var Jsonarch;
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
                             "message": "Unmatch if result type",
-                            sourceMap: entry.sourceMap,
+                            originMap: entry.originMap,
                             "if": entry.template.if,
                             result: result,
                         });
@@ -638,7 +638,7 @@ var Jsonarch;
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
                             "message": "Unmatch not result type",
-                            sourceMap: entry.sourceMap,
+                            originMap: entry.originMap,
                             "not": entry.template.if,
                             result: result,
                         });
@@ -668,7 +668,7 @@ var Jsonarch;
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
                             "message": "Unmatch or result type",
-                            sourceMap: entry.sourceMap,
+                            originMap: entry.originMap,
                             template: template,
                             result: result,
                         });
@@ -705,7 +705,7 @@ var Jsonarch;
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
                             "message": "Unmatch and result type",
-                            sourceMap: entry.sourceMap,
+                            originMap: entry.originMap,
                             template: template,
                             result: result,
                         });
@@ -761,7 +761,7 @@ var Jsonarch;
                 case 4: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown Case Pattern",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "template": entry.template,
                 });
             }
@@ -817,7 +817,7 @@ var Jsonarch;
                         throw new Jsonarch.ErrorJson({
                             "$arch": "error",
                             "message": "Unknown Lopp Result",
-                            sourceMap: entry.sourceMap,
+                            originMap: entry.originMap,
                             "result": current,
                         });
                     }
@@ -848,7 +848,7 @@ var Jsonarch;
         });
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.sourceMap);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.originMap);
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -862,7 +862,7 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
                         "type": {
@@ -877,7 +877,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Not found type define",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -886,13 +886,13 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 "$arch": "error",
                 "message": "Not found template",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "refer": entry.template.refer,
             });
         }
     };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.sourceMap);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.originMap);
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -907,7 +907,7 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         "$arch": "error",
                         "message": "Unmatch return type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
                         "type": {
@@ -923,7 +923,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Not found type define",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -932,7 +932,7 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 "$arch": "error",
                 "message": "Not found template",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "refer": entry.template.refer,
             });
         }
@@ -941,7 +941,7 @@ var Jsonarch;
         return new Jsonarch.ErrorJson({
             "$arch": "error",
             "message": "Internal Error ( Unmatch parameter type define )",
-            sourceMap: entry.sourceMap,
+            originMap: entry.originMap,
             "refer": ["string", "join"],
             "parameter": parameter,
         });
@@ -1668,7 +1668,7 @@ var Jsonarch;
             value: entry.cache.value,
             scope: entry.scope,
             parameter: entry.parameter,
-        }, entry.template.refer, entry.sourceMap);
+        }, entry.template.refer, entry.originMap);
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
         var target, parameter, _c, _d, result;
@@ -1686,7 +1686,7 @@ var Jsonarch;
                             join: Library.String.json,
                         },
                         template: entry.cache.template,
-                    }, entry.template.refer, entry.sourceMap);
+                    }, entry.template.refer, entry.originMap);
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     _c = Jsonarch.validateParameterType;
                     _d = [entry];
@@ -1707,7 +1707,7 @@ var Jsonarch;
                 case 5: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown refer call",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -1721,7 +1721,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown refer value",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "value": entry.template,
                 });
             }
@@ -1768,7 +1768,7 @@ var Jsonarch;
                 case 4: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unknown Jsonarch Type",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "template": entry.template,
                 });
             }

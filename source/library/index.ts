@@ -315,12 +315,19 @@ export module Jsonarch
     //     "$schema": settingSchema,
     //     "$arch": "setting"
     // };
-    export interface Source extends JsonableObject
+    export interface Origin extends JsonableObject
     {
-        file: FileContext;
+        root: OriginRoot;
         path: Refer;
     }
-    export type SourceMap = { [key: string]: Source | SourceMap };
+    export interface ReturnOrigin extends JsonableObject
+    {
+        root: OriginRoot;
+        template: Refer;
+        parameter: Origin | OriginRoot | OriginMap;
+    }
+    export type OriginRoot = FileContext | ReturnOrigin;
+    export type OriginMap = { [key: string]: Origin | OriginRoot | OriginMap };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
@@ -328,7 +335,7 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
         file: ContextType;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
     }
     export const isSystemFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<SystemFileContext> => isSystemFileContext(entry.file);
     export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
@@ -342,7 +349,7 @@ export module Jsonarch
     {
         context: Context;
         template: TemplateType;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
         cache: Cache;
@@ -373,7 +380,7 @@ export module Jsonarch
     {
         $arch: "error";
         message: string;
-        sourceMap?: SourceMap;
+        originMap?: OriginMap;
     }
     export const isError = isJsonarch<JsonarchError>("error");
     export const getTicks = () => new Date().getTime();
@@ -951,7 +958,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
         }
@@ -971,7 +978,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
         }
@@ -992,7 +999,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown Jsonarch TypeUnspecified Parameter",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                 });
             }
         }
@@ -1008,7 +1015,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch if result type",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "if": entry.template.if,
                     result,
                 });
@@ -1027,7 +1034,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch not result type",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "not": entry.template.if,
                     result,
                 });
@@ -1049,7 +1056,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch or result type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         template,
                         result,
                     });
@@ -1076,7 +1083,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch and result type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         template,
                         result,
                     });
@@ -1118,7 +1125,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Unknown Case Pattern",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "template": entry.template,
             });
         }
@@ -1154,7 +1161,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unknown Lopp Result",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         "result": current,
                     });
                 }
@@ -1178,7 +1185,7 @@ export module Jsonarch
         (
             librarygJson,
             entry.template.refer,
-            entry.sourceMap
+            entry.originMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -1198,7 +1205,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult,
                         "type":
@@ -1216,7 +1223,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Not found type define",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -1227,7 +1234,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Not found template",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "refer": entry.template.refer,
             });
         }
@@ -1238,7 +1245,7 @@ export module Jsonarch
         (
             librarygJson,
             entry.template.refer,
-            entry.sourceMap
+            entry.originMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -1259,7 +1266,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch return type",
-                        sourceMap: entry.sourceMap,
+                        originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult,
                         "type":
@@ -1278,7 +1285,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Not found type define",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -1289,7 +1296,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Not found template",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "refer": entry.template.refer,
             });
         }
@@ -1299,7 +1306,7 @@ export module Jsonarch
         ({
             "$arch": "error",
             "message": "Internal Error ( Unmatch parameter type define )",
-            sourceMap: entry.sourceMap,
+            originMap: entry.originMap,
             "refer": [ "string", "join" ],
             "parameter": parameter,
         });
@@ -2225,7 +2232,7 @@ export module Jsonarch
             return compositeType;
         }
     };
-    export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer, sourceMap?: SourceMap): Structure<Element> | undefined =>
+    export const turnRefer = <Element extends JsonableValue | Function>(root: Structure<Element>, refer: Refer, sourceMap?: OriginMap): Structure<Element> | undefined =>
     {
         let rest = refer.map(i => i);
         let current: Structure<Element> | undefined = root;
@@ -2273,7 +2280,7 @@ export module Jsonarch
                 parameter: entry.parameter,
             },
             entry.template.refer,
-            entry.sourceMap
+            entry.originMap
         );
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
@@ -2297,7 +2304,7 @@ export module Jsonarch
                     template: entry.cache.template,
                 },
                 entry.template.refer,
-                entry.sourceMap
+                entry.originMap
             );
             if ("function" === typeof target)
             {
@@ -2324,7 +2331,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown refer call",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
             }
@@ -2341,7 +2348,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unknown refer value",
-                    sourceMap: entry.sourceMap,
+                    originMap: entry.originMap,
                     "value": entry.template,
                 });
             }
@@ -2377,7 +2384,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Unknown Jsonarch Type",
-                sourceMap: entry.sourceMap,
+                originMap: entry.originMap,
                 "template": entry.template,
             });
             // return entry.template;
