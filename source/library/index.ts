@@ -315,19 +315,12 @@ export module Jsonarch
     //     "$schema": settingSchema,
     //     "$arch": "setting"
     // };
-    export interface SourceMap extends JsonableObject
+    export interface Source extends JsonableObject
     {
-        template: Refer;
-        parameter:
-        {
-            instance: Refer;
-            source:
-            {
-                file: FileContext;
-                path: Refer;
-            };
-        }[];
+        file: FileContext;
+        path: Refer;
     }
+    export type SourceMap = { [key: string]: Source | SourceMap };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;

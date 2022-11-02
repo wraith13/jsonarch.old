@@ -168,16 +168,13 @@ export declare module Jsonarch {
         callGraph?: boolean;
     }
     export const isSetting: (template: unknown) => template is Setting;
-    export interface SourceMap extends JsonableObject {
-        template: Refer;
-        parameter: {
-            instance: Refer;
-            source: {
-                file: FileContext;
-                path: Refer;
-            };
-        }[];
+    export interface Source extends JsonableObject {
+        file: FileContext;
+        path: Refer;
     }
+    export type SourceMap = {
+        [key: string]: Source | SourceMap;
+    };
     interface LoadEntry<ContextType extends FileContext = FileContext> {
         context: Context;
         cache: Cache;
