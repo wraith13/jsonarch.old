@@ -315,19 +315,20 @@ export module Jsonarch
     //     "$schema": settingSchema,
     //     "$arch": "setting"
     // };
-    export interface Origin extends JsonableObject
-    {
-        root: OriginRoot;
-        path: Refer;
-    }
     export interface ReturnOrigin extends JsonableObject
     {
         root: OriginRoot;
         template: Refer;
-        parameter: Origin | OriginRoot | OriginMap;
+        parameter: Origin;
+    }
+    export interface ValueOrigin extends JsonableObject
+    {
+        root: OriginRoot;
+        path: Refer;
     }
     export type OriginRoot = FileContext | ReturnOrigin;
-    export type OriginMap = { [key: string]: Origin | OriginRoot | OriginMap };
+    export type Origin = OriginRoot | ValueOrigin | OriginMap;
+    export type OriginMap = { [key: string]: Origin };
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
