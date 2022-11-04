@@ -322,13 +322,25 @@ export module Jsonarch
         parameter: Origin;
         external?: OriginMap;
     }
+    export const isReturnOrigin = (value: unknown): value is ReturnOrigin =>
+        isObject<ReturnOrigin>({ root: isOriginRoot, template: isRefer, parameter: isOriginRoot, external: isUndefinedOr(isOriginMap), })(value);
     export interface ValueOrigin extends JsonableObject
     {
         root: OriginRoot;
         path: Refer;
     }
     export type OriginRoot = FileContext | ReturnOrigin;
+    export const isOriginRoot = (value: unknown): value is OriginRoot =>
+        isTypeOr<FileContext, ReturnOrigin>(isFileContext, isReturnOrigin)(value);
     export type Origin = OriginRoot | ValueOrigin | OriginMap;
+    export const getRootOrigin = (origin: Origin) =>
+    {
+
+    };
+    export const makeOrigin = (parent: Origin, refer: ReferElement) =>
+    {
+
+    };
     export type OriginMap = { [key: string | number]: Origin };
     export interface ValueEntry<ValueType extends Jsonable> extends JsonableObject
     {
@@ -361,6 +373,7 @@ export module Jsonarch
     {
         context: Context;
         template: TemplateType;
+        origin: Origin;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
@@ -2467,10 +2480,12 @@ export module Jsonarch
                 cache: entry.cache,
                 setting: entry.setting,
             };
+            const origin = entry.template;
             const rootEvaluateEntry: EvaluateEntry<Jsonable> =
             {
                 context,
                 template,
+                origin,
                 parameter,
                 cache,
                 setting,
