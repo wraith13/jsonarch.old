@@ -320,6 +320,7 @@ export module Jsonarch
         root: OriginRoot;
         template: Refer;
         parameter: Origin;
+        external?: OriginMap;
     }
     export interface ValueOrigin extends JsonableObject
     {
@@ -328,7 +329,17 @@ export module Jsonarch
     }
     export type OriginRoot = FileContext | ReturnOrigin;
     export type Origin = OriginRoot | ValueOrigin | OriginMap;
-    export type OriginMap = { [key: string]: Origin };
+    export type OriginMap = { [key: string | number]: Origin };
+    export interface ValueEntry<ValueType extends Jsonable> extends JsonableObject
+    {
+        origin: Origin;
+        value:
+            // ValueType extends (infer ElementType extends Jsonable)[] ?
+            //     ValueEntry<ElementType>[]: // does not work for Tuple
+            ValueType extends { [key in keyof ValueType]: Jsonable } ? { [key in keyof ValueType]:
+                ValueEntry<ValueType[key]> }:
+                ValueType;
+    }
     interface LoadEntry<ContextType extends FileContext = FileContext>
     {
         context: Context;
