@@ -47,6 +47,12 @@ export module Jsonarch
             "object" === typeof value &&
             ! Array.isArray(value) &&
             ! objectKeys(isMember).some(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true));
+    export const isMapObject = <T extends { [key: string | number]: U}, U>(isType: IsType<U>): (value: unknown) => value is T =>
+        (value: unknown): value is T =>
+            null !== value &&
+            "object" === typeof value &&
+            ! Array.isArray(value) &&
+            0 === objectValues(value).filter(i => ! isType(i)).length;
     export const isArray = <T>(isType: IsType<T>): (value: unknown) => value is T[] =>
         (value: unknown): value is T[] => Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
     export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
@@ -329,10 +335,16 @@ export module Jsonarch
         root: OriginRoot;
         path: Refer;
     }
+    export const isValueOrigin = (value: unknown): value is ValueOrigin =>
+        isObject<ValueOrigin>({ root: isOriginMap, path: isRefer, })(value);
     export type OriginRoot = FileContext | ReturnOrigin;
     export const isOriginRoot = (value: unknown): value is OriginRoot =>
         isTypeOr<FileContext, ReturnOrigin>(isFileContext, isReturnOrigin)(value);
     export type Origin = OriginRoot | ValueOrigin | OriginMap;
+    export const isOrigin = (value: unknown): value is Origin =>
+        isTypeOr<OriginRoot, ValueOrigin, OriginMap>(isOriginRoot, isValueOrigin, isOriginMap)(value);
+    export type OriginMap = { [key: string | number]: Origin };
+    export const isOriginMap = isMapObject<OriginMap, Origin>(isOrigin);
     export const getRootOrigin = (origin: Origin) =>
     {
 
@@ -341,7 +353,6 @@ export module Jsonarch
     {
 
     };
-    export type OriginMap = { [key: string | number]: Origin };
     export interface ValueEntry<ValueType extends Jsonable> extends JsonableObject
     {
         origin: Origin;
@@ -583,6 +594,7 @@ export module Jsonarch
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
+    export const isRefer = isArray(isTypeOr<string, number>(isString, isNumber));
     export interface AlphaType extends AlphaJsonarch
     {
         $arch: "type";
