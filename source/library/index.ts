@@ -173,6 +173,7 @@ export module Jsonarch
         childrenTicks: number;
     }
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject
     {
@@ -200,10 +201,13 @@ export module Jsonarch
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
     export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
-    export const isSystemFileContext = (file: FileContext): file is SystemFileContext => "system" === file.category;
-    export const isNoneFileContext = <DataType extends Jsonable = Jsonable>(file: FileContext): file is NoneFileContext<DataType> => "none" === file.category;
-    export const isNetFileContext = (file: FileContext): file is NetFileContext => "net" === file.category;
-    export const isLocalFileContext = (file: FileContext): file is LocalFileContext => "local" === file.category;
+    export const isSystemFileContext = isObject<SystemFileContext>({ category: isJust("system"), id: isSystemFileType, hash: isUndefinedOr(isString), });
+    export const isNoneFileContext = isObject<NoneFileContext<Jsonable>>({ category: isJust("none"), data: isJsonable, hash: isUndefinedOr(isString), });
+    export const isNoneFileContextStrict = <DataType extends Jsonable>(isType: IsType<DataType>) =>
+        isObject<NoneFileContext<DataType>>({ category: isJust("none"), data: isType, hash: isUndefinedOr(isString), });
+    export const isNetFileContext = isObject<NetFileContext>({ category: isJust("net"), path: isString, hash: isUndefinedOr(isString), });
+    export const isLocalFileContext = isObject<LocalFileContext>({ category: isJust("local"), path: isString, hash: isUndefinedOr(isString), });
+    export const isFileContext = isTypeOr<SystemFileContext, NoneFileContext<Jsonable>, NetFileContext, LocalFileContext>(isSystemFileContext, isNoneFileContextStrict(isJsonable), isNetFileContext, isLocalFileContext);
     export const makeFullPath = (contextOrEntry: ContextOrEntry, path: string): string =>
     {
         const context = getContext(contextOrEntry);
@@ -336,23 +340,23 @@ export module Jsonarch
         path: Refer;
     }
     export const isValueOrigin = (value: unknown): value is ValueOrigin =>
-        isObject<ValueOrigin>({ root: isOriginMap, path: isRefer, })(value);
+        isObject<ValueOrigin>({ root: isOriginRoot, path: isRefer, })(value);
     export type OriginRoot = FileContext | ReturnOrigin;
     export const isOriginRoot = (value: unknown): value is OriginRoot =>
         isTypeOr<FileContext, ReturnOrigin>(isFileContext, isReturnOrigin)(value);
-    export type Origin = OriginRoot | ValueOrigin | OriginMap;
+    export type Origin = OriginRoot | ValueOrigin;
     export const isOrigin = (value: unknown): value is Origin =>
-        isTypeOr<OriginRoot, ValueOrigin, OriginMap>(isOriginRoot, isValueOrigin, isOriginMap)(value);
-    export type OriginMap = { [key: string | number]: Origin };
-    export const isOriginMap = isMapObject<OriginMap, Origin>(isOrigin);
-    export const getRootOrigin = (origin: Origin) =>
-    {
-
-    };
-    export const makeOrigin = (parent: Origin, refer: ReferElement) =>
-    {
-
-    };
+        isTypeOr<OriginRoot, ValueOrigin>(isOriginRoot, isValueOrigin)(value);
+    export type OriginMap = { [key: string | number]: Origin | OriginMap };
+    export const isOriginMap = (value: unknown): value is OriginMap =>
+        isMapObject<OriginMap, Origin | OriginMap>(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
+    export const getRootOrigin = (origin: Origin): OriginRoot => isOriginRoot(origin) ? origin: origin.root;
+    export const getOriginPath = (origin: Origin): Refer => isOriginRoot(origin) ? []: origin.path;
+    export const makeOrigin = (parent: Origin, refer: ReferElement): ValueOrigin =>
+    ({
+        root: getRootOrigin(parent),
+        path: getOriginPath(parent).concat([refer]),
+    });
     export interface ValueEntry<ValueType extends Jsonable> extends JsonableObject
     {
         origin: Origin;
@@ -373,7 +377,8 @@ export module Jsonarch
         originMap?: OriginMap;
     }
     export const isSystemFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<SystemFileContext> => isSystemFileContext(entry.file);
-    export const isNoneFileLoadEntry = <DataType extends Jsonable = Jsonable>(entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContext<DataType>(entry.file);
+    export const isNoneFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NoneFileContext<Jsonable>> => isNoneFileContextStrict(isJsonable)(entry.file);
+    export const isNoneFileLoadEntryStrict = <DataType extends Jsonable>(isType: IsType<DataType>) => (entry: LoadEntry): entry is LoadEntry<NoneFileContext<DataType>> => isNoneFileContextStrict(isType)(entry.file);
     export const isNetFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<NetFileContext> => isNetFileContext(entry.file);
     export const isLocalFileLoadEntry = (entry: LoadEntry): entry is LoadEntry<LocalFileContext> => isLocalFileContext(entry.file);
     export interface Handler
