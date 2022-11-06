@@ -31,7 +31,7 @@ export module Jsonarch
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
     export type IsType<Type> = (value: unknown) => value is Type;
-    export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === typeof value;
+    export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === value;
     export const isUndefined = isJust(undefined);
     export const isNull = isJust(null);
     export const isUndefinedOr = <T>(isType: IsType<T>) => isTypeOr(isUndefined, isType);
@@ -46,7 +46,7 @@ export module Jsonarch
             null !== value &&
             "object" === typeof value &&
             ! Array.isArray(value) &&
-            ! objectKeys(isMember).some(key => ! (isMember[key]?.((<{ [key:string]: unknown }>value)[key]) || true));
+            ! objectKeys(isMember).some(key => ! isMember[key]((<{ [key:string]: unknown }>value)[key]));
     export const isMapObject = <T extends { [key: string | number]: U}, U>(isType: IsType<U>): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
@@ -160,18 +160,20 @@ export module Jsonarch
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
-    export interface Profile
+    export interface Profile extends JsonableObject
     {
         isProfiling: boolean;
         score: { [scope: string]: number };
         stack: ProfileEntry[];
     }
-    export interface ProfileEntry
+    export interface ProfileEntry extends JsonableObject
     {
         name: string;
         startTicks: number;
         childrenTicks: number;
     }
+    export const isProfileEntry = isObject<ProfileEntry>({ name: isString, startTicks: isNumber, childrenTicks: isNumber, });
+    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isNumber), stack: isArray(isProfileEntry) });
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
     export type HashType = string;
@@ -208,6 +210,8 @@ export module Jsonarch
     export const isNetFileContext = isObject<NetFileContext>({ category: isJust("net"), path: isString, hash: isUndefinedOr(isString), });
     export const isLocalFileContext = isObject<LocalFileContext>({ category: isJust("local"), path: isString, hash: isUndefinedOr(isString), });
     export const isFileContext = isTypeOr<SystemFileContext, NoneFileContext<Jsonable>, NetFileContext, LocalFileContext>(isSystemFileContext, isNoneFileContextStrict(isJsonable), isNetFileContext, isLocalFileContext);
+    export const isFileContextStrict = <DataType extends Jsonable>(isType: IsType<DataType>) =>
+        isTypeOr<SystemFileContext, NoneFileContext<DataType>, NetFileContext, LocalFileContext>(isSystemFileContext, isNoneFileContextStrict(isType), isNetFileContext, isLocalFileContext);
     export const makeFullPath = (contextOrEntry: ContextOrEntry, path: string): string =>
     {
         const context = getContext(contextOrEntry);
@@ -294,9 +298,17 @@ export module Jsonarch
         setting?: FileContext<Setting>;
         profile?: Profile;
     }
-    export type ContextOrEntry = Context | { context: Context, };
+    export const isContext = isObject<Context>
+    ({
+        template: isFileContext,
+        parameter: isUndefinedOr(isFileContext),
+        cache: isUndefinedOr(<IsType<FileContext<Cache>>>isFileContext),
+        setting: isUndefinedOr(<IsType<FileContext<Setting>>>isFileContext),
+        profile: isUndefinedOr(isProfile),
+    });
+    export type ContextOrEntry = Context | { context: Context; };
     export const getContext = (contextOrEntry: ContextOrEntry): Context =>
-        "context" in contextOrEntry ? contextOrEntry.context: contextOrEntry;
+        isContext(contextOrEntry) ? contextOrEntry: contextOrEntry.context;
     export interface Cache extends AlphaJsonarch
     {
         $arch: "cache";
@@ -349,7 +361,7 @@ export module Jsonarch
         isTypeOr<OriginRoot, ValueOrigin>(isOriginRoot, isValueOrigin)(value);
     export type OriginMap = { [key: string | number]: Origin | OriginMap };
     export const isOriginMap = (value: unknown): value is OriginMap =>
-        isMapObject<OriginMap, Origin | OriginMap>(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
+        isMapObject(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
     export const getRootOrigin = (origin: Origin): OriginRoot => isOriginRoot(origin) ? origin: origin.root;
     export const getOriginPath = (origin: Origin): Refer => isOriginRoot(origin) ? []: origin.path;
     export const makeOrigin = (parent: Origin, refer: ReferElement): ValueOrigin =>
@@ -506,7 +518,12 @@ export module Jsonarch
             case "default-setting.json":
                 return settingJson as any;
             }
-            throw new Error("never");
+            throw new ErrorJson
+            ({
+                "$arch": "error",
+                "message": "never",
+                entry: JSON.parse(JSON.stringify(entry)),
+            });
         }
     );
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) =>
@@ -2452,11 +2469,12 @@ export module Jsonarch
                 (
                     entry.template.map
                     (
-                        i => apply
+                        (i, ix) => apply
                         ({
                             ...entry,
                             ...
                             {
+                                origin: makeOrigin(entry.origin, ix),
                                 template: i,
                             }
                         })
@@ -2476,6 +2494,7 @@ export module Jsonarch
                             ...entry,
                             ...
                             {
+                                origin: makeOrigin(entry.origin, key),
                                 template: template[key] as Jsonable,
                             }
                         })

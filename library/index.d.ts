@@ -30,6 +30,10 @@ export declare module Jsonarch {
     export const isNumber: (value: unknown) => value is number;
     export const isString: (value: unknown) => value is string;
     export const isObject: <T extends {}>(isMember: Required<{ [key in keyof T]: IsType<T[key]>; }>) => (value: unknown) => value is T;
+    export const isMapObject: <T extends {
+        [key: string]: U;
+        [key: number]: U;
+    }, U>(isType: IsType<U>) => (value: unknown) => value is T;
     export const isArray: <T>(isType: IsType<T>) => (value: unknown) => value is T[];
     export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>): IsType<[TypeA, TypeB]>;
     export function isTuple<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>): IsType<[TypeA, TypeB, TypeC]>;
@@ -82,19 +86,22 @@ export declare module Jsonarch {
     }
     export const isJsonarch: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is Type_1;
     export const isAlphaJsonarch: (template: any) => template is AlphaJsonarch;
-    export interface Profile {
+    export interface Profile extends JsonableObject {
         isProfiling: boolean;
         score: {
             [scope: string]: number;
         };
         stack: ProfileEntry[];
     }
-    export interface ProfileEntry {
+    export interface ProfileEntry extends JsonableObject {
         name: string;
         startTicks: number;
         childrenTicks: number;
     }
+    export const isProfileEntry: (value: unknown) => value is ProfileEntry;
+    export const isProfile: (value: unknown) => value is Profile;
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
+    export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json">;
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject {
         category: "system";
@@ -118,10 +125,13 @@ export declare module Jsonarch {
     }
     export type FilePathCategory<DataType extends Jsonable = Jsonable> = FileContext<DataType>["category"];
     export type FileContext<DataType extends Jsonable = Jsonable> = SystemFileContext | NoneFileContext<DataType> | NetFileContext | LocalFileContext;
-    export const isSystemFileContext: (file: FileContext) => file is SystemFileContext;
-    export const isNoneFileContext: <DataType extends Jsonable = Jsonable>(file: FileContext) => file is NoneFileContext<DataType>;
-    export const isNetFileContext: (file: FileContext) => file is NetFileContext;
-    export const isLocalFileContext: (file: FileContext) => file is LocalFileContext;
+    export const isSystemFileContext: (value: unknown) => value is SystemFileContext;
+    export const isNoneFileContext: (value: unknown) => value is NoneFileContext<Jsonable>;
+    export const isNoneFileContextStrict: <DataType extends Jsonable>(isType: IsType<DataType>) => (value: unknown) => value is NoneFileContext<DataType>;
+    export const isNetFileContext: (value: unknown) => value is NetFileContext;
+    export const isLocalFileContext: (value: unknown) => value is LocalFileContext;
+    export const isFileContext: IsType<SystemFileContext | NetFileContext | LocalFileContext | NoneFileContext<Jsonable>>;
+    export const isFileContextStrict: <DataType extends Jsonable>(isType: IsType<DataType>) => IsType<SystemFileContext | NetFileContext | LocalFileContext | NoneFileContext<DataType>>;
     export const makeFullPath: (contextOrEntry: ContextOrEntry, path: string) => string;
     export const getSystemFileContext: (id: SystemFileType) => SystemFileContext;
     export const jsonToFileContext: <DataType extends Jsonable = Jsonable>(data: DataType, hash?: HashType) => NoneFileContext<DataType>;
@@ -135,6 +145,7 @@ export declare module Jsonarch {
         setting?: FileContext<Setting>;
         profile?: Profile;
     }
+    export const isContext: (value: unknown) => value is Context;
     export type ContextOrEntry = Context | {
         context: Context;
     };
@@ -174,15 +185,23 @@ export declare module Jsonarch {
         parameter: Origin;
         external?: OriginMap;
     }
+    export const isReturnOrigin: (value: unknown) => value is ReturnOrigin;
     export interface ValueOrigin extends JsonableObject {
         root: OriginRoot;
         path: Refer;
     }
+    export const isValueOrigin: (value: unknown) => value is ValueOrigin;
     export type OriginRoot = FileContext | ReturnOrigin;
-    export type Origin = OriginRoot | ValueOrigin | OriginMap;
+    export const isOriginRoot: (value: unknown) => value is OriginRoot;
+    export type Origin = OriginRoot | ValueOrigin;
+    export const isOrigin: (value: unknown) => value is Origin;
     export type OriginMap = {
-        [key: string | number]: Origin;
+        [key: string | number]: Origin | OriginMap;
     };
+    export const isOriginMap: (value: unknown) => value is OriginMap;
+    export const getRootOrigin: (origin: Origin) => OriginRoot;
+    export const getOriginPath: (origin: Origin) => Refer;
+    export const makeOrigin: (parent: Origin, refer: ReferElement) => ValueOrigin;
     export interface ValueEntry<ValueType extends Jsonable> extends JsonableObject {
         origin: Origin;
         value: ValueType extends {
@@ -200,7 +219,8 @@ export declare module Jsonarch {
         originMap?: OriginMap;
     }
     export const isSystemFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<SystemFileContext>;
-    export const isNoneFileLoadEntry: <DataType extends Jsonable = Jsonable>(entry: LoadEntry) => entry is LoadEntry<NoneFileContext<DataType>>;
+    export const isNoneFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<NoneFileContext<Jsonable>>;
+    export const isNoneFileLoadEntryStrict: <DataType extends Jsonable>(isType: IsType<DataType>) => (entry: LoadEntry) => entry is LoadEntry<NoneFileContext<DataType>>;
     export const isNetFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<NetFileContext>;
     export const isLocalFileLoadEntry: (entry: LoadEntry) => entry is LoadEntry<LocalFileContext>;
     export interface Handler {
@@ -209,6 +229,7 @@ export declare module Jsonarch {
     interface EvaluateEntry<TemplateType> {
         context: Context;
         template: TemplateType;
+        origin: Origin;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
@@ -267,6 +288,7 @@ export declare module Jsonarch {
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
+    export const isRefer: (value: unknown) => value is (string | number)[];
     export interface AlphaType extends AlphaJsonarch {
         $arch: "type";
         type: PrimitiveType;

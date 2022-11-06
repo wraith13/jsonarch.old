@@ -111,7 +111,7 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
-    Jsonarch.isJust = function (type) { return function (value) { return type === typeof value; }; };
+    Jsonarch.isJust = function (type) { return function (value) { return type === value; }; };
     Jsonarch.isUndefined = Jsonarch.isJust(undefined);
     Jsonarch.isNull = Jsonarch.isJust(null);
     Jsonarch.isUndefinedOr = function (isType) { return isTypeOr(Jsonarch.isUndefined, isType); };
@@ -126,7 +126,15 @@ var Jsonarch;
             return null !== value &&
                 "object" === typeof value &&
                 !Array.isArray(value) &&
-                !Jsonarch.objectKeys(isMember).some(function (key) { var _c; return !(((_c = isMember[key]) === null || _c === void 0 ? void 0 : _c.call(isMember, value[key])) || true); });
+                !Jsonarch.objectKeys(isMember).some(function (key) { return !isMember[key](value[key]); });
+        };
+    };
+    Jsonarch.isMapObject = function (isType) {
+        return function (value) {
+            return null !== value &&
+                "object" === typeof value &&
+                !Array.isArray(value) &&
+                0 === Jsonarch.objectValues(value).filter(function (i) { return !isType(i); }).length;
         };
     };
     Jsonarch.isArray = function (isType) {
@@ -174,10 +182,20 @@ var Jsonarch;
             "$arch" in template &&
             "string" === typeof template.$arch;
     };
-    Jsonarch.isSystemFileContext = function (file) { return "system" === file.category; };
-    Jsonarch.isNoneFileContext = function (file) { return "none" === file.category; };
-    Jsonarch.isNetFileContext = function (file) { return "net" === file.category; };
-    Jsonarch.isLocalFileContext = function (file) { return "local" === file.category; };
+    Jsonarch.isProfileEntry = Jsonarch.isObject({ name: Jsonarch.isString, startTicks: Jsonarch.isNumber, childrenTicks: Jsonarch.isNumber, });
+    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isNumber), stack: Jsonarch.isArray(Jsonarch.isProfileEntry) });
+    Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json"]);
+    Jsonarch.isSystemFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("system"), id: Jsonarch.isSystemFileType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
+    Jsonarch.isNoneFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("none"), data: Jsonarch.isJsonable, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
+    Jsonarch.isNoneFileContextStrict = function (isType) {
+        return Jsonarch.isObject({ category: Jsonarch.isJust("none"), data: isType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
+    };
+    Jsonarch.isNetFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("net"), path: Jsonarch.isString, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
+    Jsonarch.isLocalFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("local"), path: Jsonarch.isString, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
+    Jsonarch.isFileContext = isTypeOr(Jsonarch.isSystemFileContext, Jsonarch.isNoneFileContextStrict(Jsonarch.isJsonable), Jsonarch.isNetFileContext, Jsonarch.isLocalFileContext);
+    Jsonarch.isFileContextStrict = function (isType) {
+        return isTypeOr(Jsonarch.isSystemFileContext, Jsonarch.isNoneFileContextStrict(isType), Jsonarch.isNetFileContext, Jsonarch.isLocalFileContext);
+    };
     Jsonarch.makeFullPath = function (contextOrEntry, path) {
         var context = Jsonarch.getContext(contextOrEntry);
         if (/^\.\.?\//.test(path)) {
@@ -241,13 +259,44 @@ var Jsonarch;
             /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: Jsonarch.getHashFromPath(argument), } :
                 { category: "local", path: argument, hash: Jsonarch.getHashFromPath(argument), };
     };
+    Jsonarch.isContext = Jsonarch.isObject({
+        template: Jsonarch.isFileContext,
+        parameter: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
+        cache: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
+        setting: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
+        profile: Jsonarch.isUndefinedOr(Jsonarch.isProfile),
+    });
     Jsonarch.getContext = function (contextOrEntry) {
-        return "context" in contextOrEntry ? contextOrEntry.context : contextOrEntry;
+        return Jsonarch.isContext(contextOrEntry) ? contextOrEntry : contextOrEntry.context;
     };
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
+    Jsonarch.isReturnOrigin = function (value) {
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isOriginRoot, external: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
+    };
+    Jsonarch.isValueOrigin = function (value) {
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, path: Jsonarch.isRefer, })(value);
+    };
+    Jsonarch.isOriginRoot = function (value) {
+        return isTypeOr(Jsonarch.isFileContext, Jsonarch.isReturnOrigin)(value);
+    };
+    Jsonarch.isOrigin = function (value) {
+        return isTypeOr(Jsonarch.isOriginRoot, Jsonarch.isValueOrigin)(value);
+    };
+    Jsonarch.isOriginMap = function (value) {
+        return Jsonarch.isMapObject(isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap))(value);
+    };
+    Jsonarch.getRootOrigin = function (origin) { return Jsonarch.isOriginRoot(origin) ? origin : origin.root; };
+    Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : origin.path; };
+    Jsonarch.makeOrigin = function (parent, refer) {
+        return ({
+            root: Jsonarch.getRootOrigin(parent),
+            path: Jsonarch.getOriginPath(parent).concat([refer]),
+        });
+    };
     Jsonarch.isSystemFileLoadEntry = function (entry) { return Jsonarch.isSystemFileContext(entry.file); };
-    Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContext(entry.file); };
+    Jsonarch.isNoneFileLoadEntry = function (entry) { return Jsonarch.isNoneFileContextStrict(Jsonarch.isJsonable)(entry.file); };
+    Jsonarch.isNoneFileLoadEntryStrict = function (isType) { return function (entry) { return Jsonarch.isNoneFileContextStrict(isType)(entry.file); }; };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isLocalFileContext(entry.file); };
     var isPureDataType = function (template) {
@@ -327,7 +376,11 @@ var Jsonarch;
                 case "default-setting.json":
                     return [2 /*return*/, setting_json_1.default];
             }
-            throw new Error("never");
+            throw new Jsonarch.ErrorJson({
+                "$arch": "error",
+                "message": "never",
+                entry: JSON.parse(JSON.stringify(entry)),
+            });
         });
     }); }); };
     Jsonarch.loadNetFile = function (entry) {
@@ -408,6 +461,7 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.isRefer = Jsonarch.isArray(isTypeOr(Jsonarch.isString, Jsonarch.isNumber));
     Jsonarch.isAlphaTypeData = function (type) {
         return (function (template) {
             return Jsonarch.isTypeData(template) && type === template.type;
@@ -1788,7 +1842,8 @@ var Jsonarch;
                 case 2: return [2 /*return*/, _c.sent()];
                 case 3:
                     if (!Array.isArray(entry.template)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Promise.all(entry.template.map(function (i) { return Jsonarch.apply(__assign(__assign({}, entry), {
+                    return [4 /*yield*/, Promise.all(entry.template.map(function (i, ix) { return Jsonarch.apply(__assign(__assign({}, entry), {
+                            origin: Jsonarch.makeOrigin(entry.origin, ix),
                             template: i,
                         })); }))];
                 case 4: return [2 /*return*/, _c.sent()];
@@ -1803,6 +1858,7 @@ var Jsonarch;
                                         _c = result_1;
                                         _d = key;
                                         return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), {
+                                                origin: Jsonarch.makeOrigin(entry.origin, key),
                                                 template: template_1[key],
                                             }))];
                                     case 1: return [2 /*return*/, _c[_d] = _e.sent()];
@@ -1816,7 +1872,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, rootEvaluateEntry, output, result, error_2, result;
+        var handler, context, origin, rootEvaluateEntry, output, result, error_2, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1827,9 +1883,11 @@ var Jsonarch;
                         cache: entry.cache,
                         setting: entry.setting,
                     };
+                    origin = entry.template;
                     rootEvaluateEntry = {
                         context: context,
                         template: template,
+                        origin: origin,
                         parameter: parameter,
                         cache: cache,
                         setting: setting,
