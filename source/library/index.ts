@@ -30,7 +30,9 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
+    export const toJsonable = (value: any): Jsonable => JSON.parse(JSON.stringify(value));
     export type IsType<Type> = (value: unknown) => value is Type;
+    export const isAny = (_value: unknown): _value is any => true;
     export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === value;
     export const isUndefined = isJust(undefined);
     export const isNull = isJust(null);
@@ -522,7 +524,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "never",
-                entry: JSON.parse(JSON.stringify(entry)),
+                entry: toJsonable(entry),
             });
         }
     );
@@ -1369,46 +1371,86 @@ export module Jsonarch
             "refer": [ "string", "join" ],
             "parameter": parameter,
         });
-    export module Library
+    export const library =
     {
-        export module Boolean
+        object:
         {
-            export const not = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isAny)(parameter) && 2 === parameter.length)
+                {
+                    return parameter[0] === parameter[1];
+                }
+                return undefined;
+            }
+        },
+        boolean:
+        {
+            not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isBoolean(parameter))
                 {
                     return ! parameter;
                 }
                 return undefined;
-            };
-            export const or = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            },
+            or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isBoolean)(parameter))
                 {
                     return parameter.some(i => i);
                 }
                 return undefined;
-            };
-            export const and = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            },
+            and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isBoolean)(parameter))
                 {
                     return ! parameter.some(i => ! i);
                 }
                 return undefined;
-            };
-            export const xor = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            },
+            xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isBoolean)(parameter) && 2 === parameter.length)
                 {
                     return parameter[0] !== parameter[1];
                 }
                 return undefined;
-            };
-        }
-        export module String
+            },
+        },
+        number:
         {
-            export const json = (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isNumber)(parameter) && 2 === parameter.length)
+                {
+                    if (parameter[0] < parameter[1])
+                    {
+                        return "<";
+                    }
+                    if (parameter[0] === parameter[1])
+                    {
+                        return "=";
+                    }
+                    if (parameter[0] > parameter[1])
+                    {
+                        return ">";
+                    }
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "never",
+                        entry: toJsonable(entry),
+                        parameter,
+                    });
+                }
+                return undefined;
+            },
+        },
+        string:
+        {
+            json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isString)(parameter))
                 {
@@ -1420,9 +1462,9 @@ export module Jsonarch
                     return parameter.list.join(parameter.separator);
                 }
                 return undefined;
-            };
+            },
         }
-    }
+    };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual = (result: CompareTypeResult) => "base" === result || "equal" === result;
     export const isEqualOrExtented = (result: CompareTypeResult) => "equal" === result || "extended" === result;
@@ -2349,17 +2391,7 @@ export module Jsonarch
             const target = turnRefer<JsonableValue | Function>
             (
                 {
-                    boolean:
-                    {
-                        not: Library.Boolean.not,
-                        or: Library.Boolean.or,
-                        and: Library.Boolean.and,
-                        xor: Library.Boolean.xor,
-                    },
-                    string:
-                    {
-                        join: Library.String.json,
-                    },
+                    ...library,
                     template: entry.cache.template,
                 },
                 entry.template.refer,

@@ -18,7 +18,9 @@ export declare module Jsonarch {
     export const isJsonable: (value: unknown) => value is Jsonable;
     export const objectKeys: <T extends {}>(target: T) => (keyof T & string)[];
     export const objectValues: <T extends {}>(target: T) => T[keyof T][];
+    export const toJsonable: (value: any) => Jsonable;
     export type IsType<Type> = (value: unknown) => value is Type;
+    export const isAny: (_value: unknown) => _value is any;
     export const isJust: <Type_1>(type: Type_1) => (value: unknown) => value is Type_1;
     export const isUndefined: (value: unknown) => value is undefined;
     export const isNull: (value: unknown) => value is null;
@@ -520,17 +522,23 @@ export declare module Jsonarch {
     export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
-    export module Library {
-        module Boolean {
-            const not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            const or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            const and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            const xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-        }
-        module String {
-            const json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-        }
-    }
+    export const library: {
+        object: {
+            equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+        };
+        boolean: {
+            not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+        };
+        number: {
+            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+        };
+        string: {
+            json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+        };
+    };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
     export const isBaseOrEqual: (result: CompareTypeResult) => boolean;
     export const isEqualOrExtented: (result: CompareTypeResult) => boolean;

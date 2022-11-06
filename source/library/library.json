@@ -1,6 +1,26 @@
 {
     "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
     "$arch": "library",
+    "object":
+    {
+        "$arch": "library",
+        "equal":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter":
+                {
+                    "$arch": "type",
+                    "type": "array",
+                    "itemType": { "$arch": "type", "type": "any" },
+                    "minLength": 2,
+                    "maxLength": 2
+                },
+                "return": { "$arch": "type", "type": "boolean" }
+            }
+        }
+    },
     "boolean":
     {
         "$arch": "library",
@@ -55,6 +75,26 @@
                     "maxLength": 2
                 },
                 "return": { "$arch": "type", "type": "boolean" }
+            }
+        }
+    },
+    "number":
+    {
+        "$arch": "library",
+        "compare":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter":
+                {
+                    "$arch": "type",
+                    "type": "array",
+                    "itemType": { "$arch": "type", "type": "number" },
+                    "minLength": 2,
+                    "maxLength": 2
+                },
+                "return": { "$arch": "type", "type": "string", "enum": [ "<", "=", ">" ] }
             }
         }
     },

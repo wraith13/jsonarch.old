@@ -111,6 +111,8 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
+    Jsonarch.toJsonable = function (value) { return JSON.parse(JSON.stringify(value)); };
+    Jsonarch.isAny = function (_value) { return true; };
     Jsonarch.isJust = function (type) { return function (value) { return type === value; }; };
     Jsonarch.isUndefined = Jsonarch.isJust(undefined);
     Jsonarch.isNull = Jsonarch.isJust(null);
@@ -379,7 +381,7 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 "$arch": "error",
                 "message": "never",
-                entry: JSON.parse(JSON.stringify(entry)),
+                entry: Jsonarch.toJsonable(entry),
             });
         });
     }); }); };
@@ -1000,38 +1002,65 @@ var Jsonarch;
             "parameter": parameter,
         });
     };
-    var Library;
-    (function (Library) {
-        var Boolean;
-        (function (Boolean) {
-            Boolean.not = function (_entry, parameter) {
+    Jsonarch.library = {
+        object: {
+            equal: function (_entry, parameter) {
+                if (Jsonarch.isArray(Jsonarch.isAny)(parameter) && 2 === parameter.length) {
+                    return parameter[0] === parameter[1];
+                }
+                return undefined;
+            }
+        },
+        boolean: {
+            not: function (_entry, parameter) {
                 if (Jsonarch.isBoolean(parameter)) {
                     return !parameter;
                 }
                 return undefined;
-            };
-            Boolean.or = function (_entry, parameter) {
+            },
+            or: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter)) {
                     return parameter.some(function (i) { return i; });
                 }
                 return undefined;
-            };
-            Boolean.and = function (_entry, parameter) {
+            },
+            and: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter)) {
                     return !parameter.some(function (i) { return !i; });
                 }
                 return undefined;
-            };
-            Boolean.xor = function (_entry, parameter) {
+            },
+            xor: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter) && 2 === parameter.length) {
                     return parameter[0] !== parameter[1];
                 }
                 return undefined;
-            };
-        })(Boolean = Library.Boolean || (Library.Boolean = {}));
-        var String;
-        (function (String) {
-            String.json = function (_entry, parameter) {
+            },
+        },
+        number: {
+            compare: function (entry, parameter) {
+                if (Jsonarch.isArray(Jsonarch.isNumber)(parameter) && 2 === parameter.length) {
+                    if (parameter[0] < parameter[1]) {
+                        return "<";
+                    }
+                    if (parameter[0] === parameter[1]) {
+                        return "=";
+                    }
+                    if (parameter[0] > parameter[1]) {
+                        return ">";
+                    }
+                    throw new Jsonarch.ErrorJson({
+                        "$arch": "error",
+                        "message": "never",
+                        entry: Jsonarch.toJsonable(entry),
+                        parameter: parameter,
+                    });
+                }
+                return undefined;
+            },
+        },
+        string: {
+            json: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
                     return parameter.join("");
                 }
@@ -1039,9 +1068,9 @@ var Jsonarch;
                     return parameter.list.join(parameter.separator);
                 }
                 return undefined;
-            };
-        })(String = Library.String || (Library.String = {}));
-    })(Library = Jsonarch.Library || (Jsonarch.Library = {}));
+            },
+        }
+    };
     Jsonarch.isBaseOrEqual = function (result) { return "base" === result || "equal" === result; };
     Jsonarch.isEqualOrExtented = function (result) { return "equal" === result || "extended" === result; };
     Jsonarch.reverseCompareTypeResult = function (result) {
@@ -1729,18 +1758,7 @@ var Jsonarch;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    target = Jsonarch.turnRefer({
-                        boolean: {
-                            not: Library.Boolean.not,
-                            or: Library.Boolean.or,
-                            and: Library.Boolean.and,
-                            xor: Library.Boolean.xor,
-                        },
-                        string: {
-                            join: Library.String.json,
-                        },
-                        template: entry.cache.template,
-                    }, entry.template.refer, entry.originMap);
+                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { template: entry.cache.template }), entry.template.refer, entry.originMap);
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     _c = Jsonarch.validateParameterType;
                     _d = [entry];
