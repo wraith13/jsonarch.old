@@ -30,7 +30,54 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
-    export const toJsonable = (value: any): Jsonable => JSON.parse(JSON.stringify(value));
+    export const toJsonable = (value: any, maxDepth: number = 10, currentDepth: number = 0): Jsonable =>
+    {
+        if (maxDepth <= currentDepth)
+        {
+            return "$over-depth";
+        }
+        if (null !== value)
+        {
+            if ("object" === typeof value)
+            {
+                if (Array.isArray(value))
+                {
+                    return value.map(i => toJsonable(i, maxDepth, currentDepth +1));
+                }
+                else
+                {
+                    const result: { [key: string]: Jsonable } = { };
+                    objectKeys(value).forEach
+                    (
+                        key =>
+                        {
+                            if (undefined !== value[key])
+                            {
+                                result[key] = toJsonable(value[key], maxDepth, currentDepth +1);
+                            }
+                        }
+                    );
+                    return result;
+                }
+            }
+            else
+            {
+                const type = typeof value;
+                switch(type)
+                {
+                case "boolean":
+                case "number":
+                case "string":
+                    return value;
+                case "undefined":
+                    return "$undefined";
+                default:
+                    return `$${type}:${value.toString()}`;
+                }
+            }
+        }
+        return value;
+    };
     export type IsType<Type> = (value: unknown) => value is Type;
     export const isAny = (_value: unknown): _value is any => true;
     export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === value;

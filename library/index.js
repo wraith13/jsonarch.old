@@ -111,7 +111,43 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
-    Jsonarch.toJsonable = function (value) { return JSON.parse(JSON.stringify(value)); };
+    Jsonarch.toJsonable = function (value, maxDepth, currentDepth) {
+        if (maxDepth === void 0) { maxDepth = 10; }
+        if (currentDepth === void 0) { currentDepth = 0; }
+        if (maxDepth <= currentDepth) {
+            return "$over-depth";
+        }
+        if (null !== value) {
+            if ("object" === typeof value) {
+                if (Array.isArray(value)) {
+                    return value.map(function (i) { return Jsonarch.toJsonable(i, maxDepth, currentDepth + 1); });
+                }
+                else {
+                    var result_1 = {};
+                    Jsonarch.objectKeys(value).forEach(function (key) {
+                        if (undefined !== value[key]) {
+                            result_1[key] = Jsonarch.toJsonable(value[key], maxDepth, currentDepth + 1);
+                        }
+                    });
+                    return result_1;
+                }
+            }
+            else {
+                var type = typeof value;
+                switch (type) {
+                    case "boolean":
+                    case "number":
+                    case "string":
+                        return value;
+                    case "undefined":
+                        return "$undefined";
+                    default:
+                        return "$".concat(type, ":").concat(value.toString());
+                }
+            }
+        }
+        return value;
+    };
     Jsonarch.isAny = function (_value) { return true; };
     Jsonarch.isJust = function (type) { return function (value) { return type === value; }; };
     Jsonarch.isUndefined = Jsonarch.isJust(undefined);
@@ -1847,7 +1883,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-        var result_1, template_1;
+        var result_2, template_1;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -1866,14 +1902,14 @@ var Jsonarch;
                         })); }))];
                 case 4: return [2 /*return*/, _c.sent()];
                 case 5:
-                    result_1 = {};
+                    result_2 = {};
                     template_1 = entry.template;
                     return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
                             var _c, _d;
                             return __generator(this, function (_e) {
                                 switch (_e.label) {
                                     case 0:
-                                        _c = result_1;
+                                        _c = result_2;
                                         _d = key;
                                         return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), {
                                                 origin: Jsonarch.makeOrigin(entry.origin, key),
@@ -1885,7 +1921,7 @@ var Jsonarch;
                         }); }))];
                 case 6:
                     _c.sent();
-                    return [2 /*return*/, result_1];
+                    return [2 /*return*/, result_2];
             }
         });
     }); }); };
