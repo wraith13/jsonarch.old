@@ -1293,7 +1293,10 @@ export module Jsonarch
         (
             librarygJson,
             entry.template.refer,
-            entry.originMap
+            {
+                template: entry.origin,
+            }
+            // entry.originMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -1353,7 +1356,10 @@ export module Jsonarch
         (
             librarygJson,
             entry.template.refer,
-            entry.originMap
+            {
+                template: entry.origin,
+            }
+            // entry.originMap
         );
         if (isTemplateData(functionTemplate))
         {
@@ -2410,8 +2416,8 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Unmatch refer path",
-                    sourceMap,
                     refer,
+                    sourceMap,
                 });
             }
         }
@@ -2428,7 +2434,10 @@ export module Jsonarch
                 parameter: entry.parameter,
             },
             entry.template.refer,
-            entry.originMap
+            {
+                template: entry.origin,
+            }
+            // entry.originMap
         );
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
@@ -2442,7 +2451,10 @@ export module Jsonarch
                     template: entry.cache.template,
                 },
                 entry.template.refer,
-                entry.originMap
+                {
+                    template: entry.origin,
+                }
+                // entry.originMap
             );
             if ("function" === typeof target)
             {

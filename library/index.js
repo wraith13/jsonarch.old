@@ -940,7 +940,11 @@ var Jsonarch;
         });
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.originMap);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, {
+            template: entry.origin,
+        }
+        // entry.originMap
+        );
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -984,7 +988,11 @@ var Jsonarch;
         }
     };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, entry.originMap);
+        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, {
+            template: entry.origin,
+        }
+        // entry.originMap
+        );
         if (Jsonarch.isTemplateData(functionTemplate)) {
             var type = functionTemplate.type;
             if (type) {
@@ -1774,8 +1782,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Unmatch refer path",
-                    sourceMap: sourceMap,
                     refer: refer,
+                    sourceMap: sourceMap,
                 });
             }
         }
@@ -1787,14 +1795,22 @@ var Jsonarch;
             value: entry.cache.value,
             scope: entry.scope,
             parameter: entry.parameter,
-        }, entry.template.refer, entry.originMap);
+        }, entry.template.refer, {
+            template: entry.origin,
+        }
+        // entry.originMap
+        );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
         var target, parameter, _c, _d, result;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { template: entry.cache.template }), entry.template.refer, entry.originMap);
+                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { template: entry.cache.template }), entry.template.refer, {
+                        template: entry.origin,
+                    }
+                    // entry.originMap
+                    );
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     _c = Jsonarch.validateParameterType;
                     _d = [entry];
