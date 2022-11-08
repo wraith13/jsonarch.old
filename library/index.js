@@ -615,11 +615,11 @@ var Jsonarch;
                     _d.label = 1;
                 case 1:
                     _d.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
                 case 2:
                     error_1 = _d.sent();
                     if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.catch, parameter: error_1 }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "catch"), template: entry.template.catch, parameter: error_1 }))];
                 case 3:
                     result = _d.sent();
                     if (undefined !== result) {
@@ -628,7 +628,7 @@ var Jsonarch;
                     _d.label = 4;
                 case 4: throw error_1;
                 case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.return, parameter: parameter }))];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
             }
         });
@@ -639,7 +639,7 @@ var Jsonarch;
             switch (_c.label) {
                 case 0:
                     parameter = Jsonarch.applyDefault(entry.template.default, entry.parameter);
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { template: entry.template.cases, parameter: parameter }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "cases"), template: entry.template.cases, parameter: parameter }))];
                 case 1:
                     result = _c.sent();
                     if (undefined !== result) {
@@ -703,7 +703,7 @@ var Jsonarch;
         var result;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.if }))];
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "if"), template: entry.template.if }))];
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
@@ -902,7 +902,7 @@ var Jsonarch;
                 case 1:
                     if (!true) return [3 /*break*/, 3];
                     scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.loop, scope: scope }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "loop"), template: entry.template.loop, scope: scope }))];
                 case 2:
                     current = _d.sent();
                     if (!Jsonarch.isLoopResultData(current)) {
@@ -931,7 +931,7 @@ var Jsonarch;
                     if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
                     _c = undefined;
                     return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.parameter }))];
+                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
                 case 2:
                     _c = _d.sent();
                     _d.label = 3;

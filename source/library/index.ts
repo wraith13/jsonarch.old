@@ -1018,13 +1018,25 @@ export module Jsonarch
             {
                 try
                 {
-                    return apply({...entry, template: entry.template.return, parameter, });
+                    return apply
+                    ({
+                        ...entry,
+                        origin: makeOrigin(entry.origin, "return"),
+                        template: entry.template.return,
+                        parameter,
+                    });
                 }
                 catch(error)
                 {
                     if (isJsonable(error))
                     {
-                        const result = await evaluateCases({...entry, template: entry.template.catch, parameter: error, });
+                        const result = await evaluateCases
+                        ({
+                            ...entry,
+                            origin: makeOrigin(entry.origin, "catch"),
+                            template: entry.template.catch,
+                            parameter: error,
+                        });
                         if (undefined !== result)
                         {
                             return result;
@@ -1035,7 +1047,13 @@ export module Jsonarch
             }
             else
             {
-                return apply({...entry, template: entry.template.return, parameter, });
+                return apply
+                ({
+                    ...entry,
+                    origin: makeOrigin(entry.origin, "return"),
+                    template: entry.template.return,
+                    parameter,
+                });
             }
         }
     );
@@ -1044,7 +1062,13 @@ export module Jsonarch
         entry, "evaluateMatch", async () =>
         {
             const parameter = applyDefault(entry.template.default, entry.parameter);
-            const result = await evaluateCases({...entry, template: entry.template.cases, parameter, });
+            const result = await evaluateCases
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "cases"),
+                template: entry.template.cases,
+                parameter,
+            });
             if (undefined !== result)
             {
                 return result;
@@ -1116,7 +1140,12 @@ export module Jsonarch
     (
         entry, "evaluateIfCasePattern", async () =>
         {
-            const result = await apply({ ...entry, template: entry.template.if, });
+            const result = await apply
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "if"),
+                template: entry.template.if,
+            });
             if ("boolean" !== typeof result)
             {
                 throw new ErrorJson
@@ -1262,7 +1291,13 @@ export module Jsonarch
             while(true)
             {
                 const scope = { ...entry.scope, $loop: { index, } };
-                const current = await apply({...entry, template: entry.template.loop, scope, }) as LoopResult;
+                const current = await apply
+                ({
+                    ...entry,
+                    origin: makeOrigin(entry.origin, "loop"),
+                    template: entry.template.loop,
+                    scope,
+                }) as LoopResult;
                 if ( ! isLoopResultData(current))
                 {
                     throw new ErrorJson
@@ -1286,7 +1321,12 @@ export module Jsonarch
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
         undefined === entry.template.parameter ?
             undefined:
-            await apply({...entry, template: entry.template.parameter, });
+            await apply
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "parameter"),
+                template: entry.template.parameter,
+            });
     export const validateParameterType = <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType): ParameterType =>
     {
         const functionTemplate = turnRefer<JsonableValue | Function>
