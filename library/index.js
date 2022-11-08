@@ -723,7 +723,7 @@ var Jsonarch;
         var result;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: entry.template.not }))];
+                case 0: return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "not"), template: entry.template.not }))];
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
@@ -740,10 +740,11 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateOrCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateOrCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, template, result;
+        var baseOrigin, _c, _d, _e, i, template, result;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
+                    baseOrigin = Jsonarch.makeOrigin(entry.origin, "or");
                     _c = [];
                     for (_d in entry.template.or)
                         _c.push(_d);
@@ -753,7 +754,7 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 4];
                     i = _c[_e];
                     template = entry.template.or[i];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: template }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(baseOrigin, i), template: template }))];
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
@@ -777,10 +778,11 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateAndCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateAndCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, template, result;
+        var baseOrigin, _c, _d, _e, i, template, result;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
+                    baseOrigin = Jsonarch.makeOrigin(entry.origin, "and");
                     _c = [];
                     for (_d in entry.template.and)
                         _c.push(_d);
@@ -790,7 +792,7 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 4];
                     i = _c[_e];
                     template = entry.template.and[i];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: template }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(baseOrigin, i), template: template }))];
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
@@ -860,7 +862,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, case_, _f;
+        var _c, _d, _e, i, case_, origin_1, _f;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
@@ -873,15 +875,16 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 6];
                     i = _c[_e];
                     case_ = entry.template[i];
+                    origin_1 = Jsonarch.makeOrigin(entry.origin, i);
                     _f = undefined === case_.case;
                     if (_f) return [3 /*break*/, 3];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { template: case_.case }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(origin_1, "case"), template: case_.case }))];
                 case 2:
                     _f = (_g.sent());
                     _g.label = 3;
                 case 3:
                     if (!_f) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: case_.return }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(origin_1, "return"), template: case_.return }))];
                 case 4: return [2 /*return*/, _g.sent()];
                 case 5:
                     _e++;
@@ -1927,10 +1930,7 @@ var Jsonarch;
                                     case 0:
                                         _c = result_2;
                                         _d = key;
-                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), {
-                                                origin: Jsonarch.makeOrigin(entry.origin, key),
-                                                template: template_1[key],
-                                            }))];
+                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template_1[key] }))];
                                     case 1: return [2 /*return*/, _c[_d] = _e.sent()];
                                 }
                             });

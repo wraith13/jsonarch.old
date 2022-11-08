@@ -1164,7 +1164,12 @@ export module Jsonarch
     (
         entry, "evaluateNotCasePattern", async () =>
         {
-            const result = await evaluateCasePattern({ ...entry, template: entry.template.not, });
+            const result = await evaluateCasePattern
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "not"),
+                template: entry.template.not,
+            });
             if ("boolean" !== typeof result)
             {
                 throw new ErrorJson
@@ -1183,10 +1188,16 @@ export module Jsonarch
     (
         entry, "evaluateOrCasePattern", async () =>
         {
+            const baseOrigin = makeOrigin(entry.origin, "or");
             for(let i in entry.template.or)
             {
                 const template = entry.template.or[i];
-                const result = await evaluateCasePattern({ ...entry, template, });
+                const result = await evaluateCasePattern
+                ({
+                    ...entry,
+                    origin: makeOrigin(baseOrigin, i),
+                    template,
+                });
                 if ("boolean" !== typeof result)
                 {
                     throw new ErrorJson
@@ -1210,10 +1221,16 @@ export module Jsonarch
     (
         entry, "evaluateAndCasePattern", async () =>
         {
+            const baseOrigin = makeOrigin(entry.origin, "and");
             for(let i in entry.template.and)
             {
                 const template = entry.template.and[i];
-                const result = await evaluateCasePattern({ ...entry, template, });
+                const result = await evaluateCasePattern
+                ({
+                    ...entry,
+                    origin: makeOrigin(baseOrigin, i),
+                    template,
+                });
                 if ("boolean" !== typeof result)
                 {
                     throw new ErrorJson
@@ -1274,9 +1291,15 @@ export module Jsonarch
             for(let i in entry.template)
             {
                 const case_ = entry.template[i];
-                if (undefined === case_.case || await evaluateCasePattern({...entry, template: case_.case, }))
+                const origin = makeOrigin(entry.origin, i);
+                if (undefined === case_.case || await evaluateCasePattern({...entry, origin: makeOrigin(origin, "case"),template: case_.case, }))
                 {
-                    return await apply({...entry, template: case_.return, });
+                    return await apply
+                    ({
+                        ...entry,
+                        origin: makeOrigin(origin, "return"),
+                        template: case_.return,
+                    });
                 }
             }
             return undefined;
@@ -2623,11 +2646,8 @@ export module Jsonarch
                         async key => result[key] = await apply
                         ({
                             ...entry,
-                            ...
-                            {
-                                origin: makeOrigin(entry.origin, key),
-                                template: template[key] as Jsonable,
-                            }
+                            origin: makeOrigin(entry.origin, key),
+                            template: template[key] as Jsonable,
                         })
                     )
                 );
