@@ -606,26 +606,26 @@ var Jsonarch;
     };
     Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
         var parameter, error_1, result;
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
-                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault(entry.template.default, entry.parameter), (_c = entry.template.override) === null || _c === void 0 ? void 0 : _c.setting);
+                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault((_c = entry.template.default) === null || _c === void 0 ? void 0 : _c.parameter, entry.parameter), (_d = entry.template.override) === null || _d === void 0 ? void 0 : _d.parameter);
                     if (!entry.template.catch) return [3 /*break*/, 6];
-                    _d.label = 1;
+                    _e.label = 1;
                 case 1:
-                    _d.trys.push([1, 2, , 5]);
+                    _e.trys.push([1, 2, , 5]);
                     return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
                 case 2:
-                    error_1 = _d.sent();
+                    error_1 = _e.sent();
                     if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
                     return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "catch"), template: entry.template.catch, parameter: error_1 }))];
                 case 3:
-                    result = _d.sent();
+                    result = _e.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
-                    _d.label = 4;
+                    _e.label = 4;
                 case 4: throw error_1;
                 case 5: return [3 /*break*/, 7];
                 case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
@@ -1107,7 +1107,7 @@ var Jsonarch;
             },
         },
         string: {
-            json: function (_entry, parameter) {
+            join: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
                     return parameter.join("");
                 }
@@ -1787,6 +1787,7 @@ var Jsonarch;
                     "message": "Unmatch refer path",
                     refer: refer,
                     sourceMap: sourceMap,
+                    root: Jsonarch.toJsonable(root),
                 });
             }
         }

@@ -1011,8 +1011,8 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                applyDefault(entry.template.default, entry.parameter),
-                entry.template.override?.setting
+                applyDefault(entry.template.default?.parameter, entry.parameter),
+                entry.template.override?.parameter
             );
             if (entry.template.catch)
             {
@@ -1566,7 +1566,7 @@ export module Jsonarch
         },
         string:
         {
-            json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isString)(parameter))
                 {
@@ -2481,6 +2481,7 @@ export module Jsonarch
                     "message": "Unmatch refer path",
                     refer,
                     sourceMap,
+                    root: toJsonable(root),
                 });
             }
         }

@@ -536,7 +536,7 @@ export declare module Jsonarch {
             compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         string: {
-            json: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
     };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";
