@@ -989,21 +989,34 @@ export module Jsonarch
     export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
     export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isTypeOr(isUndefined, isBoolean), return: isJsonable, });
     export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
-    export const applyDefault = (defaults: Jsonable | undefined, parameter: Jsonable | undefined) =>
+    export const applyDefault = <DataType extends Jsonable>(...defaults: (DataType | undefined)[]): DataType | undefined =>
     {
-        if (undefined === defaults)
-        {
-            return parameter;
-        }
-        else
-        if (undefined === parameter || "object" !== typeof defaults || "object" !== typeof parameter)
-        {
-            return defaults;
-        }
-        else
-        {
-            return { ...defaults, ...parameter, };
-        }
+        let result: DataType | undefined;
+        defaults.forEach
+        (
+            i =>
+            {
+                if (undefined !== i)
+                {
+                    if (isJsonableObject(result) && isJsonableObject(i))
+                    {
+                        objectKeys(i).forEach
+                        (
+                            key => (<JsonableObject>result)[key] = applyDefault
+                            (
+                                (<JsonableObject>result)[key],
+                                i[key]
+                            )
+                        );
+                    }
+                    else
+                    {
+                        result = i;
+                    }
+                }
+            }
+        );
+        return result;
     };
     export const evaluateTemplate = (entry: EvaluateEntry<Template>): Promise<Jsonable> => profile
     (
@@ -2656,7 +2669,7 @@ export module Jsonarch
             }
         }
     );
-    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -2744,7 +2757,7 @@ export module Jsonarch
                 setting
             ):
             undefined;
-        const parameter = parameterResult?.output ?? null;
+        const parameter = parameterResult?.output;
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, cache, setting);
     };

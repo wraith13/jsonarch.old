@@ -504,7 +504,7 @@ export declare module Jsonarch {
     export const isLoopFalseResultData: (value: unknown) => value is LoopFalseResult;
     export const isLoopRegularResultData: (value: unknown) => value is LoopRegularResult;
     export const isLoopResultData: IsType<LoopFalseResult | LoopRegularResult>;
-    export const applyDefault: (defaults: Jsonable | undefined, parameter: Jsonable | undefined) => Jsonable | undefined;
+    export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;
@@ -608,7 +608,7 @@ export declare module Jsonarch {
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
-    export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable, cache: Cache, setting: Setting) => Promise<Result>;
+    export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;
