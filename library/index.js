@@ -617,7 +617,7 @@ var Jsonarch;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    parameter = Jsonarch.applyDefault(Jsonarch.applyDefault((_c = entry.template.default) === null || _c === void 0 ? void 0 : _c.parameter, entry.parameter), (_d = entry.template.override) === null || _d === void 0 ? void 0 : _d.parameter);
+                    parameter = Jsonarch.applyDefault((_c = entry.template.default) === null || _c === void 0 ? void 0 : _c.parameter, entry.parameter, (_d = entry.template.override) === null || _d === void 0 ? void 0 : _d.parameter);
                     if (!entry.template.catch) return [3 /*break*/, 6];
                     _e.label = 1;
                 case 1:

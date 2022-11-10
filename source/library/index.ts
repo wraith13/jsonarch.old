@@ -1024,7 +1024,8 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                applyDefault(entry.template.default?.parameter, entry.parameter),
+                entry.template.default?.parameter,
+                entry.parameter,
                 entry.template.override?.parameter
             );
             if (entry.template.catch)
