@@ -534,6 +534,7 @@ export declare module Jsonarch {
         };
         number: {
             compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         string: {
             join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;

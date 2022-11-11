@@ -641,14 +641,25 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateMatch = function (entry) { return Jsonarch.profile(entry, "evaluateMatch", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, result;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var parameter, _c, _d, _e, result;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
-                    parameter = Jsonarch.applyDefault(entry.template.default, entry.parameter);
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "cases"), template: entry.template.cases, parameter: parameter }))];
+                    _c = Jsonarch.applyDefault;
+                    _d = [entry.template.default];
+                    if (!(undefined !== entry.template.parameter)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
                 case 1:
-                    result = _c.sent();
+                    _e = _f.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    _e = undefined;
+                    _f.label = 3;
+                case 3:
+                    parameter = _c.apply(void 0, _d.concat([_e]));
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "cases"), template: entry.template.cases, parameter: parameter }))];
+                case 4:
+                    result = _f.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
@@ -1109,6 +1120,12 @@ var Jsonarch;
                         entry: Jsonarch.toJsonable(entry),
                         parameter: parameter,
                     });
+                }
+                return undefined;
+            },
+            sum: function (_entry, parameter) {
+                if (Jsonarch.isArray(Jsonarch.isNumber)(parameter)) {
+                    return parameter.reduce(function (a, b) { return a + b; }, 0);
                 }
                 return undefined;
             },

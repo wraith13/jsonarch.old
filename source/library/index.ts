@@ -1075,7 +1075,18 @@ export module Jsonarch
     (
         entry, "evaluateMatch", async () =>
         {
-            const parameter = applyDefault(entry.template.default, entry.parameter);
+            const parameter = applyDefault
+            (
+                entry.template.default,
+                undefined !== entry.template.parameter ?
+                    await apply
+                    ({
+                        ...entry,
+                        origin: makeOrigin(entry.origin, "parameter"),
+                        template: entry.template.parameter,
+                    }):
+                    undefined
+            );
             const result = await evaluateCases
             ({
                 ...entry,
@@ -1574,6 +1585,14 @@ export module Jsonarch
                         entry: toJsonable(entry),
                         parameter,
                     });
+                }
+                return undefined;
+            },
+            sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isArray(isNumber)(parameter))
+                {
+                    return parameter.reduce((a, b) => a +b, 0);
                 }
                 return undefined;
             },
