@@ -825,6 +825,7 @@ export module Jsonarch
     export interface Value extends AlphaJsonarch
     {
         $arch: "value";
+        type?: Type;
         refer: Refer;
     }
     export const isValueData = isJsonarch<Value>("value");
@@ -1404,6 +1405,7 @@ export module Jsonarch
                     ({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
+                        origin: entry.origin,
                         originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult,
@@ -1422,6 +1424,7 @@ export module Jsonarch
                 ({
                     "$arch": "error",
                     "message": "Not found type define",
+                    origin: entry.origin,
                     originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
@@ -1433,6 +1436,7 @@ export module Jsonarch
             ({
                 "$arch": "error",
                 "message": "Not found template",
+                origin: entry.origin,
                 originMap: entry.originMap,
                 "refer": entry.template.refer,
             });

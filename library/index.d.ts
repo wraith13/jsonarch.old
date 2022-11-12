@@ -416,6 +416,7 @@ export declare module Jsonarch {
     export const isCallData: (template: unknown) => template is Call;
     export interface Value extends AlphaJsonarch {
         $arch: "value";
+        type?: Type;
         refer: Refer;
     }
     export const isValueData: (template: unknown) => template is Value;

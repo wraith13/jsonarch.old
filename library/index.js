@@ -979,6 +979,7 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         "$arch": "error",
                         "message": "Unmatch parameter type",
+                        origin: entry.origin,
                         originMap: entry.originMap,
                         "refer": entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
@@ -994,6 +995,7 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Not found type define",
+                    origin: entry.origin,
                     originMap: entry.originMap,
                     "refer": entry.template.refer,
                 });
@@ -1003,6 +1005,7 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 "$arch": "error",
                 "message": "Not found template",
+                origin: entry.origin,
                 originMap: entry.originMap,
                 "refer": entry.template.refer,
             });

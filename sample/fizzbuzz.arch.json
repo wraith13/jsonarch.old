@@ -22,7 +22,7 @@
                         1
                     ]
                 },
-                "max": { "$arch": "value", "refer": [ "parameter" ] }
+                "max": { "$arch": "value", "refer": [ "parameter", "length" ] }
             },
             "cases":
             [
