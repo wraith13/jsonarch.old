@@ -96,6 +96,20 @@
                 },
                 "return": { "$arch": "type", "type": "string", "enum": [ "<", "=", ">" ] }
             }
+        },
+        "sum":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter":
+                {
+                    "$arch": "type",
+                    "type": "array",
+                    "itemType": { "$arch": "type", "type": "number" }
+                },
+                "return": { "$arch": "type", "type": "number" }
+            }
         }
     },
     "string":

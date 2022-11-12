@@ -18,7 +18,7 @@
                     "$arch": "call", "refer": [ "number", "sum" ],
                     "parameter":
                     [
-                        { "$arch": "value", "refer": [ "$loop", "index" ] },
+                        { "$arch": "value", "refer": [ "scope", "$loop", "index" ] },
                         1
                     ]
                 },
