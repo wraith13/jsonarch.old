@@ -2109,6 +2109,21 @@ export module Jsonarch
             return reverseCompareTypeResult(compareTypeMeta(b, a));
         }
         else
+        if (isAnyTypeData(a) && ! isAnyTypeData(b))
+        {
+            return "base";
+        }
+        else
+        if ( ! isAnyTypeData(a) && isAnyTypeData(b))
+        {
+            return "extended";
+        }
+        else
+        if (isAnyTypeData(a) && isAnyTypeData(b))
+        {
+            return "equal";
+        }
+        else
         {
             return "unmatch";
         }

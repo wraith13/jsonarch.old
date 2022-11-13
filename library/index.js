@@ -1496,6 +1496,15 @@ var Jsonarch;
         else if (Jsonarch.isMetaTypeData(b)) {
             return Jsonarch.reverseCompareTypeResult(Jsonarch.compareTypeMeta(b, a));
         }
+        else if (Jsonarch.isAnyTypeData(a) && !Jsonarch.isAnyTypeData(b)) {
+            return "base";
+        }
+        else if (!Jsonarch.isAnyTypeData(a) && Jsonarch.isAnyTypeData(b)) {
+            return "extended";
+        }
+        else if (Jsonarch.isAnyTypeData(a) && Jsonarch.isAnyTypeData(b)) {
+            return "equal";
+        }
         else {
             return "unmatch";
         }
