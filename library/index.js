@@ -1132,6 +1132,12 @@ var Jsonarch;
                 }
                 return undefined;
             },
+            remainder: function (_entry, parameter) {
+                if (isTuple(Jsonarch.isNumber, Jsonarch.isNumber)(parameter)) {
+                    return parameter[0] % parameter[1];
+                }
+                return undefined;
+            }
         },
         string: {
             join: function (_entry, parameter) {
@@ -1563,6 +1569,15 @@ var Jsonarch;
             result = { $arch: "type", type: "never", };
         }
         return result;
+    };
+    Jsonarch.asIntegerOnly = function (type) {
+        if (Jsonarch.isRangeNumberValueTypeData(type)) {
+            return type.integerOnly || false;
+        }
+        else if (Jsonarch.isEnumNumberValueTypeData(type) && type.enum) {
+            return !type.enum.some(function (i) { return i === Math.floor(i); });
+        }
+        return false;
     };
     Jsonarch.andTypeMinMaxValue = function (a, b) {
         var _c, _d;

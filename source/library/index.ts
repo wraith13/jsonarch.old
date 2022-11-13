@@ -1600,6 +1600,14 @@ export module Jsonarch
                 }
                 return undefined;
             },
+            remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isTuple<number, number>(isNumber, isNumber)(parameter))
+                {
+                    return parameter[0] % parameter[1];
+                }
+                return undefined;
+            }
         },
         string:
         {
@@ -2198,6 +2206,19 @@ export module Jsonarch
             result = { $arch: "type", type: "never", };
         }
         return result;
+    };
+    export const asIntegerOnly = (type: NumberValueType): boolean =>
+    {
+        if (isRangeNumberValueTypeData(type))
+        {
+            return type.integerOnly || false;
+        }
+        else
+        if (isEnumNumberValueTypeData(type) && type.enum)
+        {
+            return ! type.enum.some(i => i === Math.floor(i));
+        }
+        return false;
     };
     export const andTypeMinMaxValue = <TargetType extends NumberValueType>(a: TargetType, b: TargetType): TargetType | NeverType =>
     {

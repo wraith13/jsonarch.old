@@ -536,6 +536,7 @@ export declare module Jsonarch {
         number: {
             compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
             sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         string: {
             join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
@@ -576,6 +577,7 @@ export declare module Jsonarch {
     export const isCompatibleType: (source: Type, destination: Type) => boolean;
     export const andTypeOptional: <TargetType extends Type>(a: TargetType, b: TargetType) => TargetType;
     export const andTypeEnum: <ValueType_1 extends JsonableValue, TargetType extends AlphaEnumType<ValueType_1>>(a: TargetType, b: TargetType) => NeverType | TargetType;
+    export const asIntegerOnly: (type: NumberValueType) => boolean;
     export const andTypeMinMaxValue: <TargetType extends NumberValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
     export const andTypeFormat: <TargetType extends StringValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
     export const andTypeMinMaxLength: <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType) => NeverType | TargetType;

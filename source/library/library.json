@@ -110,6 +110,24 @@
                 },
                 "return": { "$arch": "type", "type": "number" }
             }
+        },
+        "remainder":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter":
+                {
+                    "$arch": "type",
+                    "type": "tuple",
+                    "list":
+                    [
+                        { "$arch": "type", "type": "number", "minValue": 0, "integerOnly": true },
+                        { "$arch": "type", "type": "number", "minValue": 1, "integerOnly": true }
+                    ]
+                },
+                "return": { "$arch": "type", "type": "number", "minValue": 0, "integerOnly": true }
+            }
         }
     },
     "string":
