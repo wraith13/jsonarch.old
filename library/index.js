@@ -1275,10 +1275,21 @@ var Jsonarch;
             }
         }
     };
+    Jsonarch.getMinValue = function (value) {
+        var _c, _d, _e;
+        return Jsonarch.isRangeNumberValueTypeData(value) ? value.minValue :
+            Jsonarch.isEnumNumberValueTypeData(value) && 0 < ((_d = (_c = value.enum) === null || _c === void 0 ? void 0 : _c.length) !== null && _d !== void 0 ? _d : 0) ? Math.min.apply(Math, (_e = value.enum) !== null && _e !== void 0 ? _e : []) :
+                undefined;
+    };
+    Jsonarch.getMaxValue = function (value) {
+        var _c, _d, _e;
+        return Jsonarch.isRangeNumberValueTypeData(value) ? value.maxValue :
+            Jsonarch.isEnumNumberValueTypeData(value) && 0 < ((_d = (_c = value.enum) === null || _c === void 0 ? void 0 : _c.length) !== null && _d !== void 0 ? _d : 0) ? Math.max.apply(Math, (_e = value.enum) !== null && _e !== void 0 ? _e : []) :
+                undefined;
+    };
     Jsonarch.compareTypeMinValue = function (a, b) {
-        var _c, _d;
-        var aMinValue = (_c = a.minValue) !== null && _c !== void 0 ? _c : undefined;
-        var bMinValue = (_d = b.minValue) !== null && _d !== void 0 ? _d : undefined;
+        var aMinValue = Jsonarch.getMinValue(a);
+        var bMinValue = Jsonarch.getMinValue(b);
         if (aMinValue === bMinValue) {
             return "equal";
         }
@@ -1296,9 +1307,8 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMaxValue = function (a, b) {
-        var _c, _d;
-        var aMaxValue = (_c = a.maxValue) !== null && _c !== void 0 ? _c : undefined;
-        var bMaxValue = (_d = b.maxValue) !== null && _d !== void 0 ? _d : undefined;
+        var aMaxValue = Jsonarch.getMaxValue(a);
+        var bMaxValue = Jsonarch.getMaxValue(b);
         if (aMaxValue === b.maxValue) {
             return "equal";
         }

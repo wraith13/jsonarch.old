@@ -550,6 +550,8 @@ export declare module Jsonarch {
     export const compareTypeOptional: (a: Type, b: Type) => CompareTypeResult;
     export const compareTypeEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
     export const compareTypeNeverEnum: <ValueType_1 extends JsonableValue>(a: AlphaEnumType<ValueType_1>, b: AlphaEnumType<ValueType_1>) => CompareTypeResult;
+    export const getMinValue: (value: NumberValueType) => number | undefined;
+    export const getMaxValue: (value: NumberValueType) => number | undefined;
     export const compareTypeMinValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMinMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;

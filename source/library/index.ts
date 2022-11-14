@@ -1785,10 +1785,18 @@ export module Jsonarch
             }
         }
     };
+    export const getMinValue = (value: NumberValueType): number | undefined =>
+        isRangeNumberValueTypeData(value) ? value.minValue:
+        isEnumNumberValueTypeData(value) && 0 < (value.enum?.length ?? 0) ? Math.min(...value.enum ?? []):
+        undefined;
+    export const getMaxValue = (value: NumberValueType): number | undefined =>
+        isRangeNumberValueTypeData(value) ? value.maxValue:
+        isEnumNumberValueTypeData(value) && 0 < (value.enum?.length ?? 0) ? Math.max(...value.enum ?? []):
+        undefined;
     export const compareTypeMinValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
-        const aMinValue = a.minValue ?? undefined;
-        const bMinValue = b.minValue ?? undefined;
+        const aMinValue = getMinValue(a);
+        const bMinValue = getMinValue(b);
         if (aMinValue === bMinValue)
         {
             return "equal";
@@ -1815,8 +1823,8 @@ export module Jsonarch
     };
     export const compareTypeMaxValue = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
     {
-        const aMaxValue = a.maxValue ?? undefined;
-        const bMaxValue = b.maxValue ?? undefined;
+        const aMaxValue = getMaxValue(a);
+        const bMaxValue = getMaxValue(b);
         if (aMaxValue === b.maxValue)
         {
             return "equal";
