@@ -555,6 +555,8 @@ export declare module Jsonarch {
     export const compareTypeMinValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeMinMaxValue: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
+    export const asIntegerOnly: (type: NumberValueType) => boolean;
+    export const compareTypeIntegerOnly: (a: NumberValueType, b: NumberValueType) => CompareTypeResult;
     export const compareTypeFormat: (a: StringValueType, b: StringValueType) => CompareTypeResult;
     export const compareTypeMinLength: <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType) => CompareTypeResult;
     export const compareTypeMaxLength: <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType) => CompareTypeResult;
@@ -579,7 +581,6 @@ export declare module Jsonarch {
     export const isCompatibleType: (source: Type, destination: Type) => boolean;
     export const andTypeOptional: <TargetType extends Type>(a: TargetType, b: TargetType) => TargetType;
     export const andTypeEnum: <ValueType_1 extends JsonableValue, TargetType extends AlphaEnumType<ValueType_1>>(a: TargetType, b: TargetType) => NeverType | TargetType;
-    export const asIntegerOnly: (type: NumberValueType) => boolean;
     export const andTypeMinMaxValue: <TargetType extends NumberValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
     export const andTypeFormat: <TargetType extends StringValueType>(a: TargetType, b: TargetType) => NeverType | TargetType;
     export const andTypeMinMaxLength: <TargetType extends TypeHasMinMaxLength>(a: TargetType, b: TargetType) => NeverType | TargetType;

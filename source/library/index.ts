@@ -1825,7 +1825,7 @@ export module Jsonarch
     {
         const aMaxValue = getMaxValue(a);
         const bMaxValue = getMaxValue(b);
-        if (aMaxValue === b.maxValue)
+        if (aMaxValue === bMaxValue)
         {
             return "equal";
         }
@@ -1854,6 +1854,43 @@ export module Jsonarch
         compareTypeMinValue(a, b),
         compareTypeMaxValue(a, b)
     );
+    export const asIntegerOnly = (type: NumberValueType): boolean =>
+    {
+        if (isRangeNumberValueTypeData(type))
+        {
+            return type.integerOnly ?? false;
+        }
+        else
+        if (isEnumNumberValueTypeData(type) && type.enum)
+        {
+            return ! type.enum.some(i => i !== Math.floor(i));
+        }
+        return false;
+    };
+    export const compareTypeIntegerOnly = (a: NumberValueType, b: NumberValueType): CompareTypeResult =>
+    {
+        const aIntegerOnly = asIntegerOnly(a);
+        const bIntegerOnly = asIntegerOnly(b);
+        if (aIntegerOnly === bIntegerOnly)
+        {
+            return "equal";
+        }
+        else
+        if (aIntegerOnly)
+        {
+            return "extended";
+        }
+        else
+        if (bIntegerOnly)
+        {
+            return "base";
+        }
+        else
+        {
+            // throw new ErrorJson({ "$arch": "error", "message": "Unreachable xxx", }); の方が望ましい。
+            return "unmatch";
+        }
+    };
     export const compareTypeFormat = (a: StringValueType, b: StringValueType): CompareTypeResult =>
     {
         if (a.format === b.format)
@@ -2018,6 +2055,7 @@ export module Jsonarch
         compareTypeEnum,
         compareTypeNeverEnum,
         compareTypeMinMaxValue,
+        compareTypeIntegerOnly,
     ]);
     export const compareStringValueType = compositeCompareType<StringValueType>
     ([
@@ -2214,19 +2252,6 @@ export module Jsonarch
             result = { $arch: "type", type: "never", };
         }
         return result;
-    };
-    export const asIntegerOnly = (type: NumberValueType): boolean =>
-    {
-        if (isRangeNumberValueTypeData(type))
-        {
-            return type.integerOnly || false;
-        }
-        else
-        if (isEnumNumberValueTypeData(type) && type.enum)
-        {
-            return ! type.enum.some(i => i === Math.floor(i));
-        }
-        return false;
     };
     export const andTypeMinMaxValue = <TargetType extends NumberValueType>(a: TargetType, b: TargetType): TargetType | NeverType =>
     {

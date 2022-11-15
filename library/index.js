@@ -1309,7 +1309,7 @@ var Jsonarch;
     Jsonarch.compareTypeMaxValue = function (a, b) {
         var aMaxValue = Jsonarch.getMaxValue(a);
         var bMaxValue = Jsonarch.getMaxValue(b);
-        if (aMaxValue === b.maxValue) {
+        if (aMaxValue === bMaxValue) {
             return "equal";
         }
         else if (undefined === aMaxValue) {
@@ -1326,6 +1326,33 @@ var Jsonarch;
         }
     };
     Jsonarch.compareTypeMinMaxValue = function (a, b) { return Jsonarch.compositeCompareTypeResult(Jsonarch.compareTypeMinValue(a, b), Jsonarch.compareTypeMaxValue(a, b)); };
+    Jsonarch.asIntegerOnly = function (type) {
+        var _c;
+        if (Jsonarch.isRangeNumberValueTypeData(type)) {
+            return (_c = type.integerOnly) !== null && _c !== void 0 ? _c : false;
+        }
+        else if (Jsonarch.isEnumNumberValueTypeData(type) && type.enum) {
+            return !type.enum.some(function (i) { return i !== Math.floor(i); });
+        }
+        return false;
+    };
+    Jsonarch.compareTypeIntegerOnly = function (a, b) {
+        var aIntegerOnly = Jsonarch.asIntegerOnly(a);
+        var bIntegerOnly = Jsonarch.asIntegerOnly(b);
+        if (aIntegerOnly === bIntegerOnly) {
+            return "equal";
+        }
+        else if (aIntegerOnly) {
+            return "extended";
+        }
+        else if (bIntegerOnly) {
+            return "base";
+        }
+        else {
+            // throw new ErrorJson({ "$arch": "error", "message": "Unreachable xxx", }); の方が望ましい。
+            return "unmatch";
+        }
+    };
     Jsonarch.compareTypeFormat = function (a, b) {
         if (a.format === b.format) {
             return "equal";
@@ -1438,6 +1465,7 @@ var Jsonarch;
         Jsonarch.compareTypeEnum,
         Jsonarch.compareTypeNeverEnum,
         Jsonarch.compareTypeMinMaxValue,
+        Jsonarch.compareTypeIntegerOnly,
     ]);
     Jsonarch.compareStringValueType = Jsonarch.compositeCompareType([
         Jsonarch.compareTypeOptional,
@@ -1579,15 +1607,6 @@ var Jsonarch;
             result = { $arch: "type", type: "never", };
         }
         return result;
-    };
-    Jsonarch.asIntegerOnly = function (type) {
-        if (Jsonarch.isRangeNumberValueTypeData(type)) {
-            return type.integerOnly || false;
-        }
-        else if (Jsonarch.isEnumNumberValueTypeData(type) && type.enum) {
-            return !type.enum.some(function (i) { return i === Math.floor(i); });
-        }
-        return false;
     };
     Jsonarch.andTypeMinMaxValue = function (a, b) {
         var _c, _d;
