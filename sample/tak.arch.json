@@ -1,0 +1,118 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "template",
+    "type":
+    {
+        "parameter":
+        {
+            "$arch": "type",
+            "type": "object",
+            "member":
+            {
+                "x": { "$arch": "type", "type": "number", "integerOnly": true },
+                "y": { "$arch": "type", "type": "number", "integerOnly": true },
+                "z": { "$arch": "type", "type": "number", "integerOnly": true }
+            }
+        },
+        "return": { "$arch": "type", "type": "number", "integerOnly": true }
+    },
+    "default":
+    {
+        "parameter": { "x": 12, "y": 6, "z": 0 }
+    },
+    "return":
+    {
+        "$arch": "match",
+        "cases":
+        [
+            {
+                "case":
+                {
+                    "if":
+                    {
+                        "$arch": "call",
+                        "refer": [ "object", "equal" ],
+                        "parameter":
+                        [
+                            {
+                                "$arch": "call",
+                                "refer": [ "number", "compare" ],
+                                "parameter":
+                                [
+                                    { "$arch": "value", "refer": [ "parameter", "x" ] },
+                                    { "$arch": "value", "refer": [ "parameter", "y" ] }
+                                ]
+                            },
+                            [ "<", "="]
+                        ]
+                    }
+                },
+                "return": { "$arch": "value", "refer": [ "parameter", "z" ] }
+            },
+            {
+                "return":
+                {
+                    "$arch": "call",
+                    "refer": [ "template" ],
+                    "parameter":
+                    [
+                        {
+                            "$arch": "call",
+                            "refer": [ "template" ],
+                            "parameter":
+                            {
+                                "x":
+                                {
+                                    "$arch": "call", "refer": [ "number", "sum" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter", "x" ] },
+                                        -1
+                                    ]
+                                },
+                                "y": { "$arch": "value", "refer": [ "parameter", "y" ] },
+                                "z": { "$arch": "value", "refer": [ "parameter", "z" ] }
+                            }
+                        },
+                        {
+                            "$arch": "call",
+                            "refer": [ "template" ],
+                            "parameter":
+                            {
+                                "x":
+                                {
+                                    "$arch": "call", "refer": [ "number", "sum" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter", "y" ] },
+                                        -1
+                                    ]
+                                },
+                                "y": { "$arch": "value", "refer": [ "parameter", "z" ] },
+                                "z": { "$arch": "value", "refer": [ "parameter", "x" ] }
+                            }
+                        },
+                        {
+                            "$arch": "call",
+                            "refer": [ "template" ],
+                            "parameter":
+                            {
+                                "x":
+                                {
+                                    "$arch": "call", "refer": [ "number", "sum" ],
+                                    "parameter":
+                                    [
+                                        { "$arch": "value", "refer": [ "parameter", "z" ] },
+                                        -1
+                                    ]
+                                },
+                                "y": { "$arch": "value", "refer": [ "parameter", "x" ] },
+                                "z": { "$arch": "value", "refer": [ "parameter", "y" ] }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
