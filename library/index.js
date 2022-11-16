@@ -585,10 +585,11 @@ var Jsonarch;
     Jsonarch.isListCasePattern = Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isJsonable), });
     Jsonarch.isTypeCasePattern = Jsonarch.isObject({ type: Jsonarch.isTypeData, });
     Jsonarch.isIfCasePattern = Jsonarch.isObject({ if: Jsonarch.isJsonable, });
+    Jsonarch.isIfCaseCasePattern = function (value) { return Jsonarch.isObject({ ifCase: Jsonarch.isCasePattern, parameter: Jsonarch.isJsonable, })(value); };
     Jsonarch.isNotCasePattern = function (value) { return Jsonarch.isObject({ not: Jsonarch.isCasePattern, })(value); };
     Jsonarch.isOrCasePattern = function (value) { return Jsonarch.isObject({ or: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
     Jsonarch.isAndCasePattern = function (value) { return Jsonarch.isObject({ and: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
-    Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
+    Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isIfCaseCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
     Jsonarch.isLoopFalseResultData = Jsonarch.isObject({ continue: Jsonarch.isJustValue(false), });
     Jsonarch.isLoopRegularResultData = Jsonarch.isObject({ continue: isTypeOr(Jsonarch.isUndefined, Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
@@ -737,6 +738,33 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateIfCaseCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateIfCaseCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
+                case 1:
+                    parameter = _c.sent();
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "ifCase"), template: entry.template.ifCase, parameter: parameter }))];
+                case 2:
+                    result = _c.sent();
+                    if ("boolean" !== typeof result) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Unmatch if-case result type",
+                            originMap: entry.originMap,
+                            template: {
+                                "ifCase": entry.template.ifCase,
+                                "parameter": entry.template.parameter,
+                            },
+                            parameter: parameter,
+                            result: result,
+                        });
+                    }
+                    return [2 /*return*/, result];
+            }
+        });
+    }); }); };
     Jsonarch.evaluateNotCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateNotCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
         var result;
         return __generator(this, function (_c) {
@@ -843,6 +871,7 @@ var Jsonarch;
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isListCasePattern, Jsonarch.evaluateListCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isTypeCasePattern, Jsonarch.evaluateTypeCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isIfCasePattern, Jsonarch.evaluateIfCasePattern),
+        Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isIfCaseCasePattern, Jsonarch.evaluateIfCaseCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isNotCasePattern, Jsonarch.evaluateNotCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isOrCasePattern, Jsonarch.evaluateOrCasePattern),
         Jsonarch.evaluateIfMatchCasePattern(Jsonarch.isAndCasePattern, Jsonarch.evaluateAndCasePattern),

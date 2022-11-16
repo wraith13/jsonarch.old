@@ -941,6 +941,11 @@ export module Jsonarch
     {
         if: Jsonable;
     }
+    export interface IfCaseCasePattern extends JsonableObject
+    {
+        ifCase: CasePattern;
+        parameter: Jsonable;
+    }
     export interface NotCasePattern extends JsonableObject
     {
         not: CasePattern;
@@ -957,20 +962,22 @@ export module Jsonarch
     export const isListCasePattern = isObject<ListCasePattern>({ list: isArray(isJsonable), });
     export const isTypeCasePattern = isObject<TypeCasePattern>({ type: isTypeData, });
     export const isIfCasePattern = isObject<IfCasePattern>({ if: isJsonable, });
+    export const isIfCaseCasePattern = (value: unknown): value is IfCaseCasePattern => isObject<IfCaseCasePattern>({ ifCase: isCasePattern, parameter: isJsonable, })(value);
     export const isNotCasePattern = (value: unknown): value is NotCasePattern => isObject<NotCasePattern>({ not: isCasePattern, })(value);
     export const isOrCasePattern = (value: unknown): value is OrCasePattern => isObject<OrCasePattern>({ or: isArray(isCasePattern), })(value);
     export const isAndCasePattern = (value: unknown): value is AndCasePattern => isObject<AndCasePattern>({ and: isArray(isCasePattern), })(value);
-    export const isCasePattern = isTypeOr<ValueCasePattern, ListCasePattern, TypeCasePattern, IfCasePattern, NotCasePattern, OrCasePattern, AndCasePattern>
+    export const isCasePattern = isTypeOr<ValueCasePattern, ListCasePattern, TypeCasePattern, IfCasePattern, IfCaseCasePattern, NotCasePattern, OrCasePattern, AndCasePattern>
     (
         isValueCasePattern,
         isListCasePattern,
         isTypeCasePattern,
         isIfCasePattern,
+        isIfCaseCasePattern,
         isNotCasePattern,
         isOrCasePattern,
         isAndCasePattern
     );
-    export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
+    export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | IfCaseCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
     export interface Loop extends AlphaJsonarch
     {
         $arch: "loop";
@@ -1186,6 +1193,42 @@ export module Jsonarch
             return result;
         }
     );
+    export const evaluateIfCaseCasePattern = (entry: EvaluateEntry<IfCaseCasePattern>): Promise<boolean> => profile
+    (
+        entry, "evaluateIfCaseCasePattern", async () =>
+        {
+            const parameter = await apply
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "parameter"),
+                template: entry.template.parameter,
+            });
+            const result = await evaluateCasePattern
+            ({
+                ...entry,
+                origin: makeOrigin(entry.origin, "ifCase"),
+                template: entry.template.ifCase,
+                parameter,
+            });
+            if ("boolean" !== typeof result)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Unmatch if-case result type",
+                    originMap: entry.originMap,
+                    template:
+                    {
+                        "ifCase": entry.template.ifCase,
+                        "parameter": entry.template.parameter,
+                    },
+                    parameter,
+                    result,
+                });
+            }
+            return result;
+        }
+    );
     export const evaluateNotCasePattern = (entry: EvaluateEntry<NotCasePattern>): Promise<boolean> => profile
     (
         entry, "evaluateNotCasePattern", async () =>
@@ -1277,19 +1320,20 @@ export module Jsonarch
         }
     );
     export const evaluateIfMatchCasePattern = <CasePatternType extends CasePattern>(isMatch: ((entry: Jsonable) => entry is CasePatternType), evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) =>
-        async (entry: EvaluateEntry<CasePattern>): Promise<Jsonable | undefined> =>
+        async (entry: EvaluateEntry<CasePattern>): Promise<boolean | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<CasePatternType>>entry): undefined;
-    const casePatternEvaluatorList: ((entry: EvaluateEntry<CasePattern>) => Promise<Jsonable | undefined>)[] =
+    const casePatternEvaluatorList: ((entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>)[] =
     [
         evaluateIfMatchCasePattern(isValueCasePattern, evaluateValueCasePattern),
         evaluateIfMatchCasePattern(isListCasePattern, evaluateListCasePattern),
         evaluateIfMatchCasePattern(isTypeCasePattern, evaluateTypeCasePattern),
         evaluateIfMatchCasePattern(isIfCasePattern, evaluateIfCasePattern),
+        evaluateIfMatchCasePattern(isIfCaseCasePattern, evaluateIfCaseCasePattern),
         evaluateIfMatchCasePattern(isNotCasePattern, evaluateNotCasePattern),
         evaluateIfMatchCasePattern(isOrCasePattern, evaluateOrCasePattern),
         evaluateIfMatchCasePattern(isAndCasePattern, evaluateAndCasePattern),
     ];
-    export const evaluateCasePattern = (entry: EvaluateEntry<CasePattern>): Promise<Jsonable | undefined> => profile
+    export const evaluateCasePattern = (entry: EvaluateEntry<CasePattern>): Promise<boolean | undefined> => profile
     (
         entry, "evaluateCasePattern", async () =>
         {
