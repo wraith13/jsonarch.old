@@ -29,22 +29,15 @@
                 {
                     "case":
                     {
-                        "if":
+                        "ifCase": { "value": ">" },
+                        "parameter":
                         {
                             "$arch": "call",
-                            "refer": [ "object", "equal" ],
+                            "refer": [ "number", "compare" ],
                             "parameter":
                             [
-                                {
-                                    "$arch": "call",
-                                    "refer": [ "number", "compare" ],
-                                    "parameter":
-                                    [
-                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
-                                        { "$arch": "value", "refer": [ "parameter", "max" ] }
-                                    ]
-                                },
-                                ">"
+                                { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                { "$arch": "value", "refer": [ "parameter", "max" ] }
                             ]
                         }
                     },
@@ -56,21 +49,14 @@
                 {
                     "case":
                     {
-                        "if":
+                        "ifCase": { "value": 0 },
+                        "parameter":
                         {
-                            "$arch": "call",
-                            "refer": [ "object", "equal" ],
+                            "$arch": "call", "refer": [ "number", "remainder" ],
                             "parameter":
                             [
-                                {
-                                    "$arch": "call", "refer": [ "number", "remainder" ],
-                                    "parameter":
-                                    [
-                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
-                                        15
-                                    ]
-                                },
-                                0
+                                { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                15
                             ]
                         }
                     },
@@ -82,21 +68,14 @@
                 {
                     "case":
                     {
-                        "if":
+                        "ifCase": { "value": 0 },
+                        "parameter":
                         {
-                            "$arch": "call",
-                            "refer": [ "object", "equal" ],
+                            "$arch": "call", "refer": [ "number", "remainder" ],
                             "parameter":
                             [
-                                {
-                                    "$arch": "call", "refer": [ "number", "remainder" ],
-                                    "parameter":
-                                    [
-                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
-                                        3
-                                    ]
-                                },
-                                0
+                                { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                3
                             ]
                         }
                     },
@@ -108,21 +87,14 @@
                 {
                     "case":
                     {
-                        "if":
+                        "ifCase": { "value": 0 },
+                        "parameter":
                         {
-                            "$arch": "call",
-                            "refer": [ "object", "equal" ],
+                            "$arch": "call", "refer": [ "number", "remainder" ],
                             "parameter":
                             [
-                                {
-                                    "$arch": "call", "refer": [ "number", "remainder" ],
-                                    "parameter":
-                                    [
-                                        { "$arch": "value", "refer": [ "parameter", "i" ] },
-                                        5
-                                    ]
-                                },
-                                0
+                                { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                5
                             ]
                         }
                     },
