@@ -623,11 +623,11 @@ var Jsonarch;
                     _e.label = 1;
                 case 1:
                     _e.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
                 case 2:
                     error_1 = _e.sent();
                     if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "catch"), template: entry.template.catch, parameter: error_1 }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "catch"), template: entry.template.catch, parameter: error_1 }))];
                 case 3:
                     result = _e.sent();
                     if (undefined !== result) {
@@ -636,7 +636,7 @@ var Jsonarch;
                     _e.label = 4;
                 case 4: throw error_1;
                 case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
             }
         });
@@ -1919,7 +1919,7 @@ var Jsonarch;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { template: entry.cache.template }), entry.template.refer, {
+                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
                         template: entry.origin,
                     }
                     // entry.originMap

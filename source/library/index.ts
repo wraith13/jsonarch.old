@@ -449,6 +449,7 @@ export module Jsonarch
     interface EvaluateEntry<TemplateType>
     {
         context: Context;
+        this?: Template;
         template: TemplateType;
         origin: Origin;
         originMap?: OriginMap;
@@ -1043,6 +1044,7 @@ export module Jsonarch
                     return apply
                     ({
                         ...entry,
+                        this: entry.template,
                         origin: makeOrigin(entry.origin, "return"),
                         template: entry.template.return,
                         parameter,
@@ -1055,6 +1057,7 @@ export module Jsonarch
                         const result = await evaluateCases
                         ({
                             ...entry,
+                            this: entry.template,
                             origin: makeOrigin(entry.origin, "catch"),
                             template: entry.template.catch,
                             parameter: error,
@@ -1072,6 +1075,7 @@ export module Jsonarch
                 return apply
                 ({
                     ...entry,
+                    this: entry.template,
                     origin: makeOrigin(entry.origin, "return"),
                     template: entry.template.return,
                     parameter,
@@ -2662,6 +2666,7 @@ export module Jsonarch
             (
                 {
                     ...library,
+                    this: entry.this,
                     template: entry.cache.template,
                 },
                 entry.template.refer,

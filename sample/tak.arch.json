@@ -58,12 +58,12 @@
                 "return":
                 {
                     "$arch": "call",
-                    "refer": [ "template" ],
+                    "refer": [ "this" ],
                     "parameter":
                     [
                         {
                             "$arch": "call",
-                            "refer": [ "template" ],
+                            "refer": [ "this" ],
                             "parameter":
                             {
                                 "x":
@@ -81,7 +81,7 @@
                         },
                         {
                             "$arch": "call",
-                            "refer": [ "template" ],
+                            "refer": [ "this" ],
                             "parameter":
                             {
                                 "x":
@@ -99,7 +99,7 @@
                         },
                         {
                             "$arch": "call",
-                            "refer": [ "template" ],
+                            "refer": [ "this" ],
                             "parameter":
                             {
                                 "x":

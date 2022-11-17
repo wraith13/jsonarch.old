@@ -230,6 +230,7 @@ export declare module Jsonarch {
     }
     interface EvaluateEntry<TemplateType> {
         context: Context;
+        this?: Template;
         template: TemplateType;
         origin: Origin;
         originMap?: OriginMap;
