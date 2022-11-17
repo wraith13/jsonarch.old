@@ -1093,7 +1093,7 @@ export module Jsonarch
                         origin: makeOrigin(entry.origin, "parameter"),
                         template: entry.template.parameter,
                     }):
-                    undefined
+                    entry.parameter
             );
             const result = await evaluateCases
             ({

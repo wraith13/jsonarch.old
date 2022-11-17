@@ -654,7 +654,7 @@ var Jsonarch;
                     _e = _f.sent();
                     return [3 /*break*/, 3];
                 case 2:
-                    _e = undefined;
+                    _e = entry.parameter;
                     _f.label = 3;
                 case 3:
                     parameter = _c.apply(void 0, _d.concat([_e]));

@@ -1,6 +1,11 @@
 {
     "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
     "$arch": "template",
+    "description":
+    {
+        "en": "https://en.wikipedia.org/wiki/Tak_(function)",
+        "ja": "https://ja.wikipedia.org/wiki/%E7%AB%B9%E5%86%85%E9%96%A2%E6%95%B0"
+    },
     "type":
     {
         "parameter":
