@@ -94,7 +94,9 @@ export declare module Jsonarch {
             [scope: string]: number;
         };
         stack: ProfileEntry[];
+        startAt: number;
     }
+    export const makeProfile: (data?: Partial<Profile>) => Profile;
     export interface ProfileEntry extends JsonableObject {
         name: string;
         startTicks: number;
@@ -145,7 +147,7 @@ export declare module Jsonarch {
         parameter?: FileContext;
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
-        profile?: Profile;
+        profile: Profile;
     }
     export const isContext: (value: unknown) => value is Context;
     export type ContextOrEntry = Context | {
@@ -173,7 +175,12 @@ export declare module Jsonarch {
         language?: string;
         indent?: "minify" | "smart" | "tab" | number;
         textOutput?: boolean;
-        timeout?: number;
+        limit?: {
+            processTimeout?: number;
+            maxCallNestDepth?: number;
+            maxArrayLength?: number;
+            maxObjectNestDepth?: number;
+        };
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
         originMap?: false | "template" | "parameter" | "both";
@@ -621,6 +628,7 @@ export declare module Jsonarch {
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
+    export const isProcessTimeout: (entry: EvaluateEntry<Jsonable>) => false;
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;

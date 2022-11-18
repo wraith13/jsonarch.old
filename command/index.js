@@ -205,7 +205,7 @@ var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, fu
                 _c.cache = _e.sent();
                 return [4 /*yield*/, commandLineArgumentToFileContext(argv.setting)];
             case 4: return [4 /*yield*/, _b.apply(_a, [(_c.setting = _e.sent(),
-                        //profile?: Profile;
+                        _c.profile = library_1.Jsonarch.makeProfile(),
                         _c.handler = {},
                         _c)])];
             case 5:

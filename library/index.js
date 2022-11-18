@@ -220,8 +220,12 @@ var Jsonarch;
             "$arch" in template &&
             "string" === typeof template.$arch;
     };
+    Jsonarch.makeProfile = function (data) {
+        if (data === void 0) { data = {}; }
+        return (__assign({ isProfiling: false, score: {}, stack: [], startAt: Jsonarch.getTicks() }, data));
+    };
     Jsonarch.isProfileEntry = Jsonarch.isObject({ name: Jsonarch.isString, startTicks: Jsonarch.isNumber, childrenTicks: Jsonarch.isNumber, });
-    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isNumber), stack: Jsonarch.isArray(Jsonarch.isProfileEntry) });
+    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isNumber), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
     Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json"]);
     Jsonarch.isSystemFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("system"), id: Jsonarch.isSystemFileType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
     Jsonarch.isNoneFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("none"), data: Jsonarch.isJsonable, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
@@ -302,7 +306,7 @@ var Jsonarch;
         parameter: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         cache: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         setting: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
-        profile: Jsonarch.isUndefinedOr(Jsonarch.isProfile),
+        profile: Jsonarch.isProfile,
     });
     Jsonarch.getContext = function (contextOrEntry) {
         return Jsonarch.isContext(contextOrEntry) ? contextOrEntry : contextOrEntry.context;
@@ -2011,12 +2015,30 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.isProcessTimeout = function (entry) {
+        var _c, _d, _e;
+        var processTimeout = (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.processTimeout) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.processTimeout) !== null && _e !== void 0 ? _e : 1000;
+        var now = Jsonarch.getTicks();
+        var elapsed = now - entry.context.profile.startAt;
+        if (processTimeout <= elapsed) {
+            throw new Jsonarch.ErrorJson({
+                "$arch": "error",
+                "message": "Process Timeout",
+                processTimeout: processTimeout,
+                elapsed: elapsed,
+                originMap: entry.originMap,
+                "template": entry.template,
+            });
+        }
+        return false;
+    };
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
         var result_2, template_1;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
+                    Jsonarch.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
                     if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
                     return [2 /*return*/, entry.template];
                 case 1:
@@ -2062,6 +2084,7 @@ var Jsonarch;
                         paremter: entry.parameter,
                         cache: entry.cache,
                         setting: entry.setting,
+                        profile: Jsonarch.makeProfile(),
                     };
                     origin = entry.template;
                     rootEvaluateEntry = {
@@ -2124,6 +2147,7 @@ var Jsonarch;
                             template: settingFileContext,
                             cache: entry.cache,
                             setting: Jsonarch.getSystemFileContext("boot-setting.json"),
+                            profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
                 case 4: return [4 /*yield*/, _d.apply(void 0, _e.concat([_l.sent(), null,
@@ -2139,6 +2163,7 @@ var Jsonarch;
                             template: entry.parameter,
                             cache: entry.cache,
                             setting: settingFileContext,
+                            profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.parameter })];
                 case 6: return [4 /*yield*/, _g.apply(void 0, _h.concat([_l.sent(), null,

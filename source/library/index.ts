@@ -214,7 +214,16 @@ export module Jsonarch
         isProfiling: boolean;
         score: { [scope: string]: number };
         stack: ProfileEntry[];
+        startAt: number;
     }
+    export const makeProfile = (data: Partial<Profile> = { }): Profile =>
+    ({
+        isProfiling: false,
+        score: { },
+        stack: [],
+        startAt: getTicks(),
+        ...data,
+    });
     export interface ProfileEntry extends JsonableObject
     {
         name: string;
@@ -222,7 +231,7 @@ export module Jsonarch
         childrenTicks: number;
     }
     export const isProfileEntry = isObject<ProfileEntry>({ name: isString, startTicks: isNumber, childrenTicks: isNumber, });
-    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isNumber), stack: isArray(isProfileEntry) });
+    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isNumber), stack: isArray(isProfileEntry), startAt: isNumber, });
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
     export type HashType = string;
@@ -345,7 +354,7 @@ export module Jsonarch
         parameter?: FileContext;
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
-        profile?: Profile;
+        profile: Profile;
     }
     export const isContext = isObject<Context>
     ({
@@ -353,7 +362,7 @@ export module Jsonarch
         parameter: isUndefinedOr(isFileContext),
         cache: isUndefinedOr(<IsType<FileContext<Cache>>>isFileContext),
         setting: isUndefinedOr(<IsType<FileContext<Setting>>>isFileContext),
-        profile: isUndefinedOr(isProfile),
+        profile: isProfile,
     });
     export type ContextOrEntry = Context | { context: Context; };
     export const getContext = (contextOrEntry: ContextOrEntry): Context =>
@@ -373,7 +382,13 @@ export module Jsonarch
         language?: string;
         indent?: "minify" | "smart" | "tab" | number;
         textOutput?: boolean;
-        timeout?: number;
+        limit?:
+        {
+            processTimeout?: number;
+            maxCallNestDepth?: number;
+            maxArrayLength?: number;
+            maxObjectNestDepth?: number;
+        };
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
         originMap?: false | "template" | "parameter" | "both";
@@ -2759,10 +2774,33 @@ export module Jsonarch
             // return entry.template;
         }
     );
+    export const isProcessTimeout = (entry: EvaluateEntry<Jsonable>): false =>
+    {
+        const processTimeout =
+            entry.setting.limit?.processTimeout ??
+            settingJson.limit.processTimeout ??
+            1000;
+        const now = getTicks();
+        const elapsed = now - entry.context.profile.startAt;
+        if (processTimeout <= elapsed)
+        {
+            throw new ErrorJson
+            ({
+                "$arch": "error",
+                "message": "Process Timeout",
+                processTimeout,
+                elapsed,
+                originMap: entry.originMap,
+                "template": entry.template,
+            });
+        }
+        return false;
+    };
     export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
     (
         entry, "apply", async () =>
         {
+            isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
             if (null === entry.template || "object" !== typeof entry.template)
             {
                 return entry.template;
@@ -2822,6 +2860,7 @@ export module Jsonarch
                 paremter: entry.parameter,
                 cache: entry.cache,
                 setting: entry.setting,
+                profile: makeProfile(),
             };
             const origin = entry.template;
             const rootEvaluateEntry: EvaluateEntry<Jsonable> =
@@ -2877,6 +2916,7 @@ export module Jsonarch
                 template: settingFileContext,
                 cache: entry.cache,
                 setting: getSystemFileContext("boot-setting.json"),
+                profile: makeProfile(),
             },
             await load({ context: entry, cache, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
             null,
@@ -2892,6 +2932,7 @@ export module Jsonarch
                     template: entry.parameter,
                     cache: entry.cache,
                     setting: settingFileContext,
+                    profile: makeProfile(),
                 },
                 await load({ context: entry, cache, setting, handler, file: entry.parameter }),
                 null,

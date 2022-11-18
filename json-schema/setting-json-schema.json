@@ -22,6 +22,40 @@
                 }
             ]
         },
+        "Limit": {
+            "type": "object",
+            "properties": {
+                "processTimeout":
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 10000,
+                    "description": "milliseconds"
+                },
+                "maxCallNestDepth":
+                {
+                    "type": "number",
+                    "minimum": 4,
+                    "default": 16
+                },
+                "maxArrayLength":
+                {
+                    "type": "number",
+                    "minimum": 100,
+                    "default": 1000
+                },
+                "maxObjectNestDepth":
+                {
+                    "type": "number",
+                    "minimum": 4,
+                    "default": 32
+                }
+            },
+            "required": [
+                "$arch"
+            ],
+            "additionalProperties": false
+        },
         "Setting": {
             "type": "object",
             "properties": {
@@ -44,11 +78,9 @@
                 {
                     "type": "boolean"
                 },
-                "timeout":
+                "limit":
                 {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "timeout(milliseconds)"
+                    "$ref": "#/definitions/Limit"
                 }
             },
             "required": [

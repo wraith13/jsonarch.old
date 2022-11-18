@@ -158,7 +158,7 @@ const callJsonarch = async (argv: RegulatedCommandLineParameters) =>
         parameter: await commandLineArgumentToFileContext(argv.parameter),
         cache: await commandLineArgumentToFileContext(argv.cache),
         setting: await commandLineArgumentToFileContext(argv.setting),
-        //profile?: Profile;
+        profile: Jsonarch.makeProfile(),
         handler: { }
     });
     if (argv.result)
