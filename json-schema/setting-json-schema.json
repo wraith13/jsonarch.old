@@ -49,11 +49,14 @@
                     "type": "number",
                     "minimum": 4,
                     "default": 32
+                },
+                "maxObjectMembers":
+                {
+                    "type": "number",
+                    "minimum": 100,
+                    "default": 1000
                 }
             },
-            "required": [
-                "$arch"
-            ],
             "additionalProperties": false
         },
         "Setting": {

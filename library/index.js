@@ -307,6 +307,8 @@ var Jsonarch;
         cache: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         setting: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         profile: Jsonarch.isProfile,
+        nestDepth: Jsonarch.isUndefinedOr(Jsonarch.isNumber),
+        callDepth: Jsonarch.isUndefinedOr(Jsonarch.isNumber),
     });
     Jsonarch.getContext = function (contextOrEntry) {
         return Jsonarch.isContext(contextOrEntry) ? contextOrEntry : contextOrEntry.context;
@@ -2015,30 +2017,52 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.isProcessTimeout = function (entry) {
-        var _c, _d, _e;
-        var processTimeout = (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.processTimeout) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.processTimeout) !== null && _e !== void 0 ? _e : 1000;
-        var now = Jsonarch.getTicks();
-        var elapsed = now - entry.context.profile.startAt;
-        if (processTimeout <= elapsed) {
-            throw new Jsonarch.ErrorJson({
-                "$arch": "error",
-                "message": "Process Timeout",
-                processTimeout: processTimeout,
-                elapsed: elapsed,
-                originMap: entry.originMap,
-                "template": entry.template,
-            });
-        }
-        return false;
-    };
+    var Limit;
+    (function (Limit) {
+        Limit.getProcessTimeout = function (entry) {
+            var _c, _d, _e;
+            return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.processTimeout) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.processTimeout) !== null && _e !== void 0 ? _e : 1000;
+        };
+        Limit.getMaxCallNestDepth = function (entry) {
+            var _c, _d, _e;
+            return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxCallNestDepth) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxCallNestDepth) !== null && _e !== void 0 ? _e : 16;
+        };
+        Limit.getMaxArrayLength = function (entry) {
+            var _c, _d, _e;
+            return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxArrayLength) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxArrayLength) !== null && _e !== void 0 ? _e : 1000;
+        };
+        Limit.getMaxObjectNestDepth = function (entry) {
+            var _c, _d, _e;
+            return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxObjectNestDepth) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxObjectNestDepth) !== null && _e !== void 0 ? _e : 32;
+        };
+        Limit.getMaxObjectMembers = function (entry) {
+            var _c, _d, _e;
+            return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxObjectMembers) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxObjectMembers) !== null && _e !== void 0 ? _e : 32;
+        };
+        Limit.isProcessTimeout = function (entry) {
+            var processTimeout = Limit.getProcessTimeout(entry);
+            var now = Jsonarch.getTicks();
+            var elapsed = now - entry.context.profile.startAt;
+            if (processTimeout <= elapsed) {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Process Timeout",
+                    processTimeout: processTimeout,
+                    elapsed: elapsed,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+            return false;
+        };
+    })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-        var result_2, template_1;
+        var maxArrayLength, result_2, template_1, maxObjectMembers;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    Jsonarch.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
+                    Limit.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
                     if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
                     return [2 /*return*/, entry.template];
                 case 1:
@@ -2047,6 +2071,17 @@ var Jsonarch;
                 case 2: return [2 /*return*/, _c.sent()];
                 case 3:
                     if (!Array.isArray(entry.template)) return [3 /*break*/, 5];
+                    maxArrayLength = Limit.getMaxArrayLength(entry);
+                    if (maxArrayLength < entry.template.length) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Too Long Array Length",
+                            maxArrayLength: maxArrayLength,
+                            templateLength: entry.template.length,
+                            originMap: entry.originMap,
+                            "template": entry.template,
+                        });
+                    }
                     return [4 /*yield*/, Promise.all(entry.template.map(function (i, ix) { return Jsonarch.apply(__assign(__assign({}, entry), {
                             origin: Jsonarch.makeOrigin(entry.origin, ix),
                             template: i,
@@ -2055,6 +2090,17 @@ var Jsonarch;
                 case 5:
                     result_2 = {};
                     template_1 = entry.template;
+                    maxObjectMembers = Limit.getMaxObjectMembers(entry);
+                    if (maxObjectMembers < Jsonarch.objectKeys(template_1).length) {
+                        throw new Jsonarch.ErrorJson({
+                            "$arch": "error",
+                            "message": "Too Many Object Members",
+                            maxObjectMembers: maxObjectMembers,
+                            templateMembers: Jsonarch.objectKeys(template_1).length,
+                            originMap: entry.originMap,
+                            "template": entry.template,
+                        });
+                    }
                     return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
                             var _c, _d;
                             return __generator(this, function (_e) {

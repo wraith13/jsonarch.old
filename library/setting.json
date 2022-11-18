@@ -5,6 +5,7 @@
         "processTimeout": 1000,
         "maxCallNestDepth": 16,
         "maxArrayLength": 1000,
-        "maxObjectNestDepth": 32
+        "maxObjectNestDepth": 32,
+        "maxObjectMembers": 1000
     }
 }

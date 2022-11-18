@@ -148,6 +148,8 @@ export declare module Jsonarch {
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
         profile: Profile;
+        nestDepth?: number;
+        callDepth?: number;
     }
     export const isContext: (value: unknown) => value is Context;
     export type ContextOrEntry = Context | {
@@ -180,6 +182,7 @@ export declare module Jsonarch {
             maxCallNestDepth?: number;
             maxArrayLength?: number;
             maxObjectNestDepth?: number;
+            maxObjectMembers?: number;
         };
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
@@ -628,7 +631,14 @@ export declare module Jsonarch {
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
-    export const isProcessTimeout: (entry: EvaluateEntry<Jsonable>) => false;
+    export module Limit {
+        const getProcessTimeout: (entry: EvaluateEntry<Jsonable>) => number;
+        const getMaxCallNestDepth: (entry: EvaluateEntry<Jsonable>) => number;
+        const getMaxArrayLength: (entry: EvaluateEntry<Jsonable>) => number;
+        const getMaxObjectNestDepth: (entry: EvaluateEntry<Jsonable>) => number;
+        const getMaxObjectMembers: (entry: EvaluateEntry<Jsonable>) => number;
+        const isProcessTimeout: (entry: EvaluateEntry<Jsonable>) => false;
+    }
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;

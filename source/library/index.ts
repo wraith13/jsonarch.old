@@ -355,6 +355,8 @@ export module Jsonarch
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
         profile: Profile;
+        nestDepth?: number;
+        callDepth?: number;
     }
     export const isContext = isObject<Context>
     ({
@@ -363,6 +365,8 @@ export module Jsonarch
         cache: isUndefinedOr(<IsType<FileContext<Cache>>>isFileContext),
         setting: isUndefinedOr(<IsType<FileContext<Setting>>>isFileContext),
         profile: isProfile,
+        nestDepth: isUndefinedOr(isNumber),
+        callDepth: isUndefinedOr(isNumber),
     });
     export type ContextOrEntry = Context | { context: Context; };
     export const getContext = (contextOrEntry: ContextOrEntry): Context =>
@@ -388,6 +392,7 @@ export module Jsonarch
             maxCallNestDepth?: number;
             maxArrayLength?: number;
             maxObjectNestDepth?: number;
+            maxObjectMembers?: number;
         };
         trace?: "stdout" | "stderr" | boolean;
         profile?: false | "template" | "parameter" | "both";
@@ -2774,33 +2779,53 @@ export module Jsonarch
             // return entry.template;
         }
     );
-    export const isProcessTimeout = (entry: EvaluateEntry<Jsonable>): false =>
+    export module Limit
     {
-        const processTimeout =
+        export const getProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
             entry.setting.limit?.processTimeout ??
             settingJson.limit.processTimeout ??
             1000;
-        const now = getTicks();
-        const elapsed = now - entry.context.profile.startAt;
-        if (processTimeout <= elapsed)
+        export const getMaxCallNestDepth = (entry: EvaluateEntry<Jsonable>) =>
+            entry.setting.limit?.maxCallNestDepth ??
+            settingJson.limit.maxCallNestDepth ??
+            16;
+        export const getMaxArrayLength = (entry: EvaluateEntry<Jsonable>) =>
+            entry.setting.limit?.maxArrayLength ??
+            settingJson.limit.maxArrayLength ??
+            1000;
+        export const getMaxObjectNestDepth = (entry: EvaluateEntry<Jsonable>) =>
+            entry.setting.limit?.maxObjectNestDepth ??
+            settingJson.limit.maxObjectNestDepth ??
+            32;
+        export const getMaxObjectMembers = (entry: EvaluateEntry<Jsonable>) =>
+            entry.setting.limit?.maxObjectMembers ??
+            settingJson.limit.maxObjectMembers ??
+            32;
+        export const isProcessTimeout = (entry: EvaluateEntry<Jsonable>): false =>
         {
-            throw new ErrorJson
-            ({
-                "$arch": "error",
-                "message": "Process Timeout",
-                processTimeout,
-                elapsed,
-                originMap: entry.originMap,
-                "template": entry.template,
-            });
-        }
-        return false;
-    };
+            const processTimeout = getProcessTimeout(entry);
+            const now = getTicks();
+            const elapsed = now - entry.context.profile.startAt;
+            if (processTimeout <= elapsed)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Process Timeout",
+                    processTimeout,
+                    elapsed,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+            return false;
+        };
+    }
     export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
     (
         entry, "apply", async () =>
         {
-            isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
+            Limit.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
             if (null === entry.template || "object" !== typeof entry.template)
             {
                 return entry.template;
@@ -2813,6 +2838,19 @@ export module Jsonarch
             else
             if (Array.isArray(entry.template))
             {
+                const maxArrayLength = Limit.getMaxArrayLength(entry);
+                if (maxArrayLength < entry.template.length)
+                {
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "Too Long Array Length",
+                        maxArrayLength,
+                        templateLength: entry.template.length,
+                        originMap: entry.originMap,
+                        "template": entry.template,
+                    });
+                }
                 return await Promise.all
                 (
                     entry.template.map
@@ -2833,6 +2871,19 @@ export module Jsonarch
             {
                 const result: JsonableObject = { };
                 const template = entry.template;
+                const maxObjectMembers = Limit.getMaxObjectMembers(entry);
+                if (maxObjectMembers < objectKeys(template).length)
+                {
+                    throw new ErrorJson
+                    ({
+                        "$arch": "error",
+                        "message": "Too Many Object Members",
+                        maxObjectMembers,
+                        templateMembers: objectKeys(template).length,
+                        originMap: entry.originMap,
+                        "template": entry.template,
+                    });
+                }
                 await Promise.all
                 (
                     objectKeys(template).map
