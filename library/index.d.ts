@@ -637,7 +637,11 @@ export declare module Jsonarch {
         const getMaxArrayLength: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxObjectNestDepth: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxObjectMembers: (entry: EvaluateEntry<Jsonable>) => number;
-        const isProcessTimeout: (entry: EvaluateEntry<Jsonable>) => false;
+        const throwIfOverTheProcessTimeout: (entry: EvaluateEntry<Jsonable>) => void;
+        const throwIfOverTheNestDepth: (entry: EvaluateEntry<Jsonable>) => void;
+        const throwIfOverTheCallDepth: (entry: EvaluateEntry<Jsonable>) => void;
+        const incrementNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
+        const incrementCallDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
     }
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;

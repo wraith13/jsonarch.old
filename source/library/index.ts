@@ -2682,6 +2682,8 @@ export module Jsonarch
     (
         entry, "evaluateCall", async () =>
         {
+            Limit.throwIfOverTheCallDepth(entry);
+            const nextDepthEntry = Limit.incrementCallDepth(entry);
             const target = turnRefer<JsonableValue | Function>
             (
                 {
@@ -2697,20 +2699,20 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                const parameter = validateParameterType(entry, await makeParameter(entry));
-                const result = await target(entry, parameter);
+                const parameter = validateParameterType(nextDepthEntry, await makeParameter(nextDepthEntry));
+                const result = await target(nextDepthEntry, parameter);
                 if (undefined === result)
                 {
-                    throw UnmatchParameterTypeDefineError(entry, parameter);
+                    throw UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
                 }
-                return validateReturnType(entry, parameter, result);
+                return validateReturnType(nextDepthEntry, parameter, result);
             }
             else
             if (isTemplateData(target))
             {
                 return await evaluateTemplate
                 ({
-                    ...entry,
+                    ...nextDepthEntry,
                     template: target,
                 });
             }
@@ -2801,12 +2803,12 @@ export module Jsonarch
             entry.setting.limit?.maxObjectMembers ??
             settingJson.limit.maxObjectMembers ??
             32;
-        export const isProcessTimeout = (entry: EvaluateEntry<Jsonable>): false =>
+        export const throwIfOverTheProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
         {
             const processTimeout = getProcessTimeout(entry);
             const now = getTicks();
             const elapsed = now - entry.context.profile.startAt;
-            if (processTimeout <= elapsed)
+            if (processTimeout < elapsed)
             {
                 throw new ErrorJson
                 ({
@@ -2818,14 +2820,66 @@ export module Jsonarch
                     "template": entry.template,
                 });
             }
-            return false;
         };
+        export const throwIfOverTheNestDepth = (entry: EvaluateEntry<Jsonable>) =>
+        {
+            const maxObjectNestDepth = getMaxObjectNestDepth(entry);
+            const nestDepth = entry.context.nestDepth ?? 0;
+            if (maxObjectNestDepth < nestDepth)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Too Deep Object Nest",
+                    maxObjectNestDepth,
+                    nestDepth,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+        };
+        export const throwIfOverTheCallDepth = (entry: EvaluateEntry<Jsonable>) =>
+        {
+            const maxCallNestDepth = getMaxCallNestDepth(entry);
+            const callDepth = entry.context.callDepth ?? 0;
+            if (maxCallNestDepth < callDepth)
+            {
+                throw new ErrorJson
+                ({
+                    "$arch": "error",
+                    "message": "Too Deep Call Nest",
+                    maxCallNestDepth,
+                    callDepth,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+        };
+        export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
+        ({
+            ...entry,
+            context:
+            {
+                ...entry.context,
+                nestDepth: (entry.context.nestDepth ?? 0) +1,
+            },
+        });
+        export const incrementCallDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
+        ({
+            ...entry,
+            context:
+            {
+                ...entry.context,
+                callDepth: (entry.context.callDepth ?? 0) +1,
+            },
+        });
     }
     export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
     (
         entry, "apply", async () =>
         {
-            Limit.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
+            Limit.throwIfOverTheProcessTimeout(entry);
+            Limit.throwIfOverTheNestDepth(entry);
             if (null === entry.template || "object" !== typeof entry.template)
             {
                 return entry.template;
@@ -2851,13 +2905,14 @@ export module Jsonarch
                         "template": entry.template,
                     });
                 }
+                const nextDepthEntry = Limit.incrementNestDepth(entry);
                 return await Promise.all
                 (
                     entry.template.map
                     (
                         (i, ix) => apply
                         ({
-                            ...entry,
+                            ...nextDepthEntry,
                             ...
                             {
                                 origin: makeOrigin(entry.origin, ix),
@@ -2884,13 +2939,14 @@ export module Jsonarch
                         "template": entry.template,
                     });
                 }
+                const nextDepthEntry = Limit.incrementNestDepth(entry);
                 await Promise.all
                 (
                     objectKeys(template).map
                     (
                         async key => result[key] = await apply
                         ({
-                            ...entry,
+                            ...nextDepthEntry,
                             origin: makeOrigin(entry.origin, key),
                             template: template[key] as Jsonable,
                         })

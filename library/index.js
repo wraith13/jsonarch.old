@@ -1921,10 +1921,12 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var target, parameter, _c, _d, result;
+        var nextDepthEntry, target, parameter, _c, _d, result;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
+                    Limit.throwIfOverTheCallDepth(entry);
+                    nextDepthEntry = Limit.incrementCallDepth(entry);
                     target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
                         template: entry.origin,
                     }
@@ -1932,20 +1934,20 @@ var Jsonarch;
                     );
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     _c = Jsonarch.validateParameterType;
-                    _d = [entry];
-                    return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                    _d = [nextDepthEntry];
+                    return [4 /*yield*/, Jsonarch.makeParameter(nextDepthEntry)];
                 case 1:
                     parameter = _c.apply(void 0, _d.concat([_e.sent()]));
-                    return [4 /*yield*/, target(entry, parameter)];
+                    return [4 /*yield*/, target(nextDepthEntry, parameter)];
                 case 2:
                     result = _e.sent();
                     if (undefined === result) {
-                        throw Jsonarch.UnmatchParameterTypeDefineError(entry, parameter);
+                        throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
                     }
-                    return [2 /*return*/, Jsonarch.validateReturnType(entry, parameter, result)];
+                    return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, parameter, result)];
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, entry), { template: target }))];
+                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target }))];
                 case 4: return [2 /*return*/, _e.sent()];
                 case 5: throw new Jsonarch.ErrorJson({
                     "$arch": "error",
@@ -2039,11 +2041,11 @@ var Jsonarch;
             var _c, _d, _e;
             return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxObjectMembers) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxObjectMembers) !== null && _e !== void 0 ? _e : 32;
         };
-        Limit.isProcessTimeout = function (entry) {
+        Limit.throwIfOverTheProcessTimeout = function (entry) {
             var processTimeout = Limit.getProcessTimeout(entry);
             var now = Jsonarch.getTicks();
             var elapsed = now - entry.context.profile.startAt;
-            if (processTimeout <= elapsed) {
+            if (processTimeout < elapsed) {
                 throw new Jsonarch.ErrorJson({
                     "$arch": "error",
                     "message": "Process Timeout",
@@ -2053,16 +2055,54 @@ var Jsonarch;
                     "template": entry.template,
                 });
             }
-            return false;
+        };
+        Limit.throwIfOverTheNestDepth = function (entry) {
+            var _c;
+            var maxObjectNestDepth = Limit.getMaxObjectNestDepth(entry);
+            var nestDepth = (_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0;
+            if (maxObjectNestDepth < nestDepth) {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Too Deep Object Nest",
+                    maxObjectNestDepth: maxObjectNestDepth,
+                    nestDepth: nestDepth,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+        };
+        Limit.throwIfOverTheCallDepth = function (entry) {
+            var _c;
+            var maxCallNestDepth = Limit.getMaxCallNestDepth(entry);
+            var callDepth = (_c = entry.context.callDepth) !== null && _c !== void 0 ? _c : 0;
+            if (maxCallNestDepth < callDepth) {
+                throw new Jsonarch.ErrorJson({
+                    "$arch": "error",
+                    "message": "Too Deep Call Nest",
+                    maxCallNestDepth: maxCallNestDepth,
+                    callDepth: callDepth,
+                    originMap: entry.originMap,
+                    "template": entry.template,
+                });
+            }
+        };
+        Limit.incrementNestDepth = function (entry) {
+            var _c;
+            return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { nestDepth: ((_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0) + 1 }) }));
+        };
+        Limit.incrementCallDepth = function (entry) {
+            var _c;
+            return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { callDepth: ((_c = entry.context.callDepth) !== null && _c !== void 0 ? _c : 0) + 1 }) }));
         };
     })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-        var maxArrayLength, result_2, template_1, maxObjectMembers;
+        var maxArrayLength, nextDepthEntry_1, result_2, template_1, maxObjectMembers, nextDepthEntry_2;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    Limit.isProcessTimeout(entry); // true の場合 例外送出するので結果を見る必要はない
+                    Limit.throwIfOverTheProcessTimeout(entry);
+                    Limit.throwIfOverTheNestDepth(entry);
                     if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
                     return [2 /*return*/, entry.template];
                 case 1:
@@ -2082,7 +2122,8 @@ var Jsonarch;
                             "template": entry.template,
                         });
                     }
-                    return [4 /*yield*/, Promise.all(entry.template.map(function (i, ix) { return Jsonarch.apply(__assign(__assign({}, entry), {
+                    nextDepthEntry_1 = Limit.incrementNestDepth(entry);
+                    return [4 /*yield*/, Promise.all(entry.template.map(function (i, ix) { return Jsonarch.apply(__assign(__assign({}, nextDepthEntry_1), {
                             origin: Jsonarch.makeOrigin(entry.origin, ix),
                             template: i,
                         })); }))];
@@ -2101,6 +2142,7 @@ var Jsonarch;
                             "template": entry.template,
                         });
                     }
+                    nextDepthEntry_2 = Limit.incrementNestDepth(entry);
                     return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
                             var _c, _d;
                             return __generator(this, function (_e) {
@@ -2108,7 +2150,7 @@ var Jsonarch;
                                     case 0:
                                         _c = result_2;
                                         _d = key;
-                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template_1[key] }))];
+                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry_2), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template_1[key] }))];
                                     case 1: return [2 /*return*/, _c[_d] = _e.sent()];
                                 }
                             });
