@@ -408,7 +408,7 @@ var Jsonarch;
             return Jsonarch.jsonParse(error.message.replace(/^json\:/, ""));
         }
         else {
-            var result = __assign({ "$arch": "error" }, error);
+            var result = __assign({ $arch: "error" }, error);
             return result;
         }
     };
@@ -421,8 +421,8 @@ var Jsonarch;
                     return [2 /*return*/, setting_json_1.default];
             }
             throw new Jsonarch.ErrorJson({
-                "$arch": "error",
-                "message": "never",
+                $arch: "error",
+                message: "never",
                 entry: Jsonarch.toJsonable(entry),
             });
         });
@@ -681,8 +681,8 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -698,8 +698,8 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -716,8 +716,8 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -733,10 +733,10 @@ var Jsonarch;
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch if result type",
+                            $arch: "error",
+                            message: "Unmatch if result type",
                             originMap: entry.originMap,
-                            "if": entry.template.if,
+                            if: entry.template.if,
                             result: result,
                         });
                     }
@@ -756,8 +756,8 @@ var Jsonarch;
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch if-case result type",
+                            $arch: "error",
+                            message: "Unmatch if-case result type",
                             originMap: entry.originMap,
                             template: {
                                 "ifCase": entry.template.ifCase,
@@ -780,10 +780,10 @@ var Jsonarch;
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch not result type",
+                            $arch: "error",
+                            message: "Unmatch not result type",
                             originMap: entry.originMap,
-                            "not": entry.template.if,
+                            not: entry.template.if,
                             result: result,
                         });
                     }
@@ -811,8 +811,8 @@ var Jsonarch;
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch or result type",
+                            $arch: "error",
+                            message: "Unmatch or result type",
                             originMap: entry.originMap,
                             template: template,
                             result: result,
@@ -849,8 +849,8 @@ var Jsonarch;
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unmatch and result type",
+                            $arch: "error",
+                            message: "Unmatch and result type",
                             originMap: entry.originMap,
                             template: template,
                             result: result,
@@ -906,10 +906,10 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown Case Pattern",
+                    $arch: "error",
+                    message: "Unknown Case Pattern",
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         });
@@ -963,10 +963,10 @@ var Jsonarch;
                     current = _d.sent();
                     if (!Jsonarch.isLoopResultData(current)) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Unknown Lopp Result",
+                            $arch: "error",
+                            message: "Unknown Lopp Result",
                             originMap: entry.originMap,
-                            "result": current,
+                            result: current,
                         });
                     }
                     if (true !== ((_c = current.continue) !== null && _c !== void 0 ? _c : true) || undefined === current.return) {
@@ -1012,15 +1012,15 @@ var Jsonarch;
                 }
                 else {
                     throw new Jsonarch.ErrorJson({
-                        "$arch": "error",
-                        "message": "Unmatch parameter type",
+                        $arch: "error",
+                        message: "Unmatch parameter type",
                         origin: entry.origin,
                         originMap: entry.originMap,
-                        "refer": entry.template.refer,
+                        refer: entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
-                        "type": {
-                            "template": type,
-                            "parameter": parameterType_1,
+                        type: {
+                            template: type,
+                            parameter: parameterType_1,
                         },
                         parameter: parameter,
                     });
@@ -1028,21 +1028,21 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Not found type define",
+                    $arch: "error",
+                    message: "Not found type define",
                     origin: entry.origin,
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         }
         else {
             throw new Jsonarch.ErrorJson({
-                "$arch": "error",
-                "message": "Not found template",
+                $arch: "error",
+                message: "Not found template",
                 origin: entry.origin,
                 originMap: entry.originMap,
-                "refer": entry.template.refer,
+                refer: entry.template.refer,
             });
         }
     };
@@ -1064,15 +1064,15 @@ var Jsonarch;
                 }
                 else {
                     throw new Jsonarch.ErrorJson({
-                        "$arch": "error",
-                        "message": "Unmatch return type",
+                        $arch: "error",
+                        message: "Unmatch return type",
                         originMap: entry.originMap,
-                        "refer": entry.template.refer,
+                        refer: entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
-                        "type": {
-                            "template": type,
-                            "parameter": parameterType_2,
-                            "result": resultType_1,
+                        type: {
+                            template: type,
+                            parameter: parameterType_2,
+                            result: resultType_1,
                         },
                         parameter: parameter,
                     });
@@ -1080,29 +1080,29 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Not found type define",
+                    $arch: "error",
+                    message: "Not found type define",
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         }
         else {
             throw new Jsonarch.ErrorJson({
-                "$arch": "error",
-                "message": "Not found template",
+                $arch: "error",
+                message: "Not found template",
                 originMap: entry.originMap,
-                "refer": entry.template.refer,
+                refer: entry.template.refer,
             });
         }
     };
     Jsonarch.UnmatchParameterTypeDefineError = function (entry, parameter) {
         return new Jsonarch.ErrorJson({
-            "$arch": "error",
-            "message": "Internal Error ( Unmatch parameter type define )",
+            $arch: "error",
+            message: "Internal Error ( Unmatch parameter type define )",
             originMap: entry.originMap,
-            "refer": ["string", "join"],
-            "parameter": parameter,
+            refer: ["string", "join"],
+            parameter: parameter,
         });
     };
     Jsonarch.library = {
@@ -1153,8 +1153,8 @@ var Jsonarch;
                         return ">";
                     }
                     throw new Jsonarch.ErrorJson({
-                        "$arch": "error",
-                        "message": "never",
+                        $arch: "error",
+                        message: "never",
                         entry: Jsonarch.toJsonable(entry),
                         parameter: parameter,
                     });
@@ -1384,7 +1384,7 @@ var Jsonarch;
             return "base";
         }
         else {
-            // throw new ErrorJson({ "$arch": "error", "message": "Unreachable xxx", }); の方が望ましい。
+            // throw new ErrorJson({ $arch: "error", message: "Unreachable xxx", }); の方が望ましい。
             return "unmatch";
         }
     };
@@ -1898,8 +1898,8 @@ var Jsonarch;
             }
             else {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unmatch refer path",
+                    $arch: "error",
+                    message: "Unmatch refer path",
                     refer: refer,
                     sourceMap: sourceMap,
                     root: Jsonarch.toJsonable(root),
@@ -1950,10 +1950,10 @@ var Jsonarch;
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target }))];
                 case 4: return [2 /*return*/, _e.sent()];
                 case 5: throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown refer call",
+                    $arch: "error",
+                    message: "Unknown refer call",
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         });
@@ -1964,10 +1964,10 @@ var Jsonarch;
             result = Jsonarch.resolveRefer(entry);
             if (undefined === result) {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown refer value",
+                    $arch: "error",
+                    message: "Unknown refer value",
                     originMap: entry.originMap,
-                    "value": entry.template,
+                    value: entry.template,
                 });
             }
             return [2 /*return*/, result];
@@ -2011,10 +2011,10 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch Type",
+                    $arch: "error",
+                    message: "Unknown Jsonarch Type",
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         });
@@ -2047,12 +2047,13 @@ var Jsonarch;
             var elapsed = now - entry.context.profile.startAt;
             if (processTimeout < elapsed) {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Process Timeout",
+                    $arch: "error",
+                    message: "Process Timeout",
                     processTimeout: processTimeout,
                     elapsed: elapsed,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2062,12 +2063,13 @@ var Jsonarch;
             var nestDepth = (_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0;
             if (maxObjectNestDepth < nestDepth) {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Too Deep Object Nest",
+                    $arch: "error",
+                    message: "Too Deep Object Nest",
                     maxObjectNestDepth: maxObjectNestDepth,
                     nestDepth: nestDepth,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2077,12 +2079,13 @@ var Jsonarch;
             var callDepth = (_c = entry.context.callDepth) !== null && _c !== void 0 ? _c : 0;
             if (maxCallNestDepth < callDepth) {
                 throw new Jsonarch.ErrorJson({
-                    "$arch": "error",
-                    "message": "Too Deep Call Nest",
+                    $arch: "error",
+                    message: "Too Deep Call Nest",
                     maxCallNestDepth: maxCallNestDepth,
                     callDepth: callDepth,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2114,12 +2117,12 @@ var Jsonarch;
                     maxArrayLength = Limit.getMaxArrayLength(entry);
                     if (maxArrayLength < entry.template.length) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Too Long Array Length",
+                            $arch: "error",
+                            message: "Too Long Array Length",
                             maxArrayLength: maxArrayLength,
                             templateLength: entry.template.length,
                             originMap: entry.originMap,
-                            "template": entry.template,
+                            template: entry.template,
                         });
                     }
                     nextDepthEntry_1 = Limit.incrementNestDepth(entry);
@@ -2134,12 +2137,12 @@ var Jsonarch;
                     maxObjectMembers = Limit.getMaxObjectMembers(entry);
                     if (maxObjectMembers < Jsonarch.objectKeys(template_1).length) {
                         throw new Jsonarch.ErrorJson({
-                            "$arch": "error",
-                            "message": "Too Many Object Members",
+                            $arch: "error",
+                            message: "Too Many Object Members",
                             maxObjectMembers: maxObjectMembers,
                             templateMembers: Jsonarch.objectKeys(template_1).length,
                             originMap: entry.originMap,
-                            "template": entry.template,
+                            template: entry.template,
                         });
                     }
                     nextDepthEntry_2 = Limit.incrementNestDepth(entry);

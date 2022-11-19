@@ -571,7 +571,7 @@ export module Jsonarch
         {
             const result = <JsonarchError>
             {
-                "$arch": "error",
+                $arch: "error",
                 ...error
             };
             return result;
@@ -590,8 +590,8 @@ export module Jsonarch
             }
             throw new ErrorJson
             ({
-                "$arch": "error",
-                "message": "never",
+                $arch: "error",
+                message: "never",
                 entry: toJsonable(entry),
             });
         }
@@ -1145,8 +1145,8 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -1165,8 +1165,8 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -1186,8 +1186,8 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unknown Jsonarch TypeUnspecified Parameter",
+                    $arch: "error",
+                    message: "Unknown Jsonarch TypeUnspecified Parameter",
                     originMap: entry.originMap,
                 });
             }
@@ -1207,10 +1207,10 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unmatch if result type",
+                    $arch: "error",
+                    message: "Unmatch if result type",
                     originMap: entry.originMap,
-                    "if": entry.template.if,
+                    if: entry.template.if,
                     result,
                 });
             }
@@ -1238,8 +1238,8 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unmatch if-case result type",
+                    $arch: "error",
+                    message: "Unmatch if-case result type",
                     originMap: entry.originMap,
                     template:
                     {
@@ -1267,10 +1267,10 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unmatch not result type",
+                    $arch: "error",
+                    message: "Unmatch not result type",
                     originMap: entry.originMap,
-                    "not": entry.template.if,
+                    not: entry.template.if,
                     result,
                 });
             }
@@ -1295,8 +1295,8 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Unmatch or result type",
+                        $arch: "error",
+                        message: "Unmatch or result type",
                         originMap: entry.originMap,
                         template,
                         result,
@@ -1328,8 +1328,8 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Unmatch and result type",
+                        $arch: "error",
+                        message: "Unmatch and result type",
                         originMap: entry.originMap,
                         template,
                         result,
@@ -1371,10 +1371,10 @@ export module Jsonarch
             }
             throw new ErrorJson
             ({
-                "$arch": "error",
-                "message": "Unknown Case Pattern",
+                $arch: "error",
+                message: "Unknown Case Pattern",
                 originMap: entry.originMap,
-                "template": entry.template,
+                template: entry.template,
             });
         }
     );
@@ -1419,10 +1419,10 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Unknown Lopp Result",
+                        $arch: "error",
+                        message: "Unknown Lopp Result",
                         originMap: entry.originMap,
-                        "result": current,
+                        result: current,
                     });
                 }
                 if (true !== (current.continue ?? true) || undefined === current.return)
@@ -1471,16 +1471,16 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Unmatch parameter type",
+                        $arch: "error",
+                        message: "Unmatch parameter type",
                         origin: entry.origin,
                         originMap: entry.originMap,
-                        "refer": entry.template.refer,
+                        refer: entry.template.refer,
                         comppareTypeResult,
-                        "type":
+                        type:
                         {
-                            "template": type,
-                            "parameter": parameterType,
+                            template: type,
+                            parameter: parameterType,
                         },
                         parameter,
                     });
@@ -1490,11 +1490,11 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Not found type define",
+                    $arch: "error",
+                    message: "Not found type define",
                     origin: entry.origin,
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         }
@@ -1502,11 +1502,11 @@ export module Jsonarch
         {
             throw new ErrorJson
             ({
-                "$arch": "error",
-                "message": "Not found template",
+                $arch: "error",
+                message: "Not found template",
                 origin: entry.origin,
                 originMap: entry.originMap,
-                "refer": entry.template.refer,
+                refer: entry.template.refer,
             });
         }
     };
@@ -1538,16 +1538,16 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Unmatch return type",
+                        $arch: "error",
+                        message: "Unmatch return type",
                         originMap: entry.originMap,
-                        "refer": entry.template.refer,
+                        refer: entry.template.refer,
                         comppareTypeResult,
-                        "type":
+                        type:
                         {
-                            "template": type,
-                            "parameter": parameterType,
-                            "result": resultType,
+                            template: type,
+                            parameter: parameterType,
+                            result: resultType,
                         },
                         parameter,
                     });
@@ -1557,10 +1557,10 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Not found type define",
+                    $arch: "error",
+                    message: "Not found type define",
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         }
@@ -1568,21 +1568,21 @@ export module Jsonarch
         {
             throw new ErrorJson
             ({
-                "$arch": "error",
-                "message": "Not found template",
+                $arch: "error",
+                message: "Not found template",
                 originMap: entry.originMap,
-                "refer": entry.template.refer,
+                refer: entry.template.refer,
             });
         }
     };
     export const UnmatchParameterTypeDefineError = (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
         new ErrorJson
         ({
-            "$arch": "error",
-            "message": "Internal Error ( Unmatch parameter type define )",
+            $arch: "error",
+            message: "Internal Error ( Unmatch parameter type define )",
             originMap: entry.originMap,
-            "refer": [ "string", "join" ],
-            "parameter": parameter,
+            refer: [ "string", "join" ],
+            parameter: parameter,
         });
     export const library =
     {
@@ -1652,8 +1652,8 @@ export module Jsonarch
                     }
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "never",
+                        $arch: "error",
+                        message: "never",
                         entry: toJsonable(entry),
                         parameter,
                     });
@@ -1955,7 +1955,7 @@ export module Jsonarch
         }
         else
         {
-            // throw new ErrorJson({ "$arch": "error", "message": "Unreachable xxx", }); の方が望ましい。
+            // throw new ErrorJson({ $arch: "error", message: "Unreachable xxx", }); の方が望ましい。
             return "unmatch";
         }
     };
@@ -2651,8 +2651,8 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unmatch refer path",
+                    $arch: "error",
+                    message: "Unmatch refer path",
                     refer,
                     sourceMap,
                     root: toJsonable(root),
@@ -2720,10 +2720,10 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unknown refer call",
+                    $arch: "error",
+                    message: "Unknown refer call",
                     originMap: entry.originMap,
-                    "refer": entry.template.refer,
+                    refer: entry.template.refer,
                 });
             }
         }
@@ -2737,10 +2737,10 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Unknown refer value",
+                    $arch: "error",
+                    message: "Unknown refer value",
                     originMap: entry.originMap,
-                    "value": entry.template,
+                    value: entry.template,
                 });
             }
             return result;
@@ -2773,10 +2773,10 @@ export module Jsonarch
             }
             throw new ErrorJson
             ({
-                "$arch": "error",
-                "message": "Unknown Jsonarch Type",
+                $arch: "error",
+                message: "Unknown Jsonarch Type",
                 originMap: entry.originMap,
-                "template": entry.template,
+                template: entry.template,
             });
             // return entry.template;
         }
@@ -2812,12 +2812,13 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Process Timeout",
+                    $arch: "error",
+                    message: "Process Timeout",
                     processTimeout,
                     elapsed,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2829,12 +2830,13 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Too Deep Object Nest",
+                    $arch: "error",
+                    message: "Too Deep Object Nest",
                     maxObjectNestDepth,
                     nestDepth,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2846,12 +2848,13 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 ({
-                    "$arch": "error",
-                    "message": "Too Deep Call Nest",
+                    $arch: "error",
+                    message: "Too Deep Call Nest",
                     maxCallNestDepth,
                     callDepth,
+                    origin: entry.origin,
                     originMap: entry.originMap,
-                    "template": entry.template,
+                    template: entry.template,
                 });
             }
         };
@@ -2897,12 +2900,12 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Too Long Array Length",
+                        $arch: "error",
+                        message: "Too Long Array Length",
                         maxArrayLength,
                         templateLength: entry.template.length,
                         originMap: entry.originMap,
-                        "template": entry.template,
+                        template: entry.template,
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
@@ -2931,12 +2934,12 @@ export module Jsonarch
                 {
                     throw new ErrorJson
                     ({
-                        "$arch": "error",
-                        "message": "Too Many Object Members",
+                        $arch: "error",
+                        message: "Too Many Object Members",
                         maxObjectMembers,
                         templateMembers: objectKeys(template).length,
                         originMap: entry.originMap,
-                        "template": entry.template,
+                        template: entry.template,
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
