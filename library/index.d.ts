@@ -1,5 +1,7 @@
 export * as Locale from "./locale";
 export declare module Jsonarch {
+    export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
+    export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult: DefaultType): (parameter: ParameterType | undefined) => ReturnType | DefaultType;
     export interface StructureObject<Element> {
         [key: string]: undefined | Structure<Element>;
     }
@@ -646,6 +648,7 @@ export declare module Jsonarch {
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
+    export const toLineArrayOrAsIs: (text: string) => string | string[];
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;
     export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;

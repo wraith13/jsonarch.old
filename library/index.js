@@ -92,6 +92,10 @@ exports.Locale = __importStar(require("./locale"));
 var Jsonarch;
 (function (Jsonarch) {
     var _this = this;
+    function undefinedable(target, defaultResult) {
+        return function (parameter) { return undefined === parameter ? defaultResult : target(parameter); };
+    }
+    Jsonarch.undefinedable = undefinedable;
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.isJsonableValue = function (value) {
@@ -408,8 +412,15 @@ var Jsonarch;
             return Jsonarch.jsonParse(error.message.replace(/^json\:/, ""));
         }
         else {
-            console.error(error);
-            var result = __assign({ $arch: "error" }, error);
+            var result = {
+                $arch: "error",
+                message: "System Error",
+                detail: {
+                    name: error.name,
+                    message: error.message,
+                    stack: undefinedable(Jsonarch.toLineArrayOrAsIs)(error.stack),
+                }
+            };
             return result;
         }
     };
@@ -2281,6 +2292,9 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.toLineArrayOrAsIs = function (text) {
+        return 0 <= text.indexOf("\n") ? text.split("\n") : text;
+    };
     Jsonarch.multiplyString = function (text, count) {
         return count < 1 ? "" : (Jsonarch.multiplyString(text + text, Math.floor(count / 2)) + (0 === count % 2 ? "" : text));
     };
@@ -2295,7 +2309,7 @@ var Jsonarch;
             Jsonarch.multiplyString("\t", base + 1) :
             Jsonarch.multiplyString(" ", indent * (base + 1));
         if (Jsonarch.isJsonableObject(json)) {
-            if (Jsonarch.objectValues(json).some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i); })) {
+            if (Jsonarch.objectValues(json).some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i) || 60 < JSON.stringify(i).length; })) {
                 result += baseIndent + "{\n";
                 var isFirst_1 = true;
                 Jsonarch.objectKeys(json).forEach(function (key) {
@@ -2338,7 +2352,7 @@ var Jsonarch;
             }
         }
         else if (Array.isArray(json)) {
-            if (json.some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i); })) {
+            if (json.some(function (i) { return Jsonarch.isJsonableObject(i) || Array.isArray(i) || 60 < JSON.stringify(i).length; })) {
                 result += baseIndent + "[\n";
                 var isFirst_3 = true;
                 json.forEach(function (value) {

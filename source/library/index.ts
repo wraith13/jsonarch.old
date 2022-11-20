@@ -6,6 +6,12 @@ import * as Locale from "./locale";
 export * as Locale from "./locale";
 export module Jsonarch
 {
+    export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
+    export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult: DefaultType): (parameter: ParameterType | undefined) => ReturnType | DefaultType;
+    export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult?: DefaultType)
+    {
+        return (parameter: ParameterType | undefined) => undefined === parameter ? defaultResult: target(parameter);
+    }
     export interface StructureObject<Element>
     {
         [key: string]: undefined | Structure<Element>;
@@ -569,11 +575,16 @@ export module Jsonarch
         }
         else
         {
-            console.error(error);
             const result = <JsonarchError>
             {
                 $arch: "error",
-                ...error
+                message: "System Error",
+                detail:
+                {
+                    name: error.name,
+                    message: error.message,
+                    stack: undefinedable(toLineArrayOrAsIs)(error.stack),
+                }
             };
             return result;
         }
@@ -3064,6 +3075,8 @@ export module Jsonarch
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return applyRoot(entry, template, parameter, cache, setting);
     };
+    export const toLineArrayOrAsIs = (text: string) =>
+        0 <= text.indexOf("\n") ? text.split("\n"): text;
     export const multiplyString = (text: string, count: number): string =>
         count < 1 ? "": (multiplyString(text +text, Math.floor(count /2)) + (0 === count % 2 ? "": text));
     export const smartJsonStringify = (json: Jsonable, indent: "tab" | number = 4, base: number = 0): string =>
@@ -3077,7 +3090,7 @@ export module Jsonarch
             multiplyString(" ", indent *(base +1));
         if (isJsonableObject(json))
         {
-            if (objectValues(json).some(i => isJsonableObject(i) || Array.isArray(i)))
+            if (objectValues(json).some(i => isJsonableObject(i) || Array.isArray(i) || 60 < JSON.stringify(i).length))
             {
                 result += baseIndent +"{\n";
                 let isFirst = true;
@@ -3140,7 +3153,7 @@ export module Jsonarch
         else
         if (Array.isArray(json))
         {
-            if (json.some(i => isJsonableObject(i) || Array.isArray(i)))
+            if (json.some(i => isJsonableObject(i) || Array.isArray(i) || 60 < JSON.stringify(i).length))
             {
                 result += baseIndent +"[\n";
                 let isFirst = true;
