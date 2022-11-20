@@ -316,7 +316,7 @@ var Jsonarch;
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
     Jsonarch.isReturnOrigin = function (value) {
-        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isOriginRoot, external: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isOrigin, external: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
     };
     Jsonarch.isValueOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, path: Jsonarch.isRefer, })(value);
@@ -408,6 +408,7 @@ var Jsonarch;
             return Jsonarch.jsonParse(error.message.replace(/^json\:/, ""));
         }
         else {
+            console.error(error);
             var result = __assign({ $arch: "error" }, error);
             return result;
         }
@@ -1926,7 +1927,11 @@ var Jsonarch;
             switch (_e.label) {
                 case 0:
                     Limit.throwIfOverTheCallDepth(entry);
-                    nextDepthEntry = Limit.incrementCallDepth(entry);
+                    nextDepthEntry = Limit.incrementCallDepth(__assign(__assign({}, entry), { origin: {
+                            root: Jsonarch.getRootOrigin(entry.origin),
+                            template: Jsonarch.getOriginPath(entry.origin),
+                            parameter: entry.origin,
+                        } }));
                     target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
                         template: entry.origin,
                     }
