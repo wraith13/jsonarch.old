@@ -416,11 +416,11 @@ export module Jsonarch
     {
         root: OriginRoot;
         template: Refer;
-        parameter: Origin;
-        external?: OriginMap;
+        parameter: Jsonable;
+        originMap?: OriginMap;
     }
     export const isReturnOrigin = (value: unknown): value is ReturnOrigin =>
-        isObject<ReturnOrigin>({ root: isOriginRoot, template: isRefer, parameter: isOrigin, external: isUndefinedOr(isOriginMap), })(value);
+        isObject<ReturnOrigin>({ root: isOriginRoot, template: isRefer, parameter: isJsonable, originMap: isUndefinedOr(isOriginMap), })(value);
     export interface ValueOrigin extends JsonableObject
     {
         root: OriginRoot;
@@ -2695,6 +2695,7 @@ export module Jsonarch
         entry, "evaluateCall", async () =>
         {
             Limit.throwIfOverTheCallDepth(entry);
+            const parameter = await makeParameter(entry) ?? null;
             const nextDepthEntry = Limit.incrementCallDepth
             ({
                 ...entry,
@@ -2702,7 +2703,8 @@ export module Jsonarch
                 {
                     root: getRootOrigin(entry.origin),
                     template: getOriginPath(entry.origin),
-                    parameter: entry.origin,
+                    parameter,
+                    originMap: entry.originMap,
                 },
             });
             const target = turnRefer<JsonableValue | Function>
@@ -2720,7 +2722,7 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                const parameter = validateParameterType(nextDepthEntry, await makeParameter(nextDepthEntry));
+                validateParameterType(nextDepthEntry, parameter);
                 const result = await target(nextDepthEntry, parameter);
                 if (undefined === result)
                 {

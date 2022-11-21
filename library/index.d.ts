@@ -196,8 +196,8 @@ export declare module Jsonarch {
     export interface ReturnOrigin extends JsonableObject {
         root: OriginRoot;
         template: Refer;
-        parameter: Origin;
-        external?: OriginMap;
+        parameter: Jsonable;
+        originMap?: OriginMap;
     }
     export const isReturnOrigin: (value: unknown) => value is ReturnOrigin;
     export interface ValueOrigin extends JsonableObject {

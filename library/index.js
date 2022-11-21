@@ -320,7 +320,7 @@ var Jsonarch;
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
     Jsonarch.isReturnOrigin = function (value) {
-        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isOrigin, external: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isJsonable, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
     };
     Jsonarch.isValueOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, path: Jsonarch.isRefer, })(value);
@@ -1933,15 +1933,20 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var nextDepthEntry, target, parameter, _c, _d, result;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var parameter, nextDepthEntry, target, result;
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     Limit.throwIfOverTheCallDepth(entry);
+                    return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                case 1:
+                    parameter = (_c = _d.sent()) !== null && _c !== void 0 ? _c : null;
                     nextDepthEntry = Limit.incrementCallDepth(__assign(__assign({}, entry), { origin: {
                             root: Jsonarch.getRootOrigin(entry.origin),
                             template: Jsonarch.getOriginPath(entry.origin),
-                            parameter: entry.origin,
+                            parameter: parameter,
+                            originMap: entry.originMap,
                         } }));
                     target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
                         template: entry.origin,
@@ -1949,14 +1954,10 @@ var Jsonarch;
                     // entry.originMap
                     );
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
-                    _c = Jsonarch.validateParameterType;
-                    _d = [nextDepthEntry];
-                    return [4 /*yield*/, Jsonarch.makeParameter(nextDepthEntry)];
-                case 1:
-                    parameter = _c.apply(void 0, _d.concat([_e.sent()]));
+                    Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     return [4 /*yield*/, target(nextDepthEntry, parameter)];
                 case 2:
-                    result = _e.sent();
+                    result = _d.sent();
                     if (undefined === result) {
                         throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
                     }
@@ -1964,7 +1965,7 @@ var Jsonarch;
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target }))];
-                case 4: return [2 /*return*/, _e.sent()];
+                case 4: return [2 /*return*/, _d.sent()];
                 case 5: throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown refer call",
