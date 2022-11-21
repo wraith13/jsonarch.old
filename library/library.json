@@ -17,6 +17,27 @@
             }
         }
     },
+    "array": {
+        "$arch": "library",
+        "contain": {
+            "$arch": "template",
+            "type": {
+                "parameter": {
+                    "$arch": "type",
+                    "type": "tuple",
+                    "list": [
+                        {
+                            "$arch": "type",
+                            "type": "array",
+                            "itemType": { "$arch": "type", "type": "any" }
+                        },
+                        { "$arch": "type", "type": "any" }
+                    ]
+                },
+                "return": { "$arch": "type", "type": "boolean" }
+            }
+        }
+    },
     "boolean": {
         "$arch": "library",
         "not": {

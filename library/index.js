@@ -1126,6 +1126,14 @@ var Jsonarch;
                 return undefined;
             }
         },
+        array: {
+            contain: function (_entry, parameter) {
+                if (isTuple(Jsonarch.isArray(Jsonarch.isAny), Jsonarch.isAny)(parameter)) {
+                    return 0 <= parameter[0].indexOf(parameter[1]);
+                }
+                return undefined;
+            }
+        },
         boolean: {
             not: function (_entry, parameter) {
                 if (Jsonarch.isBoolean(parameter)) {
@@ -2163,6 +2171,17 @@ var Jsonarch;
                         });
                     }
                     nextDepthEntry_2 = Limit.incrementNestDepth(entry);
+                    // const keys = objectKeys(template);
+                    // for(const i in keys)
+                    // {
+                    //     const key = keys[i];
+                    //     result[key] = await apply
+                    //     ({
+                    //         ...nextDepthEntry,
+                    //         origin: makeOrigin(entry.origin, key),
+                    //         template: template[key] as Jsonable,
+                    //     });
+                    // }
                     return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
                             var _c, _d;
                             return __generator(this, function (_e) {
@@ -2176,6 +2195,17 @@ var Jsonarch;
                             });
                         }); }))];
                 case 6:
+                    // const keys = objectKeys(template);
+                    // for(const i in keys)
+                    // {
+                    //     const key = keys[i];
+                    //     result[key] = await apply
+                    //     ({
+                    //         ...nextDepthEntry,
+                    //         origin: makeOrigin(entry.origin, key),
+                    //         template: template[key] as Jsonable,
+                    //     });
+                    // }
                     _c.sent();
                     return [2 /*return*/, result_2];
             }

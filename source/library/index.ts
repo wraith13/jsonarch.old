@@ -1609,6 +1609,17 @@ export module Jsonarch
                 return undefined;
             }
         },
+        array:
+        {
+            contain: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            {
+                if (isTuple<any[], any>(isArray(isAny), isAny)(parameter))
+                {
+                    return 0 <= parameter[0].indexOf(parameter[1]);
+                }
+                return undefined;
+            }
+        },
         boolean:
         {
             not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
@@ -2947,6 +2958,23 @@ export module Jsonarch
                         })
                     )
                 );
+                // const result: Jsonable[] = [];
+                // for(const i in entry.template)
+                // {
+                //     result.push
+                //     (
+                //         await apply
+                //         ({
+                //             ...nextDepthEntry,
+                //             ...
+                //             {
+                //                 origin: makeOrigin(entry.origin, i),
+                //                 template: entry.template[i],
+                //             }
+                //         })
+                //     );
+                // }
+                // return result;
             }
             else
             {
@@ -2966,6 +2994,17 @@ export module Jsonarch
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
+                // const keys = objectKeys(template);
+                // for(const i in keys)
+                // {
+                //     const key = keys[i];
+                //     result[key] = await apply
+                //     ({
+                //         ...nextDepthEntry,
+                //         origin: makeOrigin(entry.origin, key),
+                //         template: template[key] as Jsonable,
+                //     });
+                // }
                 await Promise.all
                 (
                     objectKeys(template).map

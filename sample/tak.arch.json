@@ -36,9 +36,10 @@
                     "if":
                     {
                         "$arch": "call",
-                        "refer": [ "object", "equal" ],
+                        "refer": [ "array", "contain" ],
                         "parameter":
                         [
+                            [ "<", "=" ],
                             {
                                 "$arch": "call",
                                 "refer": [ "number", "compare" ],
@@ -47,8 +48,7 @@
                                     { "$arch": "value", "refer": [ "parameter", "x" ] },
                                     { "$arch": "value", "refer": [ "parameter", "y" ] }
                                 ]
-                            },
-                            [ "<", "="]
+                            }
                         ]
                     }
                 },
