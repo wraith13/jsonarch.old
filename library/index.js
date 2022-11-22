@@ -1008,7 +1008,7 @@ var Jsonarch;
         });
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
-        var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, {
+        var functionTemplate = Jsonarch.turnRefer(__assign(__assign({}, library_json_1.default), { this: entry.this }), entry.template.refer, {
             template: entry.origin,
         }
         // entry.originMap
@@ -1972,6 +1972,7 @@ var Jsonarch;
                     return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, parameter, result)];
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
+                    Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
                 case 4: return [2 /*return*/, _d.sent()];
                 case 5: throw new Jsonarch.ErrorJson({

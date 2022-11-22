@@ -1460,7 +1460,10 @@ export module Jsonarch
     {
         const functionTemplate = turnRefer<JsonableValue | Function>
         (
-            librarygJson,
+            {
+                ...librarygJson,
+                this: entry.this,
+            },
             entry.template.refer,
             {
                 template: entry.origin,
@@ -2744,6 +2747,7 @@ export module Jsonarch
             else
             if (isTemplateData(target))
             {
+                validateParameterType(nextDepthEntry, parameter);
                 return await evaluateTemplate
                 ({
                     ...nextDepthEntry,
