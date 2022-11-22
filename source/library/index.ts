@@ -1398,7 +1398,7 @@ export module Jsonarch
             {
                 const case_ = entry.template[i];
                 const origin = makeOrigin(entry.origin, i);
-                if (undefined === case_.case || await evaluateCasePattern({...entry, origin: makeOrigin(origin, "case"),template: case_.case, }))
+                if (undefined === case_.case || await evaluateCasePattern({ ...entry, origin: makeOrigin(origin, "case"), template: case_.case, }))
                 {
                     return await apply
                     ({
@@ -2748,6 +2748,7 @@ export module Jsonarch
                 ({
                     ...nextDepthEntry,
                     template: target,
+                    parameter,
                 });
             }
             else
@@ -2943,38 +2944,23 @@ export module Jsonarch
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
-                return await Promise.all
-                (
-                    entry.template.map
+                const result: Jsonable[] = [];
+                for(const i in entry.template)
+                {
+                    result.push
                     (
-                        (i, ix) => apply
+                        await apply
                         ({
                             ...nextDepthEntry,
                             ...
                             {
-                                origin: makeOrigin(entry.origin, ix),
-                                template: i,
+                                origin: makeOrigin(entry.origin, i),
+                                template: entry.template[i],
                             }
                         })
-                    )
-                );
-                // const result: Jsonable[] = [];
-                // for(const i in entry.template)
-                // {
-                //     result.push
-                //     (
-                //         await apply
-                //         ({
-                //             ...nextDepthEntry,
-                //             ...
-                //             {
-                //                 origin: makeOrigin(entry.origin, i),
-                //                 template: entry.template[i],
-                //             }
-                //         })
-                //     );
-                // }
-                // return result;
+                    );
+                }
+                return result;
             }
             else
             {
@@ -2994,29 +2980,18 @@ export module Jsonarch
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
-                // const keys = objectKeys(template);
-                // for(const i in keys)
-                // {
-                //     const key = keys[i];
-                //     result[key] = await apply
-                //     ({
-                //         ...nextDepthEntry,
-                //         origin: makeOrigin(entry.origin, key),
-                //         template: template[key] as Jsonable,
-                //     });
-                // }
-                await Promise.all
-                (
-                    objectKeys(template).map
-                    (
-                        async key => result[key] = await apply
-                        ({
-                            ...nextDepthEntry,
-                            origin: makeOrigin(entry.origin, key),
-                            template: template[key] as Jsonable,
-                        })
-                    )
-                );
+                const keys = objectKeys(template);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    result[key] = await apply
+                    ({
+                        ...nextDepthEntry,
+                        origin: makeOrigin(entry.origin, key),
+                        template: template[key] as Jsonable,
+                    });
+                }
+
                 return result;
             }
         }

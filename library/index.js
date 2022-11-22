@@ -1972,7 +1972,7 @@ var Jsonarch;
                     return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, parameter, result)];
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target }))];
+                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
                 case 4: return [2 /*return*/, _d.sent()];
                 case 5: throw new Jsonarch.ErrorJson({
                     $arch: "error",
@@ -2124,10 +2124,9 @@ var Jsonarch;
         };
     })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-        var maxArrayLength, nextDepthEntry_1, result_2, template_1, maxObjectMembers, nextDepthEntry_2;
-        var _this = this;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var maxArrayLength, nextDepthEntry, result, _c, _d, _e, i, _f, _g, result, template, maxObjectMembers, nextDepthEntry, keys, _h, _j, _k, i, key, _l, _m;
+        return __generator(this, function (_o) {
+            switch (_o.label) {
                 case 0:
                     Limit.throwIfOverTheProcessTimeout(entry);
                     Limit.throwIfOverTheNestDepth(entry);
@@ -2136,9 +2135,9 @@ var Jsonarch;
                 case 1:
                     if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.evaluate(entry)];
-                case 2: return [2 /*return*/, _c.sent()];
+                case 2: return [2 /*return*/, _o.sent()];
                 case 3:
-                    if (!Array.isArray(entry.template)) return [3 /*break*/, 5];
+                    if (!Array.isArray(entry.template)) return [3 /*break*/, 8];
                     maxArrayLength = Limit.getMaxArrayLength(entry);
                     if (maxArrayLength < entry.template.length) {
                         throw new Jsonarch.ErrorJson({
@@ -2150,64 +2149,63 @@ var Jsonarch;
                             template: entry.template,
                         });
                     }
-                    nextDepthEntry_1 = Limit.incrementNestDepth(entry);
-                    return [4 /*yield*/, Promise.all(entry.template.map(function (i, ix) { return Jsonarch.apply(__assign(__assign({}, nextDepthEntry_1), {
-                            origin: Jsonarch.makeOrigin(entry.origin, ix),
-                            template: i,
-                        })); }))];
-                case 4: return [2 /*return*/, _c.sent()];
+                    nextDepthEntry = Limit.incrementNestDepth(entry);
+                    result = [];
+                    _c = [];
+                    for (_d in entry.template)
+                        _c.push(_d);
+                    _e = 0;
+                    _o.label = 4;
+                case 4:
+                    if (!(_e < _c.length)) return [3 /*break*/, 7];
+                    i = _c[_e];
+                    _g = (_f = result).push;
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), {
+                            origin: Jsonarch.makeOrigin(entry.origin, i),
+                            template: entry.template[i],
+                        }))];
                 case 5:
-                    result_2 = {};
-                    template_1 = entry.template;
+                    _g.apply(_f, [_o.sent()]);
+                    _o.label = 6;
+                case 6:
+                    _e++;
+                    return [3 /*break*/, 4];
+                case 7: return [2 /*return*/, result];
+                case 8:
+                    result = {};
+                    template = entry.template;
                     maxObjectMembers = Limit.getMaxObjectMembers(entry);
-                    if (maxObjectMembers < Jsonarch.objectKeys(template_1).length) {
+                    if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Too Many Object Members",
                             maxObjectMembers: maxObjectMembers,
-                            templateMembers: Jsonarch.objectKeys(template_1).length,
+                            templateMembers: Jsonarch.objectKeys(template).length,
                             originMap: entry.originMap,
                             template: entry.template,
                         });
                     }
-                    nextDepthEntry_2 = Limit.incrementNestDepth(entry);
-                    // const keys = objectKeys(template);
-                    // for(const i in keys)
-                    // {
-                    //     const key = keys[i];
-                    //     result[key] = await apply
-                    //     ({
-                    //         ...nextDepthEntry,
-                    //         origin: makeOrigin(entry.origin, key),
-                    //         template: template[key] as Jsonable,
-                    //     });
-                    // }
-                    return [4 /*yield*/, Promise.all(Jsonarch.objectKeys(template_1).map(function (key) { return __awaiter(_this, void 0, void 0, function () {
-                            var _c, _d;
-                            return __generator(this, function (_e) {
-                                switch (_e.label) {
-                                    case 0:
-                                        _c = result_2;
-                                        _d = key;
-                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry_2), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template_1[key] }))];
-                                    case 1: return [2 /*return*/, _c[_d] = _e.sent()];
-                                }
-                            });
-                        }); }))];
-                case 6:
-                    // const keys = objectKeys(template);
-                    // for(const i in keys)
-                    // {
-                    //     const key = keys[i];
-                    //     result[key] = await apply
-                    //     ({
-                    //         ...nextDepthEntry,
-                    //         origin: makeOrigin(entry.origin, key),
-                    //         template: template[key] as Jsonable,
-                    //     });
-                    // }
-                    _c.sent();
-                    return [2 /*return*/, result_2];
+                    nextDepthEntry = Limit.incrementNestDepth(entry);
+                    keys = Jsonarch.objectKeys(template);
+                    _h = [];
+                    for (_j in keys)
+                        _h.push(_j);
+                    _k = 0;
+                    _o.label = 9;
+                case 9:
+                    if (!(_k < _h.length)) return [3 /*break*/, 12];
+                    i = _h[_k];
+                    key = keys[i];
+                    _l = result;
+                    _m = key;
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template[key] }))];
+                case 10:
+                    _l[_m] = _o.sent();
+                    _o.label = 11;
+                case 11:
+                    _k++;
+                    return [3 /*break*/, 9];
+                case 12: return [2 /*return*/, result];
             }
         });
     }); }); };

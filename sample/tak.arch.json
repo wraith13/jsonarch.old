@@ -60,7 +60,8 @@
                     "$arch": "call",
                     "refer": [ "this" ],
                     "parameter":
-                    [
+                    {
+                        "x":
                         {
                             "$arch": "call",
                             "refer": [ "this" ],
@@ -79,6 +80,7 @@
                                 "z": { "$arch": "value", "refer": [ "parameter", "z" ] }
                             }
                         },
+                        "y":
                         {
                             "$arch": "call",
                             "refer": [ "this" ],
@@ -97,6 +99,7 @@
                                 "z": { "$arch": "value", "refer": [ "parameter", "x" ] }
                             }
                         },
+                        "z":
                         {
                             "$arch": "call",
                             "refer": [ "this" ],
@@ -115,7 +118,7 @@
                                 "z": { "$arch": "value", "refer": [ "parameter", "y" ] }
                             }
                         }
-                    ]
+                    }
                 }
             }
         ]
