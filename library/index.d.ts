@@ -193,6 +193,13 @@ export declare module Jsonarch {
         callGraph?: boolean;
     }
     export const isSetting: (template: unknown) => template is Setting;
+    export interface CallStackEntry extends JsonableObject {
+        root: OriginRoot;
+        template: Refer;
+        parameter: Jsonable;
+        originMap?: OriginMap;
+    }
+    export const makeCallStack: (callStack: CallStackEntry[], next: CallStackEntry) => CallStackEntry[];
     export interface ReturnOrigin extends JsonableObject {
         root: OriginRoot;
         template: Refer;
@@ -202,12 +209,12 @@ export declare module Jsonarch {
     export const isReturnOrigin: (value: unknown) => value is ReturnOrigin;
     export interface ValueOrigin extends JsonableObject {
         root: OriginRoot;
-        path: Refer;
+        refer: Refer;
     }
     export const isValueOrigin: (value: unknown) => value is ValueOrigin;
     export type OriginRoot = FileContext | ReturnOrigin;
     export const isOriginRoot: (value: unknown) => value is OriginRoot;
-    export type Origin = OriginRoot | ValueOrigin;
+    export type Origin = OriginRoot | ValueOrigin | FullRefer;
     export const isOrigin: (value: unknown) => value is Origin;
     export type OriginMap = {
         [key: string | number]: Origin | OriginMap;
@@ -244,7 +251,8 @@ export declare module Jsonarch {
         context: Context;
         this?: Template;
         template: TemplateType;
-        origin: Origin;
+        callStack: CallStackEntry[];
+        path: FullRefer;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         parameter: Jsonable | undefined;
@@ -304,6 +312,15 @@ export declare module Jsonarch {
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
     export const isRefer: (value: unknown) => value is (string | number)[];
+    export interface FullRefer extends JsonableObject {
+        root: OriginRoot;
+        refer: Refer;
+    }
+    export const isFullRefer: (value: unknown) => value is {
+        root: OriginRoot;
+        refer: (string | number)[];
+    };
+    export const makeFullRefer: (parent: FullRefer, refer: ReferElement) => FullRefer;
     export interface AlphaType extends AlphaJsonarch {
         $arch: "type";
         type: PrimitiveType;

@@ -319,11 +319,12 @@ var Jsonarch;
     };
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
+    Jsonarch.makeCallStack = function (callStack, next) { return __spreadArray(__spreadArray([], callStack, true), [next], false); };
     Jsonarch.isReturnOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isJsonable, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
     };
     Jsonarch.isValueOrigin = function (value) {
-        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, path: Jsonarch.isRefer, })(value);
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer, })(value);
     };
     Jsonarch.isOriginRoot = function (value) {
         return isTypeOr(Jsonarch.isFileContext, Jsonarch.isReturnOrigin)(value);
@@ -335,11 +336,11 @@ var Jsonarch;
         return Jsonarch.isMapObject(isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap))(value);
     };
     Jsonarch.getRootOrigin = function (origin) { return Jsonarch.isOriginRoot(origin) ? origin : origin.root; };
-    Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : origin.path; };
+    Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : origin.refer; };
     Jsonarch.makeOrigin = function (parent, refer) {
         return ({
             root: Jsonarch.getRootOrigin(parent),
-            path: Jsonarch.getOriginPath(parent).concat([refer]),
+            refer: Jsonarch.getOriginPath(parent).concat([refer]),
         });
     };
     Jsonarch.isSystemFileLoadEntry = function (entry) { return Jsonarch.isSystemFileContext(entry.file); };
@@ -518,6 +519,13 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isRefer = Jsonarch.isArray(isTypeOr(Jsonarch.isString, Jsonarch.isNumber));
+    Jsonarch.isFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer });
+    Jsonarch.makeFullRefer = function (parent, refer) {
+        return ({
+            root: parent.root,
+            refer: __spreadArray(__spreadArray([], parent.refer, true), [refer,], false),
+        });
+    };
     Jsonarch.isAlphaTypeData = function (type) {
         return (function (template) {
             return Jsonarch.isTypeData(template) && type === template.type;
@@ -641,11 +649,11 @@ var Jsonarch;
                     _e.label = 1;
                 case 1:
                     _e.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
                 case 2:
                     error_1 = _e.sent();
                     if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "catch"), template: entry.template.catch, parameter: error_1 }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "catch"), template: entry.template.catch, parameter: error_1 }))];
                 case 3:
                     result = _e.sent();
                     if (undefined !== result) {
@@ -654,7 +662,7 @@ var Jsonarch;
                     _e.label = 4;
                 case 4: throw error_1;
                 case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, origin: Jsonarch.makeOrigin(entry.origin, "return"), template: entry.template.return, parameter: parameter }))];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
             }
         });
@@ -667,7 +675,7 @@ var Jsonarch;
                     _c = Jsonarch.applyDefault;
                     _d = [entry.template.default];
                     if (!(undefined !== entry.template.parameter)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
                 case 1:
                     _e = _f.sent();
                     return [3 /*break*/, 3];
@@ -676,7 +684,7 @@ var Jsonarch;
                     _f.label = 3;
                 case 3:
                     parameter = _c.apply(void 0, _d.concat([_e]));
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "cases"), template: entry.template.cases, parameter: parameter }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "cases"), template: entry.template.cases, parameter: parameter }))];
                 case 4:
                     result = _f.sent();
                     if (undefined !== result) {
@@ -695,6 +703,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown Jsonarch TypeUnspecified Parameter",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                 });
             }
@@ -712,6 +722,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown Jsonarch TypeUnspecified Parameter",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                 });
             }
@@ -730,6 +742,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown Jsonarch TypeUnspecified Parameter",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                 });
             }
@@ -740,13 +754,15 @@ var Jsonarch;
         var result;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "if"), template: entry.template.if }))];
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "if"), template: entry.template.if }))];
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unmatch if result type",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             if: entry.template.if,
                             result: result,
@@ -760,16 +776,18 @@ var Jsonarch;
         var parameter, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
                 case 1:
                     parameter = _c.sent();
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "ifCase"), template: entry.template.ifCase, parameter: parameter }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "ifCase"), template: entry.template.ifCase, parameter: parameter }))];
                 case 2:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unmatch if-case result type",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             template: {
                                 "ifCase": entry.template.ifCase,
@@ -787,13 +805,15 @@ var Jsonarch;
         var result;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "not"), template: entry.template.not }))];
+                case 0: return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "not"), template: entry.template.not }))];
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unmatch not result type",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             not: entry.template.if,
                             result: result,
@@ -804,11 +824,11 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateOrCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateOrCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
-        var baseOrigin, _c, _d, _e, i, template, result;
+        var basePath, _c, _d, _e, i, template, result;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
-                    baseOrigin = Jsonarch.makeOrigin(entry.origin, "or");
+                    basePath = Jsonarch.makeFullRefer(entry.path, "or");
                     _c = [];
                     for (_d in entry.template.or)
                         _c.push(_d);
@@ -818,13 +838,15 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 4];
                     i = _c[_e];
                     template = entry.template.or[i];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(baseOrigin, i), template: template }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(basePath, i), template: template }))];
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unmatch or result type",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             template: template,
                             result: result,
@@ -842,11 +864,11 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateAndCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateAndCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
-        var baseOrigin, _c, _d, _e, i, template, result;
+        var basePath, _c, _d, _e, i, template, result;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
-                    baseOrigin = Jsonarch.makeOrigin(entry.origin, "and");
+                    basePath = Jsonarch.makeFullRefer(entry.path, "and");
                     _c = [];
                     for (_d in entry.template.and)
                         _c.push(_d);
@@ -856,13 +878,15 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 4];
                     i = _c[_e];
                     template = entry.template.and[i];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(baseOrigin, i), template: template }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(basePath, i), template: template }))];
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unmatch and result type",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             template: template,
                             result: result,
@@ -920,6 +944,8 @@ var Jsonarch;
                 case 4: throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown Case Pattern",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     template: entry.template,
                 });
@@ -927,7 +953,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateCases = function (entry) { return Jsonarch.profile(entry, "evaluateCases", function () { return __awaiter(_this, void 0, void 0, function () {
-        var _c, _d, _e, i, case_, origin_1, _f;
+        var _c, _d, _e, i, case_, path, _f;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
@@ -940,16 +966,16 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 6];
                     i = _c[_e];
                     case_ = entry.template[i];
-                    origin_1 = Jsonarch.makeOrigin(entry.origin, i);
+                    path = Jsonarch.makeFullRefer(entry.path, i);
                     _f = undefined === case_.case;
                     if (_f) return [3 /*break*/, 3];
-                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(origin_1, "case"), template: case_.case }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCasePattern(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(path, "case"), template: case_.case }))];
                 case 2:
                     _f = (_g.sent());
                     _g.label = 3;
                 case 3:
                     if (!_f) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(origin_1, "return"), template: case_.return }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(path, "return"), template: case_.return }))];
                 case 4: return [2 /*return*/, _g.sent()];
                 case 5:
                     _e++;
@@ -970,13 +996,15 @@ var Jsonarch;
                 case 1:
                     if (!true) return [3 /*break*/, 3];
                     scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "loop"), template: entry.template.loop, scope: scope }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "loop"), template: entry.template.loop, scope: scope }))];
                 case 2:
                     current = _d.sent();
                     if (!Jsonarch.isLoopResultData(current)) {
                         throw new Jsonarch.ErrorJson({
                             $arch: "error",
                             message: "Unknown Lopp Result",
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             result: current,
                         });
@@ -999,7 +1027,7 @@ var Jsonarch;
                     if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
                     _c = undefined;
                     return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { origin: Jsonarch.makeOrigin(entry.origin, "parameter"), template: entry.template.parameter }))];
+                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
                 case 2:
                     _c = _d.sent();
                     _d.label = 3;
@@ -1009,7 +1037,7 @@ var Jsonarch;
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
         var functionTemplate = Jsonarch.turnRefer(__assign(__assign({}, library_json_1.default), { this: entry.this }), entry.template.refer, {
-            template: entry.origin,
+            template: entry.path,
         }
         // entry.originMap
         );
@@ -1026,7 +1054,8 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         $arch: "error",
                         message: "Unmatch parameter type",
-                        origin: entry.origin,
+                        path: entry.path,
+                        callStack: entry.callStack,
                         originMap: entry.originMap,
                         refer: entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
@@ -1042,7 +1071,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Not found type define",
-                    origin: entry.origin,
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     refer: entry.template.refer,
                 });
@@ -1052,7 +1082,8 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 $arch: "error",
                 message: "Not found template",
-                origin: entry.origin,
+                path: entry.path,
+                callStack: entry.callStack,
                 originMap: entry.originMap,
                 refer: entry.template.refer,
             });
@@ -1060,7 +1091,7 @@ var Jsonarch;
     };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
         var functionTemplate = Jsonarch.turnRefer(library_json_1.default, entry.template.refer, {
-            template: entry.origin,
+            template: entry.path,
         }
         // entry.originMap
         );
@@ -1078,6 +1109,8 @@ var Jsonarch;
                     throw new Jsonarch.ErrorJson({
                         $arch: "error",
                         message: "Unmatch return type",
+                        path: entry.path,
+                        callStack: entry.callStack,
                         originMap: entry.originMap,
                         refer: entry.template.refer,
                         comppareTypeResult: comppareTypeResult,
@@ -1094,6 +1127,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Not found type define",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     refer: entry.template.refer,
                 });
@@ -1103,6 +1138,8 @@ var Jsonarch;
             throw new Jsonarch.ErrorJson({
                 $arch: "error",
                 message: "Not found template",
+                path: entry.path,
+                callStack: entry.callStack,
                 originMap: entry.originMap,
                 refer: entry.template.refer,
             });
@@ -1112,6 +1149,8 @@ var Jsonarch;
         return new Jsonarch.ErrorJson({
             $arch: "error",
             message: "Internal Error ( Unmatch parameter type define )",
+            path: entry.path,
+            callStack: entry.callStack,
             originMap: entry.originMap,
             refer: ["string", "join"],
             parameter: parameter,
@@ -1935,7 +1974,7 @@ var Jsonarch;
             scope: entry.scope,
             parameter: entry.parameter,
         }, entry.template.refer, {
-            template: entry.origin,
+            template: entry.path,
         }
         // entry.originMap
         );
@@ -1950,14 +1989,16 @@ var Jsonarch;
                     return [4 /*yield*/, Jsonarch.makeParameter(entry)];
                 case 1:
                     parameter = (_c = _d.sent()) !== null && _c !== void 0 ? _c : null;
-                    nextDepthEntry = Limit.incrementCallDepth(__assign(__assign({}, entry), { origin: {
-                            root: Jsonarch.getRootOrigin(entry.origin),
-                            template: Jsonarch.getOriginPath(entry.origin),
+                    nextDepthEntry = Limit.incrementCallDepth(__assign(__assign({}, entry), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                            root: entry.context.template,
+                            template: entry.template.refer,
                             parameter: parameter,
-                            originMap: entry.originMap,
+                        }), path: {
+                            root: entry.context.template,
+                            refer: entry.template.refer,
                         } }));
                     target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
-                        template: entry.origin,
+                        template: entry.path,
                     }
                     // entry.originMap
                     );
@@ -1978,6 +2019,8 @@ var Jsonarch;
                 case 5: throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown refer call",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     refer: entry.template.refer,
                 });
@@ -1992,6 +2035,8 @@ var Jsonarch;
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown refer value",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     value: entry.template,
                 });
@@ -2039,6 +2084,8 @@ var Jsonarch;
                 case 4: throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown Jsonarch Type",
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     template: entry.template,
                 });
@@ -2077,7 +2124,8 @@ var Jsonarch;
                     message: "Process Timeout",
                     processTimeout: processTimeout,
                     elapsed: elapsed,
-                    origin: entry.origin,
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     template: entry.template,
                 });
@@ -2093,7 +2141,8 @@ var Jsonarch;
                     message: "Too Deep Object Nest",
                     maxObjectNestDepth: maxObjectNestDepth,
                     nestDepth: nestDepth,
-                    origin: entry.origin,
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     template: entry.template,
                 });
@@ -2109,7 +2158,8 @@ var Jsonarch;
                     message: "Too Deep Call Nest",
                     maxCallNestDepth: maxCallNestDepth,
                     callDepth: callDepth,
-                    origin: entry.origin,
+                    path: entry.path,
+                    callStack: entry.callStack,
                     originMap: entry.originMap,
                     template: entry.template,
                 });
@@ -2146,6 +2196,8 @@ var Jsonarch;
                             message: "Too Long Array Length",
                             maxArrayLength: maxArrayLength,
                             templateLength: entry.template.length,
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             template: entry.template,
                         });
@@ -2161,10 +2213,7 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 7];
                     i = _c[_e];
                     _g = (_f = result).push;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), {
-                            origin: Jsonarch.makeOrigin(entry.origin, i),
-                            template: entry.template[i],
-                        }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, i), template: entry.template[i] }))];
                 case 5:
                     _g.apply(_f, [_o.sent()]);
                     _o.label = 6;
@@ -2182,6 +2231,8 @@ var Jsonarch;
                             message: "Too Many Object Members",
                             maxObjectMembers: maxObjectMembers,
                             templateMembers: Jsonarch.objectKeys(template).length,
+                            path: entry.path,
+                            callStack: entry.callStack,
                             originMap: entry.originMap,
                             template: entry.template,
                         });
@@ -2199,7 +2250,7 @@ var Jsonarch;
                     key = keys[i];
                     _l = result;
                     _m = key;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { origin: Jsonarch.makeOrigin(entry.origin, key), template: template[key] }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, key), template: template[key] }))];
                 case 10:
                     _l[_m] = _o.sent();
                     _o.label = 11;
@@ -2211,7 +2262,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, origin, rootEvaluateEntry, output, result, error_2, result;
+        var handler, context, callStack, path, rootEvaluateEntry, output, result, error_2, result;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -2223,11 +2274,14 @@ var Jsonarch;
                         setting: entry.setting,
                         profile: Jsonarch.makeProfile(),
                     };
-                    origin = entry.template;
+                    callStack = [];
+                    path = { root: entry.template, refer: [] };
                     rootEvaluateEntry = {
                         context: context,
                         template: template,
-                        origin: origin,
+                        callStack: callStack,
+                        path: path,
+                        // origin,
                         parameter: parameter,
                         cache: cache,
                         setting: setting,
