@@ -246,22 +246,31 @@ export declare module Jsonarch {
     export interface Handler {
         load?: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
     }
-    interface EvaluateEntry<TemplateType> {
+    interface EvaluateEntry<TemplateType extends Jsonable> {
         context: Context;
         this?: {
             template: Template;
             path: FullRefer;
         };
         template: TemplateType;
+        parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
-        parameter: Jsonable | undefined;
         cache: Cache;
         setting: Setting;
         handler: Handler;
     }
+    interface EvaluateEntryCore extends JsonableObject {
+        this?: FullRefer;
+        parameter: Jsonable | undefined;
+        callStack: CallStackEntry[];
+        path: FullRefer;
+        originMap?: OriginMap;
+        scope?: JsonableObject | undefined;
+    }
+    export const toErrorInformationFromEvaluateEntry: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => EvaluateEntryCore;
     interface CompileEntry extends Context {
         handler: Handler;
     }
@@ -666,7 +675,7 @@ export declare module Jsonarch {
     export const andIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, mergeTarget: (a: TargetType, b: TargetType) => NeverType | TargetType) => (a: Type, b: Type) => NeverType | TargetType | undefined;
     export const andType: (list: Type[]) => Type;
     export const regulateType: (compositeType: Type) => Type;
-    export const turnRefer: <Element_1 extends Function | JsonableValue>(root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Structure<Element_1> | undefined;
+    export const turnRefer: <Element_1 extends Function | JsonableValue>(entry: EvaluateEntry<Jsonable>, root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Structure<Element_1> | undefined;
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
     }>) => Jsonable | undefined;
