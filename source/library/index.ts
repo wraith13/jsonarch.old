@@ -362,7 +362,6 @@ export module Jsonarch
         setting?: FileContext<Setting>;
         profile: Profile;
         nestDepth?: number;
-        callDepth?: number;
     }
     export const isContext = isObject<Context>
     ({
@@ -372,7 +371,6 @@ export module Jsonarch
         setting: isUndefinedOr(<IsType<FileContext<Setting>>>isFileContext),
         profile: isProfile,
         nestDepth: isUndefinedOr(isNumber),
-        callDepth: isUndefinedOr(isNumber),
     });
     export type ContextOrEntry = Context | { context: Context; };
     export const getContext = (contextOrEntry: ContextOrEntry): Context =>
@@ -414,10 +412,10 @@ export module Jsonarch
     // };
     export interface CallStackEntry extends JsonableObject
     {
-        root: OriginRoot;
-        template: Refer;
+        path: FullRefer;
         parameter: Jsonable;
         originMap?: OriginMap;
+        caller: FullRefer;
     }
     export const makeCallStack = (callStack: CallStackEntry[], next: CallStackEntry) => [ ...callStack, next];
     export interface ReturnOrigin extends JsonableObject
@@ -446,7 +444,7 @@ export module Jsonarch
     export const isOriginMap = (value: unknown): value is OriginMap =>
         isMapObject(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
     export const getRootOrigin = (origin: Origin): OriginRoot => isOriginRoot(origin) ? origin: origin.root;
-    export const getOriginPath = (origin: Origin): Refer => isOriginRoot(origin) ? []: origin.refer;
+    export const getOriginPath = (origin: Origin): Refer => isOriginRoot(origin) ? []: toLeafFullRefer(origin).refer;
     export const makeOrigin = (parent: Origin, refer: ReferElement): ValueOrigin =>
     ({
         root: getRootOrigin(parent),
@@ -483,7 +481,11 @@ export module Jsonarch
     interface EvaluateEntry<TemplateType>
     {
         context: Context;
-        this?: Template;
+        this?:
+        {
+            template: Template;
+            path: FullRefer;
+        };
         template: TemplateType;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -709,16 +711,33 @@ export module Jsonarch
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
     export const isRefer = isArray(isTypeOr<string, number>(isString, isNumber));
-    export interface FullRefer extends JsonableObject
+    export interface RootFullRefer extends JsonableObject
+    {
+        root: OriginRoot;
+        refer: "root";
+    }
+    export const isRootFullRefer = isObject({ root: isOriginRoot, refer: isJustValue("root"), });
+    export interface LeafFullRefer extends JsonableObject
     {
         root: OriginRoot;
         refer: Refer;
     }
-    export const isFullRefer = isObject({root: isOriginRoot, refer: isRefer});
+    export type FullRefer = RootFullRefer | LeafFullRefer;
+    export const isLeafFullRefer = isObject({ root: isOriginRoot, refer: isRefer, });
+    export const isFullRefer = isTypeOr(isRootFullRefer, isLeafFullRefer);
+    export const toLeafFullRefer = (refer: FullRefer): LeafFullRefer => isRootFullRefer(refer) ? { root: refer.root, refer: [], }: refer;
+    export const regulateFullRefer = (refer: FullRefer): FullRefer => isLeafFullRefer(refer) && refer.refer.length <= 0 ? { root: refer.root, refer: "root", }: refer;
+    export const resolveThisPath = (this_: FullRefer | undefined, path: FullRefer): FullRefer => this_ && "this" === path.refer[0] ?
+        regulateFullRefer
+        ({
+            root: this_.root,
+            refer: toLeafFullRefer(this_).refer.concat(toLeafFullRefer(path).refer.filter((_i, ix) => 0 < ix)),
+        }):
+        path;
     export const makeFullRefer = (parent: FullRefer, refer: ReferElement): FullRefer =>
     ({
         root: parent.root,
-        refer: [ ...parent.refer, refer, ],
+        refer: [ ...toLeafFullRefer(parent).refer, refer, ],
     });
     export interface AlphaType extends AlphaJsonarch
     {
@@ -1090,6 +1109,11 @@ export module Jsonarch
                 entry.parameter,
                 entry.template.override?.parameter
             );
+            const this_ =
+            {
+                template: entry.template,
+                path: entry.path,
+            };
             if (entry.template.catch)
             {
                 try
@@ -1097,7 +1121,7 @@ export module Jsonarch
                     return apply
                     ({
                         ...entry,
-                        this: entry.template,
+                        this: this_,
                         path: makeFullRefer(entry.path, "return"),
                         template: entry.template.return,
                         parameter,
@@ -1110,7 +1134,7 @@ export module Jsonarch
                         const result = await evaluateCases
                         ({
                             ...entry,
-                            this: entry.template,
+                            this: this_,
                             path: makeFullRefer(entry.path, "catch"),
                             template: entry.template.catch,
                             parameter: error,
@@ -1128,7 +1152,7 @@ export module Jsonarch
                 return apply
                 ({
                     ...entry,
-                    this: entry.template,
+                    this: this_,
                     path: makeFullRefer(entry.path, "return"),
                     template: entry.template.return,
                     parameter,
@@ -1503,7 +1527,7 @@ export module Jsonarch
         (
             {
                 ...librarygJson,
-                this: entry.this,
+                this: entry.this?.template,
             },
             entry.template.refer,
             {
@@ -2762,23 +2786,27 @@ export module Jsonarch
         {
             Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry) ?? null;
-            const nextDepthEntry = Limit.incrementCallDepth
-            ({
+            const path = resolveThisPath
+            (
+                entry.this?.path,
+                {
+                    root: entry.context.template,
+                    refer: entry.template.refer,
+                }
+            );
+            const nextDepthEntry =
+            {
                 ...entry,
                 callStack: makeCallStack
                 (
                     entry.callStack,
                     {
-                        root: entry.context.template,
-                        template: entry.template.refer,
+                        path,
                         parameter,
+                        caller: entry.path,
                     }
                 ),
-                path:
-                {
-                    root: entry.context.template,
-                    refer: entry.template.refer,
-                }
+                path,
                 // origin:
                 // {
                 //     root: getRootOrigin(entry.origin),
@@ -2786,12 +2814,12 @@ export module Jsonarch
                 //     parameter,
                 //     originMap: entry.originMap,
                 // },
-            });
+            };
             const target = turnRefer<JsonableValue | Function>
             (
                 {
                     ...library,
-                    this: entry.this,
+                    this: entry.this?.template,
                     template: entry.cache.template,
                 },
                 entry.template.refer,
@@ -2956,7 +2984,7 @@ export module Jsonarch
         export const throwIfOverTheCallDepth = (entry: EvaluateEntry<Jsonable>) =>
         {
             const maxCallNestDepth = getMaxCallNestDepth(entry);
-            const callDepth = entry.context.callDepth ?? 0;
+            const callDepth = entry.callStack.length;
             if (maxCallNestDepth < callDepth)
             {
                 throw new ErrorJson
@@ -2979,15 +3007,6 @@ export module Jsonarch
             {
                 ...entry.context,
                 nestDepth: (entry.context.nestDepth ?? 0) +1,
-            },
-        });
-        export const incrementCallDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
-        ({
-            ...entry,
-            context:
-            {
-                ...entry.context,
-                callDepth: (entry.context.callDepth ?? 0) +1,
             },
         });
     }

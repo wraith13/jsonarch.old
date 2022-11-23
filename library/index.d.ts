@@ -151,7 +151,6 @@ export declare module Jsonarch {
         setting?: FileContext<Setting>;
         profile: Profile;
         nestDepth?: number;
-        callDepth?: number;
     }
     export const isContext: (value: unknown) => value is Context;
     export type ContextOrEntry = Context | {
@@ -194,10 +193,10 @@ export declare module Jsonarch {
     }
     export const isSetting: (template: unknown) => template is Setting;
     export interface CallStackEntry extends JsonableObject {
-        root: OriginRoot;
-        template: Refer;
+        path: FullRefer;
         parameter: Jsonable;
         originMap?: OriginMap;
+        caller: FullRefer;
     }
     export const makeCallStack: (callStack: CallStackEntry[], next: CallStackEntry) => CallStackEntry[];
     export interface ReturnOrigin extends JsonableObject {
@@ -249,7 +248,10 @@ export declare module Jsonarch {
     }
     interface EvaluateEntry<TemplateType> {
         context: Context;
-        this?: Template;
+        this?: {
+            template: Template;
+            path: FullRefer;
+        };
         template: TemplateType;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -312,14 +314,33 @@ export declare module Jsonarch {
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
     export const isRefer: (value: unknown) => value is (string | number)[];
-    export interface FullRefer extends JsonableObject {
+    export interface RootFullRefer extends JsonableObject {
+        root: OriginRoot;
+        refer: "root";
+    }
+    export const isRootFullRefer: (value: unknown) => value is {
+        root: OriginRoot;
+        refer: string;
+    };
+    export interface LeafFullRefer extends JsonableObject {
         root: OriginRoot;
         refer: Refer;
     }
-    export const isFullRefer: (value: unknown) => value is {
+    export type FullRefer = RootFullRefer | LeafFullRefer;
+    export const isLeafFullRefer: (value: unknown) => value is {
         root: OriginRoot;
         refer: (string | number)[];
     };
+    export const isFullRefer: IsType<{
+        root: OriginRoot;
+        refer: string;
+    } | {
+        root: OriginRoot;
+        refer: (string | number)[];
+    }>;
+    export const toLeafFullRefer: (refer: FullRefer) => LeafFullRefer;
+    export const regulateFullRefer: (refer: FullRefer) => FullRefer;
+    export const resolveThisPath: (this_: FullRefer | undefined, path: FullRefer) => FullRefer;
     export const makeFullRefer: (parent: FullRefer, refer: ReferElement) => FullRefer;
     export interface AlphaType extends AlphaJsonarch {
         $arch: "type";
@@ -663,7 +684,6 @@ export declare module Jsonarch {
         const throwIfOverTheNestDepth: (entry: EvaluateEntry<Jsonable>) => void;
         const throwIfOverTheCallDepth: (entry: EvaluateEntry<Jsonable>) => void;
         const incrementNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
-        const incrementCallDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
     }
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;

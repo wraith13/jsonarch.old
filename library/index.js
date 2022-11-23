@@ -312,7 +312,6 @@ var Jsonarch;
         setting: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         profile: Jsonarch.isProfile,
         nestDepth: Jsonarch.isUndefinedOr(Jsonarch.isNumber),
-        callDepth: Jsonarch.isUndefinedOr(Jsonarch.isNumber),
     });
     Jsonarch.getContext = function (contextOrEntry) {
         return Jsonarch.isContext(contextOrEntry) ? contextOrEntry : contextOrEntry.context;
@@ -336,7 +335,7 @@ var Jsonarch;
         return Jsonarch.isMapObject(isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap))(value);
     };
     Jsonarch.getRootOrigin = function (origin) { return Jsonarch.isOriginRoot(origin) ? origin : origin.root; };
-    Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : origin.refer; };
+    Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : Jsonarch.toLeafFullRefer(origin).refer; };
     Jsonarch.makeOrigin = function (parent, refer) {
         return ({
             root: Jsonarch.getRootOrigin(parent),
@@ -519,11 +518,21 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.isRefer = Jsonarch.isArray(isTypeOr(Jsonarch.isString, Jsonarch.isNumber));
-    Jsonarch.isFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer });
+    Jsonarch.isRootFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isJustValue("root"), });
+    Jsonarch.isLeafFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer, });
+    Jsonarch.isFullRefer = isTypeOr(Jsonarch.isRootFullRefer, Jsonarch.isLeafFullRefer);
+    Jsonarch.toLeafFullRefer = function (refer) { return Jsonarch.isRootFullRefer(refer) ? { root: refer.root, refer: [], } : refer; };
+    Jsonarch.regulateFullRefer = function (refer) { return Jsonarch.isLeafFullRefer(refer) && refer.refer.length <= 0 ? { root: refer.root, refer: "root", } : refer; };
+    Jsonarch.resolveThisPath = function (this_, path) { return this_ && "this" === path.refer[0] ?
+        Jsonarch.regulateFullRefer({
+            root: this_.root,
+            refer: Jsonarch.toLeafFullRefer(this_).refer.concat(Jsonarch.toLeafFullRefer(path).refer.filter(function (_i, ix) { return 0 < ix; })),
+        }) :
+        path; };
     Jsonarch.makeFullRefer = function (parent, refer) {
         return ({
             root: parent.root,
-            refer: __spreadArray(__spreadArray([], parent.refer, true), [refer,], false),
+            refer: __spreadArray(__spreadArray([], Jsonarch.toLeafFullRefer(parent).refer, true), [refer,], false),
         });
     };
     Jsonarch.isAlphaTypeData = function (type) {
@@ -639,21 +648,25 @@ var Jsonarch;
         return result;
     };
     Jsonarch.evaluateTemplate = function (entry) { return Jsonarch.profile(entry, "evaluateTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, error_1, result;
+        var parameter, this_, error_1, result;
         var _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
                     parameter = Jsonarch.applyDefault((_c = entry.template.default) === null || _c === void 0 ? void 0 : _c.parameter, entry.parameter, (_d = entry.template.override) === null || _d === void 0 ? void 0 : _d.parameter);
+                    this_ = {
+                        template: entry.template,
+                        path: entry.path,
+                    };
                     if (!entry.template.catch) return [3 /*break*/, 6];
                     _e.label = 1;
                 case 1:
                     _e.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
+                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
                 case 2:
                     error_1 = _e.sent();
                     if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "catch"), template: entry.template.catch, parameter: error_1 }))];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "catch"), template: entry.template.catch, parameter: error_1 }))];
                 case 3:
                     result = _e.sent();
                     if (undefined !== result) {
@@ -662,7 +675,7 @@ var Jsonarch;
                     _e.label = 4;
                 case 4: throw error_1;
                 case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: entry.template, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
+                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
             }
         });
@@ -1036,7 +1049,8 @@ var Jsonarch;
         });
     }); };
     Jsonarch.validateParameterType = function (entry, parameter) {
-        var functionTemplate = Jsonarch.turnRefer(__assign(__assign({}, library_json_1.default), { this: entry.this }), entry.template.refer, {
+        var _c;
+        var functionTemplate = Jsonarch.turnRefer(__assign(__assign({}, library_json_1.default), { this: (_c = entry.this) === null || _c === void 0 ? void 0 : _c.template }), entry.template.refer, {
             template: entry.path,
         }
         // entry.originMap
@@ -1980,24 +1994,25 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, nextDepthEntry, target, result;
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var parameter, path, nextDepthEntry, target, result;
+        var _c, _d, _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
                     Limit.throwIfOverTheCallDepth(entry);
                     return [4 /*yield*/, Jsonarch.makeParameter(entry)];
                 case 1:
-                    parameter = (_c = _d.sent()) !== null && _c !== void 0 ? _c : null;
-                    nextDepthEntry = Limit.incrementCallDepth(__assign(__assign({}, entry), { callStack: Jsonarch.makeCallStack(entry.callStack, {
-                            root: entry.context.template,
-                            template: entry.template.refer,
+                    parameter = (_c = _f.sent()) !== null && _c !== void 0 ? _c : null;
+                    path = Jsonarch.resolveThisPath((_d = entry.this) === null || _d === void 0 ? void 0 : _d.path, {
+                        root: entry.context.template,
+                        refer: entry.template.refer,
+                    });
+                    nextDepthEntry = __assign(__assign({}, entry), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                            path: path,
                             parameter: parameter,
-                        }), path: {
-                            root: entry.context.template,
-                            refer: entry.template.refer,
-                        } }));
-                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: entry.this, template: entry.cache.template }), entry.template.refer, {
+                            caller: entry.path,
+                        }), path: path });
+                    target = Jsonarch.turnRefer(__assign(__assign({}, Jsonarch.library), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }), entry.template.refer, {
                         template: entry.path,
                     }
                     // entry.originMap
@@ -2006,7 +2021,7 @@ var Jsonarch;
                     Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     return [4 /*yield*/, target(nextDepthEntry, parameter)];
                 case 2:
-                    result = _d.sent();
+                    result = _f.sent();
                     if (undefined === result) {
                         throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
                     }
@@ -2015,7 +2030,7 @@ var Jsonarch;
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
-                case 4: return [2 /*return*/, _d.sent()];
+                case 4: return [2 /*return*/, _f.sent()];
                 case 5: throw new Jsonarch.ErrorJson({
                     $arch: "error",
                     message: "Unknown refer call",
@@ -2149,9 +2164,8 @@ var Jsonarch;
             }
         };
         Limit.throwIfOverTheCallDepth = function (entry) {
-            var _c;
             var maxCallNestDepth = Limit.getMaxCallNestDepth(entry);
-            var callDepth = (_c = entry.context.callDepth) !== null && _c !== void 0 ? _c : 0;
+            var callDepth = entry.callStack.length;
             if (maxCallNestDepth < callDepth) {
                 throw new Jsonarch.ErrorJson({
                     $arch: "error",
@@ -2168,10 +2182,6 @@ var Jsonarch;
         Limit.incrementNestDepth = function (entry) {
             var _c;
             return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { nestDepth: ((_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0) + 1 }) }));
-        };
-        Limit.incrementCallDepth = function (entry) {
-            var _c;
-            return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { callDepth: ((_c = entry.context.callDepth) !== null && _c !== void 0 ? _c : 0) + 1 }) }));
         };
     })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
