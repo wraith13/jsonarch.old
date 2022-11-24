@@ -497,7 +497,7 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
     }
-    interface EvaluateEntryCore extends JsonableObject
+    interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
         // template: TemplateType;
@@ -508,7 +508,7 @@ export module Jsonarch
         scope?: JsonableObject | undefined;
     }
     
-    export const toErrorInformationFromEvaluateEntry = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): EvaluateEntryCore =>
+    export const toErrorStatusFromEvaluateEntry = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): ErrorStatus =>
     ({
         this: entry.this?.path,
         path: entry.path,
@@ -538,13 +538,14 @@ export module Jsonarch
         setting: Setting;
     }
     export const isResult = isJsonarch<Result>("result");
-    export interface JsonarchError extends AlphaJsonarch
+    export interface JsonarchError<DetailType extends Jsonable> extends AlphaJsonarch
     {
         $arch: "error";
         message: string;
-        originMap?: OriginMap;
+        detail?: DetailType;
+        status?: ErrorStatus;
     }
-    export const isError = isJsonarch<JsonarchError>("error");
+    export const isError = isJsonarch<JsonarchError<Jsonable>>("error");
     export const getTicks = () => new Date().getTime();
     const beginProfileScope = (context: Context, name: string): ProfileEntry =>
     {
@@ -593,14 +594,14 @@ export module Jsonarch
             endProfileScope(context, entry);
         }
     };
-    export const ErrorJson = function(json: JsonarchError)
+    export const ErrorJson = function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType)
     {
-        return new Error(`json:${jsonStringify(json)}`);
+        return new Error(`json:${jsonStringify(<JsonarchError<DetailType>>{ $arch: "error", message, detail, status: undefinedable(toErrorStatusFromEvaluateEntry)(entry), })}`);
     } as {
-        new (json: JsonarchError): Error;
-        (json: JsonarchError): Error;
+        new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
+        <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
     };
-    export const parseErrorJson = (error: Error): JsonarchError =>
+    export const parseErrorJson = (error: Error): JsonarchError<Jsonable> =>
     {
         if (error.message.startsWith("json:"))
         {
@@ -608,7 +609,7 @@ export module Jsonarch
         }
         else
         {
-            const result = <JsonarchError>
+            const result = <JsonarchError<Jsonable>>
             {
                 $arch: "error",
                 message: "System Error",
@@ -633,12 +634,7 @@ export module Jsonarch
             case "default-setting.json":
                 return settingJson as any;
             }
-            throw new ErrorJson
-            ({
-                $arch: "error",
-                message: "never",
-                entry: toJsonable(entry),
-            });
+            throw new ErrorJson(undefined, "never");
         }
     );
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) =>
@@ -1221,12 +1217,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unknown Jsonarch TypeUnspecified Parameter",
-                    ...toErrorInformationFromEvaluateEntry(entry),
-                });
+                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -1241,12 +1232,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unknown Jsonarch TypeUnspecified Parameter",
-                    ...toErrorInformationFromEvaluateEntry(entry),
-                });
+                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -1266,7 +1252,7 @@ export module Jsonarch
                 ({
                     $arch: "error",
                     message: "Unknown Jsonarch TypeUnspecified Parameter",
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         }
@@ -1292,7 +1278,7 @@ export module Jsonarch
                         template: entry.template.if,
                         result,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
             return result;
@@ -1327,7 +1313,7 @@ export module Jsonarch
                         parameter: entry.template.parameter,
                         result,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                     parameter,
                 });
             }
@@ -1355,7 +1341,7 @@ export module Jsonarch
                         template: entry.template.not,
                         result,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
             return ! result;
@@ -1386,7 +1372,7 @@ export module Jsonarch
                             template,
                             result,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 if (result)
@@ -1422,7 +1408,7 @@ export module Jsonarch
                             template,
                             result,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 if ( ! result)
@@ -1467,7 +1453,7 @@ export module Jsonarch
                 {
                     template: entry.template,
                 },
-                ...toErrorInformationFromEvaluateEntry(entry),
+                ...toErrorStatusFromEvaluateEntry(entry),
             });
         }
     );
@@ -1518,7 +1504,7 @@ export module Jsonarch
                         {
                             result: current,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 if (true !== (current.continue ?? true) || undefined === current.return)
@@ -1584,7 +1570,7 @@ export module Jsonarch
                             },
                             parameter,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
             }
@@ -1598,7 +1584,7 @@ export module Jsonarch
                     {
                         refer: entry.template.refer,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         }
@@ -1612,7 +1598,7 @@ export module Jsonarch
                 {
                     refer: entry.template.refer,
                 },
-                ...toErrorInformationFromEvaluateEntry(entry),
+                ...toErrorStatusFromEvaluateEntry(entry),
             });
         }
     };
@@ -1659,7 +1645,7 @@ export module Jsonarch
                             },
                             parameter,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
             }
@@ -1673,7 +1659,7 @@ export module Jsonarch
                     {
                         refer: entry.template.refer,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         }
@@ -1687,7 +1673,7 @@ export module Jsonarch
                 {
                     refer: entry.template.refer,
                 },
-                ...toErrorInformationFromEvaluateEntry(entry),
+                ...toErrorStatusFromEvaluateEntry(entry),
         });
         }
     };
@@ -1700,7 +1686,7 @@ export module Jsonarch
             {
                 parameter: parameter,
             },
-            ...toErrorInformationFromEvaluateEntry(entry),
+            ...toErrorStatusFromEvaluateEntry(entry),
         });
     export const library =
     {
@@ -1787,7 +1773,7 @@ export module Jsonarch
                         {
                             parameter,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 return undefined;
@@ -2791,7 +2777,7 @@ export module Jsonarch
                         sourceMap,
                         root: toJsonable(root),
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         }
@@ -2888,15 +2874,12 @@ export module Jsonarch
             else
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unknown refer call",
-                    detail:
+                (
+                    entry, "Unknown refer call",
                     {
                         refer: entry.template.refer,
-                    },
-                    ...toErrorInformationFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         }
     );
@@ -2908,15 +2891,12 @@ export module Jsonarch
             if (undefined === result)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unknown refer value",
-                    detail:
+                (
+                    entry, "Unknown refer value",
                     {
                         value: entry.template,
-                    },
-                    ...toErrorInformationFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
             return result;
         }
@@ -2954,7 +2934,7 @@ export module Jsonarch
                 {
                     template: entry.template,
                 },
-                ...toErrorInformationFromEvaluateEntry(entry),
+                ...toErrorStatusFromEvaluateEntry(entry),
             });
             // return entry.template;
         }
@@ -2997,7 +2977,7 @@ export module Jsonarch
                         processTimeout,
                         elapsed,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         };
@@ -3016,7 +2996,7 @@ export module Jsonarch
                         maxObjectNestDepth,
                         nestDepth,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         };
@@ -3035,7 +3015,7 @@ export module Jsonarch
                         maxCallNestDepth,
                         callDepth,
                     },
-                    ...toErrorInformationFromEvaluateEntry(entry),
+                    ...toErrorStatusFromEvaluateEntry(entry),
                 });
             }
         };
@@ -3079,7 +3059,7 @@ export module Jsonarch
                             maxArrayLength,
                             templateLength: entry.template.length,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
@@ -3114,7 +3094,7 @@ export module Jsonarch
                             maxObjectMembers,
                             templateMembers: objectKeys(template).length,
                         },
-                        ...toErrorInformationFromEvaluateEntry(entry),
+                        ...toErrorStatusFromEvaluateEntry(entry),
                     });
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
