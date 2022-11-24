@@ -1248,12 +1248,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unknown Jsonarch TypeUnspecified Parameter",
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -1270,16 +1265,13 @@ export module Jsonarch
             if ("boolean" !== typeof result)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unmatch if result type",
-                    detail:
+                (
+                    entry, "Unmatch if result type",
                     {
                         template: entry.template.if,
                         result,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
             return result;
         }
@@ -1304,18 +1296,14 @@ export module Jsonarch
             if ("boolean" !== typeof result)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unmatch if-case result type",
-                    detail:
+                (
+                    entry, "Unmatch if-case result type",
                     {
-                        template: entry.template.ifCase,
-                        parameter: entry.template.parameter,
+                        template: entry.template,
+                        parameter,
                         result,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                    parameter,
-                });
+                    }
+                );
             }
             return result;
         }
@@ -1333,16 +1321,13 @@ export module Jsonarch
             if ("boolean" !== typeof result)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unmatch not result type",
-                    detail:
+                (
+                    entry, "Unmatch not result type",
                     {
                         template: entry.template.not,
                         result,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
             return ! result;
         }
@@ -1364,16 +1349,13 @@ export module Jsonarch
                 if ("boolean" !== typeof result)
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Unmatch or result type",
-                        detail:
+                    (
+                        entry, "Unmatch or result type",
                         {
                             template,
                             result,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 if (result)
                 {
@@ -1400,16 +1382,13 @@ export module Jsonarch
                 if ("boolean" !== typeof result)
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Unmatch and result type",
-                        detail:
+                    (
+                        entry, "Unmatch and result type",
                         {
                             template,
                             result,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 if ( ! result)
                 {
