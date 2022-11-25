@@ -594,9 +594,16 @@ export module Jsonarch
             endProfileScope(context, entry);
         }
     };
+    export const makeError = <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): JsonarchError<DetailType> =>
+    ({
+        $arch: "error",
+        message,
+        detail,
+        status: undefinedable(toErrorStatusFromEvaluateEntry)(entry),
+    });
     export const ErrorJson = function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType)
     {
-        return new Error(`json:${jsonStringify(<JsonarchError<DetailType>>{ $arch: "error", message, detail, status: undefinedable(toErrorStatusFromEvaluateEntry)(entry), })}`);
+        return new Error(`json:${jsonStringify(makeError(entry, message, detail))}`);
     } as {
         new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
         <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
@@ -1425,15 +1432,12 @@ export module Jsonarch
                 }
             }
             throw new ErrorJson
-            ({
-                $arch: "error",
-                message: "Unknown Case Pattern",
-                detail:
+            (
+                entry, "Unknown Case Pattern",
                 {
                     template: entry.template,
-                },
-                ...toErrorStatusFromEvaluateEntry(entry),
-            });
+                }
+            );
         }
     );
     export const evaluateCases = (entry: EvaluateEntry<Case[]>): Promise<Jsonable | undefined> => profile
@@ -1476,15 +1480,12 @@ export module Jsonarch
                 if ( ! isLoopResultData(current))
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Unknown Lopp Result",
-                        detail:
+                    (
+                        entry, "Unknown Lopp Result",
                         {
                             result: current,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 if (true !== (current.continue ?? true) || undefined === current.return)
                 {
@@ -1535,10 +1536,8 @@ export module Jsonarch
                 else
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Unmatch parameter type",
-                        detail:
+                    (
+                        entry, "Unmatch parameter type",
                         {
                             refer: entry.template.refer,
                             comppareTypeResult,
@@ -1548,37 +1547,30 @@ export module Jsonarch
                                 parameter: parameterType,
                             },
                             parameter,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
             }
             else
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Not found type define",
-                    detail:
+                (
+                    entry, "Not found type define",
                     {
                         refer: entry.template.refer,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         }
         else
         {
             throw new ErrorJson
-            ({
-                $arch: "error",
-                message: "Not found template",
-                detail:
+            (
+                entry, "Not found template",
                 {
                     refer: entry.template.refer,
-                },
-                ...toErrorStatusFromEvaluateEntry(entry),
-            });
+                }
+            );
         }
     };
     export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType): ResultType =>
@@ -1609,10 +1601,8 @@ export module Jsonarch
                 else
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Unmatch return type",
-                        detail:
+                    (
+                        entry, "Unmatch return type",
                         {
                             refer: entry.template.refer,
                             comppareTypeResult,
@@ -1623,50 +1613,40 @@ export module Jsonarch
                                 result: resultType,
                             },
                             parameter,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
             }
             else
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Not found type define",
-                    detail:
+                (
+                    entry, "Not found type define",
                     {
                         refer: entry.template.refer,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         }
         else
         {
             throw new ErrorJson
-            ({
-                $arch: "error",
-                message: "Not found template",
-                detail:
+            (
+                entry, "Not found template",
                 {
                     refer: entry.template.refer,
-                },
-                ...toErrorStatusFromEvaluateEntry(entry),
-        });
+                }
+            );
         }
     };
     export const UnmatchParameterTypeDefineError = (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
         new ErrorJson
-        ({
-            $arch: "error",
-            message: "Internal Error ( Unmatch parameter type define )",
-            detail:
+        (
+            entry, "Internal Error ( Unmatch parameter type define )",
             {
                 parameter: parameter,
-            },
-            ...toErrorStatusFromEvaluateEntry(entry),
-        });
+            }
+        );
     export const library =
     {
         object:
@@ -1745,15 +1725,12 @@ export module Jsonarch
                         return ">";
                     }
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "never",
-                        detail:
+                    (
+                        entry, "never",
                         {
                             parameter,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 return undefined;
             },
@@ -2747,17 +2724,14 @@ export module Jsonarch
             else
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Unmatch refer path",
-                    detail:
+                (
+                    entry, "Unmatch refer path",
                     {
                         refer,
                         sourceMap,
                         root: toJsonable(root),
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         }
     };
@@ -2906,15 +2880,12 @@ export module Jsonarch
                 }
             }
             throw new ErrorJson
-            ({
-                $arch: "error",
-                message: "Unknown Jsonarch Type",
-                detail:
+            (
+                entry, "Unknown Jsonarch Type",
                 {
                     template: entry.template,
-                },
-                ...toErrorStatusFromEvaluateEntry(entry),
-            });
+                }
+            );
             // return entry.template;
         }
     );
@@ -2948,16 +2919,13 @@ export module Jsonarch
             if (processTimeout < elapsed)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Process Timeout",
-                    detail:
+                (
+                    entry, "Process Timeout",
                     {
                         processTimeout,
                         elapsed,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         };
         export const throwIfOverTheNestDepth = (entry: EvaluateEntry<Jsonable>) =>
@@ -2967,16 +2935,13 @@ export module Jsonarch
             if (maxObjectNestDepth < nestDepth)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Too Deep Object Nest",
-                    detail:
+                (
+                    entry, "Too Deep Object Nest",
                     {
                         maxObjectNestDepth,
                         nestDepth,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         };
         export const throwIfOverTheCallDepth = (entry: EvaluateEntry<Jsonable>) =>
@@ -2986,16 +2951,13 @@ export module Jsonarch
             if (maxCallNestDepth < callDepth)
             {
                 throw new ErrorJson
-                ({
-                    $arch: "error",
-                    message: "Too Deep Call Nest",
-                    detail:
+                (
+                    entry, "Too Deep Call Nest",
                     {
                         maxCallNestDepth,
                         callDepth,
-                    },
-                    ...toErrorStatusFromEvaluateEntry(entry),
-                });
+                    }
+                );
             }
         };
         export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
@@ -3030,16 +2992,13 @@ export module Jsonarch
                 if (maxArrayLength < entry.template.length)
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Too Long Array Length",
-                        detail:
+                    (
+                        entry, "Too Long Array Length",
                         {
                             maxArrayLength,
                             templateLength: entry.template.length,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
                 const result: Jsonable[] = [];
@@ -3065,16 +3024,13 @@ export module Jsonarch
                 if (maxObjectMembers < objectKeys(template).length)
                 {
                     throw new ErrorJson
-                    ({
-                        $arch: "error",
-                        message: "Too Many Object Members",
-                        detail:
+                    (
+                        entry, "Too Many Object Members",
                         {
                             maxObjectMembers,
                             templateMembers: objectKeys(template).length,
-                        },
-                        ...toErrorStatusFromEvaluateEntry(entry),
-                    });
+                        }
+                    );
                 }
                 const nextDepthEntry = Limit.incrementNestDepth(entry);
                 const keys = objectKeys(template);
@@ -3368,7 +3324,7 @@ export module Jsonarch
     {
         if (isError(json))
         {
-            throw new ErrorJson(json);
+            throw new Error(`json:${jsonStringify(json)}`);
         }
         return json;
     };

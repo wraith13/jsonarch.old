@@ -262,7 +262,7 @@ export declare module Jsonarch {
         setting: Setting;
         handler: Handler;
     }
-    interface EvaluateEntryCore extends JsonableObject {
+    interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
@@ -270,7 +270,7 @@ export declare module Jsonarch {
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
     }
-    export const toErrorInformationFromEvaluateEntry: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => EvaluateEntryCore;
+    export const toErrorStatusFromEvaluateEntry: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => ErrorStatus;
     interface CompileEntry extends Context {
         handler: Handler;
     }
@@ -286,21 +286,23 @@ export declare module Jsonarch {
         setting: Setting;
     }
     export const isResult: (template: unknown) => template is Result;
-    export interface JsonarchError extends AlphaJsonarch {
+    export interface JsonarchError<DetailType extends Jsonable> extends AlphaJsonarch {
         $arch: "error";
         message: string;
-        originMap?: OriginMap;
+        detail?: DetailType;
+        status?: ErrorStatus;
     }
-    export const isError: (template: unknown) => template is JsonarchError;
+    export const isError: (template: unknown) => template is JsonarchError<Jsonable>;
     export const getTicks: () => number;
     export const profile: <ResultT>(contextOrEntry: Context | {
         context: Context;
     }, name: string, target: () => Promise<ResultT>) => Promise<ResultT>;
+    export const makeError: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined) => JsonarchError<DetailType>;
     export const ErrorJson: {
-        (json: JsonarchError): Error;
-        new (json: JsonarchError): Error;
+        <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined): Error;
+        new <TemplateType_2 extends Jsonable, DetailType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_2> | undefined, message: string, detail?: DetailType_1 | undefined): Error;
     };
-    export const parseErrorJson: (error: Error) => JsonarchError;
+    export const parseErrorJson: (error: Error) => JsonarchError<Jsonable>;
     export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;

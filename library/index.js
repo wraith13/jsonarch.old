@@ -347,7 +347,7 @@ var Jsonarch;
     Jsonarch.isNoneFileLoadEntryStrict = function (isType) { return function (entry) { return Jsonarch.isNoneFileContextStrict(isType)(entry.file); }; };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isLocalFileContext(entry.file); };
-    Jsonarch.toErrorInformationFromEvaluateEntry = function (entry) {
+    Jsonarch.toErrorStatusFromEvaluateEntry = function (entry) {
         var _c;
         return ({
             this: (_c = entry.this) === null || _c === void 0 ? void 0 : _c.path,
@@ -416,8 +416,16 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.ErrorJson = function (json) {
-        return new Error("json:".concat(Jsonarch.jsonStringify(json)));
+    Jsonarch.makeError = function (entry, message, detail) {
+        return ({
+            $arch: "error",
+            message: message,
+            detail: detail,
+            status: undefinedable(Jsonarch.toErrorStatusFromEvaluateEntry)(entry),
+        });
+    };
+    Jsonarch.ErrorJson = function (entry, message, detail) {
+        return new Error("json:".concat(Jsonarch.jsonStringify(Jsonarch.makeError(entry, message, detail))));
     };
     Jsonarch.parseErrorJson = function (error) {
         if (error.message.startsWith("json:")) {
@@ -444,11 +452,7 @@ var Jsonarch;
                 case "default-setting.json":
                     return [2 /*return*/, setting_json_1.default];
             }
-            throw new Jsonarch.ErrorJson({
-                $arch: "error",
-                message: "never",
-                entry: Jsonarch.toJsonable(entry),
-            });
+            throw new Jsonarch.ErrorJson(undefined, "never");
         });
     }); }); };
     Jsonarch.loadNetFile = function (entry) {
@@ -725,7 +729,7 @@ var Jsonarch;
                 return [2 /*return*/, Jsonarch.jsonStringify(entry.parameter) === Jsonarch.jsonStringify(entry.template.value)];
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Jsonarch TypeUnspecified Parameter" }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
             return [2 /*return*/];
         });
@@ -738,7 +742,7 @@ var Jsonarch;
                 return [2 /*return*/, entry.template.list.some(function (i) { return Jsonarch.jsonStringify(entryParameter) === Jsonarch.jsonStringify(i); })];
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Jsonarch TypeUnspecified Parameter" }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
             return [2 /*return*/];
         });
@@ -752,7 +756,7 @@ var Jsonarch;
                 return [2 /*return*/, Jsonarch.isBaseOrEqual(comppareTypeResult)];
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Jsonarch TypeUnspecified Parameter" }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
             return [2 /*return*/];
         });
@@ -765,10 +769,10 @@ var Jsonarch;
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch if result type", detail: {
-                                template: entry.template.if,
-                                result: result,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch if result type", {
+                            template: entry.template.if,
+                            result: result,
+                        });
                     }
                     return [2 /*return*/, result];
             }
@@ -785,11 +789,11 @@ var Jsonarch;
                 case 2:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
-                        throw new Jsonarch.ErrorJson(__assign(__assign({ $arch: "error", message: "Unmatch if-case result type", detail: {
-                                template: entry.template.ifCase,
-                                parameter: entry.template.parameter,
-                                result: result,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)), { parameter: parameter }));
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch if-case result type", {
+                            template: entry.template,
+                            parameter: parameter,
+                            result: result,
+                        });
                     }
                     return [2 /*return*/, result];
             }
@@ -803,10 +807,10 @@ var Jsonarch;
                 case 1:
                     result = _c.sent();
                     if ("boolean" !== typeof result) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch not result type", detail: {
-                                template: entry.template.not,
-                                result: result,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch not result type", {
+                            template: entry.template.not,
+                            result: result,
+                        });
                     }
                     return [2 /*return*/, !result];
             }
@@ -831,10 +835,10 @@ var Jsonarch;
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch or result type", detail: {
-                                template: template,
-                                result: result,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch or result type", {
+                            template: template,
+                            result: result,
+                        });
                     }
                     if (result) {
                         return [2 /*return*/, true];
@@ -866,10 +870,10 @@ var Jsonarch;
                 case 2:
                     result = _f.sent();
                     if ("boolean" !== typeof result) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch and result type", detail: {
-                                template: template,
-                                result: result,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch and result type", {
+                            template: template,
+                            result: result,
+                        });
                     }
                     if (!result) {
                         return [2 /*return*/, false];
@@ -920,9 +924,9 @@ var Jsonarch;
                 case 3:
                     _e++;
                     return [3 /*break*/, 1];
-                case 4: throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Case Pattern", detail: {
-                        template: entry.template,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Case Pattern", {
+                    template: entry.template,
+                });
             }
         });
     }); }); };
@@ -974,9 +978,9 @@ var Jsonarch;
                 case 2:
                     current = _d.sent();
                     if (!Jsonarch.isLoopResultData(current)) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Lopp Result", detail: {
-                                result: current,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Unknown Lopp Result", {
+                            result: current,
+                        });
                     }
                     if (true !== ((_c = current.continue) !== null && _c !== void 0 ? _c : true) || undefined === current.return) {
                         return [3 /*break*/, 3];
@@ -1021,27 +1025,27 @@ var Jsonarch;
                     return parameter;
                 }
                 else {
-                    throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch parameter type", detail: {
-                            refer: entry.template.refer,
-                            comppareTypeResult: comppareTypeResult,
-                            type: {
-                                template: type,
-                                parameter: parameterType_1,
-                            },
-                            parameter: parameter,
-                        } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                    throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
+                        refer: entry.template.refer,
+                        comppareTypeResult: comppareTypeResult,
+                        type: {
+                            template: type,
+                            parameter: parameterType_1,
+                        },
+                        parameter: parameter,
+                    });
                 }
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Not found type define", detail: {
-                        refer: entry.template.refer,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                    refer: entry.template.refer,
+                });
             }
         }
         else {
-            throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Not found template", detail: {
-                    refer: entry.template.refer,
-                } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+            throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                refer: entry.template.refer,
+            });
         }
     };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
@@ -1061,34 +1065,34 @@ var Jsonarch;
                     return result;
                 }
                 else {
-                    throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch return type", detail: {
-                            refer: entry.template.refer,
-                            comppareTypeResult: comppareTypeResult,
-                            type: {
-                                template: type,
-                                parameter: parameterType_2,
-                                result: resultType_1,
-                            },
-                            parameter: parameter,
-                        } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                    throw new Jsonarch.ErrorJson(entry, "Unmatch return type", {
+                        refer: entry.template.refer,
+                        comppareTypeResult: comppareTypeResult,
+                        type: {
+                            template: type,
+                            parameter: parameterType_2,
+                            result: resultType_1,
+                        },
+                        parameter: parameter,
+                    });
                 }
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Not found type define", detail: {
-                        refer: entry.template.refer,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                    refer: entry.template.refer,
+                });
             }
         }
         else {
-            throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Not found template", detail: {
-                    refer: entry.template.refer,
-                } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+            throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                refer: entry.template.refer,
+            });
         }
     };
     Jsonarch.UnmatchParameterTypeDefineError = function (entry, parameter) {
-        return new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Internal Error ( Unmatch parameter type define )", detail: {
-                parameter: parameter,
-            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+        return new Jsonarch.ErrorJson(entry, "Internal Error ( Unmatch parameter type define )", {
+            parameter: parameter,
+        });
     };
     Jsonarch.library = {
         object: {
@@ -1145,9 +1149,9 @@ var Jsonarch;
                     if (parameter[0] > parameter[1]) {
                         return ">";
                     }
-                    throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "never", detail: {
-                            parameter: parameter,
-                        } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                    throw new Jsonarch.ErrorJson(entry, "never", {
+                        parameter: parameter,
+                    });
                 }
                 return undefined;
             },
@@ -1887,11 +1891,11 @@ var Jsonarch;
                 current = current[key];
             }
             else {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unmatch refer path", detail: {
-                        refer: refer,
-                        sourceMap: sourceMap,
-                        root: Jsonarch.toJsonable(root),
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Unmatch refer path", {
+                    refer: refer,
+                    sourceMap: sourceMap,
+                    root: Jsonarch.toJsonable(root),
+                });
             }
         }
     };
@@ -1946,9 +1950,9 @@ var Jsonarch;
                     Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
                 case 4: return [2 /*return*/, _f.sent()];
-                case 5: throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown refer call", detail: {
-                        refer: entry.template.refer,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                case 5: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
+                    refer: entry.template.refer,
+                });
             }
         });
     }); }); };
@@ -1957,9 +1961,9 @@ var Jsonarch;
         return __generator(this, function (_c) {
             result = Jsonarch.resolveRefer(entry);
             if (undefined === result) {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown refer value", detail: {
-                        value: entry.template,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Unknown refer value", {
+                    value: entry.template,
+                });
             }
             return [2 /*return*/, result];
         });
@@ -2001,9 +2005,9 @@ var Jsonarch;
                 case 3:
                     _e++;
                     return [3 /*break*/, 1];
-                case 4: throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Unknown Jsonarch Type", detail: {
-                        template: entry.template,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    template: entry.template,
+                });
             }
         });
     }); }); };
@@ -2034,10 +2038,10 @@ var Jsonarch;
             var now = Jsonarch.getTicks();
             var elapsed = now - entry.context.profile.startAt;
             if (processTimeout < elapsed) {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Process Timeout", detail: {
-                        processTimeout: processTimeout,
-                        elapsed: elapsed,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Process Timeout", {
+                    processTimeout: processTimeout,
+                    elapsed: elapsed,
+                });
             }
         };
         Limit.throwIfOverTheNestDepth = function (entry) {
@@ -2045,20 +2049,20 @@ var Jsonarch;
             var maxObjectNestDepth = Limit.getMaxObjectNestDepth(entry);
             var nestDepth = (_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0;
             if (maxObjectNestDepth < nestDepth) {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Too Deep Object Nest", detail: {
-                        maxObjectNestDepth: maxObjectNestDepth,
-                        nestDepth: nestDepth,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Too Deep Object Nest", {
+                    maxObjectNestDepth: maxObjectNestDepth,
+                    nestDepth: nestDepth,
+                });
             }
         };
         Limit.throwIfOverTheCallDepth = function (entry) {
             var maxCallNestDepth = Limit.getMaxCallNestDepth(entry);
             var callDepth = entry.callStack.length;
             if (maxCallNestDepth < callDepth) {
-                throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Too Deep Call Nest", detail: {
-                        maxCallNestDepth: maxCallNestDepth,
-                        callDepth: callDepth,
-                    } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                throw new Jsonarch.ErrorJson(entry, "Too Deep Call Nest", {
+                    maxCallNestDepth: maxCallNestDepth,
+                    callDepth: callDepth,
+                });
             }
         };
         Limit.incrementNestDepth = function (entry) {
@@ -2083,10 +2087,10 @@ var Jsonarch;
                     if (!Array.isArray(entry.template)) return [3 /*break*/, 8];
                     maxArrayLength = Limit.getMaxArrayLength(entry);
                     if (maxArrayLength < entry.template.length) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Too Long Array Length", detail: {
-                                maxArrayLength: maxArrayLength,
-                                templateLength: entry.template.length,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Too Long Array Length", {
+                            maxArrayLength: maxArrayLength,
+                            templateLength: entry.template.length,
+                        });
                     }
                     nextDepthEntry = Limit.incrementNestDepth(entry);
                     result = [];
@@ -2112,10 +2116,10 @@ var Jsonarch;
                     template = entry.template;
                     maxObjectMembers = Limit.getMaxObjectMembers(entry);
                     if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
-                        throw new Jsonarch.ErrorJson(__assign({ $arch: "error", message: "Too Many Object Members", detail: {
-                                maxObjectMembers: maxObjectMembers,
-                                templateMembers: Jsonarch.objectKeys(template).length,
-                            } }, Jsonarch.toErrorInformationFromEvaluateEntry(entry)));
+                        throw new Jsonarch.ErrorJson(entry, "Too Many Object Members", {
+                            maxObjectMembers: maxObjectMembers,
+                            templateMembers: Jsonarch.objectKeys(template).length,
+                        });
                     }
                     nextDepthEntry = Limit.incrementNestDepth(entry);
                     keys = Jsonarch.objectKeys(template);
@@ -2384,7 +2388,7 @@ var Jsonarch;
     };
     Jsonarch.throwIfError = function (json) {
         if (Jsonarch.isError(json)) {
-            throw new Jsonarch.ErrorJson(json);
+            throw new Error("json:".concat(Jsonarch.jsonStringify(json)));
         }
         return json;
     };
