@@ -8,5 +8,6 @@
         "maxArrayLength": 1000,
         "maxObjectNestDepth": 32,
         "maxObjectMembers": 1000
-    }
+    },
+    "lazyEvaluation": true
 }

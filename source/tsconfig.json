@@ -30,6 +30,12 @@
         "sourceRoot": "./",
         "outDir": ".."
     },
+    "include": [
+        "./libarary/*.ts",
+        "./libarary/*.json",
+        "./command/*.ts",
+        "./command/*.json"
+    ],
     "exclude": [
     ]
 }
