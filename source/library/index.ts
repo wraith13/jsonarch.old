@@ -2770,7 +2770,7 @@ export module Jsonarch
             );
             const nextDepthEntry =
             {
-                ...entry,
+                ...Limit.resetNestDepth(entry, entry.template.refer.length),
                 callStack: makeCallStack
                 (
                     entry.callStack,
@@ -2960,15 +2960,17 @@ export module Jsonarch
                 );
             }
         };
-        export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
+        export const resetNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry, nestDepth: number = 0): Entry =>
         ({
             ...entry,
             context:
             {
                 ...entry.context,
-                nestDepth: (entry.context.nestDepth ?? 0) +1,
+                nestDepth,
             },
         });
+        export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
+            resetNestDepth(entry, (entry.context.nestDepth ?? 0) +1);
     }
     export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
     (

@@ -694,6 +694,7 @@ export declare module Jsonarch {
         const throwIfOverTheProcessTimeout: (entry: EvaluateEntry<Jsonable>) => void;
         const throwIfOverTheNestDepth: (entry: EvaluateEntry<Jsonable>) => void;
         const throwIfOverTheCallDepth: (entry: EvaluateEntry<Jsonable>) => void;
+        const resetNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry, nestDepth?: number) => Entry;
         const incrementNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
     }
     export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;

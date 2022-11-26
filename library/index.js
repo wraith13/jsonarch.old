@@ -1926,7 +1926,7 @@ var Jsonarch;
                         root: entry.context.template,
                         refer: entry.template.refer,
                     });
-                    nextDepthEntry = __assign(__assign({}, entry), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                    nextDepthEntry = __assign(__assign({}, Limit.resetNestDepth(entry, entry.template.refer.length)), { callStack: Jsonarch.makeCallStack(entry.callStack, {
                             path: path,
                             parameter: parameter,
                             caller: entry.path,
@@ -2065,10 +2065,11 @@ var Jsonarch;
                 });
             }
         };
-        Limit.incrementNestDepth = function (entry) {
-            var _c;
-            return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { nestDepth: ((_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0) + 1 }) }));
+        Limit.resetNestDepth = function (entry, nestDepth) {
+            if (nestDepth === void 0) { nestDepth = 0; }
+            return (__assign(__assign({}, entry), { context: __assign(__assign({}, entry.context), { nestDepth: nestDepth }) }));
         };
+        Limit.incrementNestDepth = function (entry) { var _c; return Limit.resetNestDepth(entry, ((_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0) + 1); };
     })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
     Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
         var maxArrayLength, nextDepthEntry, result, _c, _d, _e, i, _f, _g, result, template, maxObjectMembers, nextDepthEntry, keys, _h, _j, _k, i, key, _l, _m;
