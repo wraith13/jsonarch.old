@@ -207,6 +207,96 @@ var Jsonarch;
             lazy() :
             lazy;
     };
+    Jsonarch.resolveShallowLazy = function (lazy) { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    if (!("function" === typeof lazy)) return [3 /*break*/, 3];
+                    _d = Jsonarch.resolveShallowLazy;
+                    return [4 /*yield*/, lazy()];
+                case 1: return [4 /*yield*/, _d.apply(void 0, [_e.sent()])];
+                case 2:
+                    _c = _e.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    _c = lazy;
+                    _e.label = 4;
+                case 4: return [2 /*return*/, _c];
+            }
+        });
+    }); };
+    Jsonarch.resolveDeepLazy = function (lazy) { return __awaiter(_this, void 0, void 0, function () {
+        var _c, result, _d, _e, _f, i, _g, _h, result, keys, _j, _k, _l, i, key, _m, _o;
+        return __generator(this, function (_p) {
+            switch (_p.label) {
+                case 0:
+                    if (!("function" === typeof lazy)) return [3 /*break*/, 3];
+                    _c = Jsonarch.resolveDeepLazy;
+                    return [4 /*yield*/, lazy()];
+                case 1: return [4 /*yield*/, _c.apply(void 0, [_p.sent()])];
+                case 2: return [2 /*return*/, _p.sent()];
+                case 3:
+                    if (!Array.isArray(lazy)) return [3 /*break*/, 8];
+                    result = [];
+                    _d = [];
+                    for (_e in lazy)
+                        _d.push(_e);
+                    _f = 0;
+                    _p.label = 4;
+                case 4:
+                    if (!(_f < _d.length)) return [3 /*break*/, 7];
+                    i = _d[_f];
+                    _h = (_g = result).push;
+                    return [4 /*yield*/, Jsonarch.resolveDeepLazy(lazy[i])];
+                case 5:
+                    _h.apply(_g, [_p.sent()]);
+                    _p.label = 6;
+                case 6:
+                    _f++;
+                    return [3 /*break*/, 4];
+                case 7: return [2 /*return*/, result];
+                case 8:
+                    if (!(null !== lazy && "object" === typeof lazy)) return [3 /*break*/, 13];
+                    result = {};
+                    keys = Jsonarch.objectKeys(lazy);
+                    _j = [];
+                    for (_k in keys)
+                        _j.push(_k);
+                    _l = 0;
+                    _p.label = 9;
+                case 9:
+                    if (!(_l < _j.length)) return [3 /*break*/, 12];
+                    i = _j[_l];
+                    key = keys[i];
+                    _m = result;
+                    _o = key;
+                    return [4 /*yield*/, Jsonarch.resolveDeepLazy(lazy[key])];
+                case 10:
+                    _m[_o] = _p.sent();
+                    _p.label = 11;
+                case 11:
+                    _l++;
+                    return [3 /*break*/, 9];
+                case 12: return [2 /*return*/, result];
+                case 13: return [2 /*return*/, lazy];
+            }
+        });
+    }); };
+    Jsonarch.hasLazy = function (lazy) {
+        if ("function" === typeof lazy) {
+            return true;
+        }
+        else if (Array.isArray(lazy)) {
+            return lazy.some(function (i) { return Jsonarch.hasLazy(i); });
+        }
+        else if (null !== lazy && "object" === typeof lazy) {
+            return Jsonarch.objectValues(lazy).some(function (i) { return Jsonarch.hasLazy(i); });
+        }
+        else {
+            return false;
+        }
+    };
     Jsonarch.getTemporaryDummy = Locale.getSystemLocale();
     Jsonarch.packageJson = require("../package.json");
     Jsonarch.name = Jsonarch.packageJson.name;
@@ -626,6 +716,11 @@ var Jsonarch;
             return { $arch: "type", type: "object", member: member_1, };
         }
         // else
+        // if ("function" === typeof json)
+        // {
+        //     return { $arch: "type", type: "function", };
+        // }
+        // else
         // {
         return { $arch: "type", type: "never", };
         // }
@@ -1000,7 +1095,7 @@ var Jsonarch;
                     if (!(undefined === entry.template.parameter)) return [3 /*break*/, 1];
                     _c = undefined;
                     return [3 /*break*/, 3];
-                case 1: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
+                case 1: return [4 /*yield*/, Jsonarch.lazyableApply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
                 case 2:
                     _c = _d.sent();
                     _d.label = 3;
@@ -1913,7 +2008,7 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, target, result;
+        var parameter, path, nextDepthEntry, target, solid, result;
         var _c, _d, _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -1936,21 +2031,26 @@ var Jsonarch;
                     }
                     // entry.originMap
                     );
-                    if (!("function" === typeof target)) return [3 /*break*/, 3];
-                    Jsonarch.validateParameterType(nextDepthEntry, parameter);
-                    return [4 /*yield*/, target(nextDepthEntry, parameter)];
+                    if (!("function" === typeof target)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, Jsonarch.resolveDeepLazy(parameter)];
                 case 2:
+                    solid = _f.sent();
+                    Jsonarch.validateParameterType(nextDepthEntry, solid);
+                    return [4 /*yield*/, target(nextDepthEntry, solid)];
+                case 3:
                     result = _f.sent();
                     if (undefined === result) {
-                        throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
+                        throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, solid);
                     }
-                    return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, parameter, result)];
-                case 3:
-                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
-                    Jsonarch.validateParameterType(nextDepthEntry, parameter);
+                    return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
+                case 4:
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 6];
+                    if (!Jsonarch.hasLazy(parameter)) {
+                        Jsonarch.validateParameterType(nextDepthEntry, parameter);
+                    }
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
-                case 4: return [2 /*return*/, _f.sent()];
-                case 5: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
+                case 5: return [2 /*return*/, _f.sent()];
+                case 6: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
                     refer: entry.template.refer,
                 });
             }
@@ -2071,81 +2171,100 @@ var Jsonarch;
         };
         Limit.incrementNestDepth = function (entry) { var _c; return Limit.resetNestDepth(entry, ((_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0) + 1); };
     })(Limit = Jsonarch.Limit || (Jsonarch.Limit = {}));
-    Jsonarch.apply = function (entry) { return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-        var maxArrayLength, nextDepthEntry, result, _c, _d, _e, i, _f, _g, result, template, maxObjectMembers, nextDepthEntry, keys, _h, _j, _k, i, key, _l, _m;
-        return __generator(this, function (_o) {
-            switch (_o.label) {
-                case 0:
-                    Limit.throwIfOverTheProcessTimeout(entry);
-                    Limit.throwIfOverTheNestDepth(entry);
-                    if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
-                    return [2 /*return*/, entry.template];
-                case 1:
-                    if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 3];
+    Jsonarch.apply = function (entry, lazyable) {
+        if (lazyable === void 0) { lazyable = false; }
+        return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
+            var _c, maxArrayLength, nextDepthEntry, result, _d, _e, _f, i, _g, _h, result, template, maxObjectMembers, nextDepthEntry, keys, _j, _k, _l, i, key, _m, _o;
+            var _this = this;
+            return __generator(this, function (_p) {
+                switch (_p.label) {
+                    case 0:
+                        Limit.throwIfOverTheProcessTimeout(entry);
+                        Limit.throwIfOverTheNestDepth(entry);
+                        if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
+                        return [2 /*return*/, entry.template];
+                    case 1:
+                        if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 5];
+                        if (!lazyable) return [3 /*break*/, 2];
+                        _c = (function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0: return [4 /*yield*/, Jsonarch.evaluate(entry)];
+                                case 1: return [2 /*return*/, _c.sent()];
+                            }
+                        }); }); });
+                        return [3 /*break*/, 4];
+                    case 2: 
+                    // await evaluate(entry):
                     return [4 /*yield*/, Jsonarch.evaluate(entry)];
-                case 2: return [2 /*return*/, _o.sent()];
-                case 3:
-                    if (!Array.isArray(entry.template)) return [3 /*break*/, 8];
-                    maxArrayLength = Limit.getMaxArrayLength(entry);
-                    if (maxArrayLength < entry.template.length) {
-                        throw new Jsonarch.ErrorJson(entry, "Too Long Array Length", {
-                            maxArrayLength: maxArrayLength,
-                            templateLength: entry.template.length,
-                        });
-                    }
-                    nextDepthEntry = Limit.incrementNestDepth(entry);
-                    result = [];
-                    _c = [];
-                    for (_d in entry.template)
-                        _c.push(_d);
-                    _e = 0;
-                    _o.label = 4;
-                case 4:
-                    if (!(_e < _c.length)) return [3 /*break*/, 7];
-                    i = _c[_e];
-                    _g = (_f = result).push;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, i), template: entry.template[i] }))];
-                case 5:
-                    _g.apply(_f, [_o.sent()]);
-                    _o.label = 6;
-                case 6:
-                    _e++;
-                    return [3 /*break*/, 4];
-                case 7: return [2 /*return*/, result];
-                case 8:
-                    result = {};
-                    template = entry.template;
-                    maxObjectMembers = Limit.getMaxObjectMembers(entry);
-                    if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
-                        throw new Jsonarch.ErrorJson(entry, "Too Many Object Members", {
-                            maxObjectMembers: maxObjectMembers,
-                            templateMembers: Jsonarch.objectKeys(template).length,
-                        });
-                    }
-                    nextDepthEntry = Limit.incrementNestDepth(entry);
-                    keys = Jsonarch.objectKeys(template);
-                    _h = [];
-                    for (_j in keys)
-                        _h.push(_j);
-                    _k = 0;
-                    _o.label = 9;
-                case 9:
-                    if (!(_k < _h.length)) return [3 /*break*/, 12];
-                    i = _h[_k];
-                    key = keys[i];
-                    _l = result;
-                    _m = key;
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, key), template: template[key] }))];
-                case 10:
-                    _l[_m] = _o.sent();
-                    _o.label = 11;
-                case 11:
-                    _k++;
-                    return [3 /*break*/, 9];
-                case 12: return [2 /*return*/, result];
-            }
-        });
-    }); }); };
+                    case 3:
+                        // await evaluate(entry):
+                        _c = _p.sent();
+                        _p.label = 4;
+                    case 4: return [2 /*return*/, _c];
+                    case 5:
+                        if (!Array.isArray(entry.template)) return [3 /*break*/, 10];
+                        maxArrayLength = Limit.getMaxArrayLength(entry);
+                        if (maxArrayLength < entry.template.length) {
+                            throw new Jsonarch.ErrorJson(entry, "Too Long Array Length", {
+                                maxArrayLength: maxArrayLength,
+                                templateLength: entry.template.length,
+                            });
+                        }
+                        nextDepthEntry = Limit.incrementNestDepth(entry);
+                        result = [];
+                        _d = [];
+                        for (_e in entry.template)
+                            _d.push(_e);
+                        _f = 0;
+                        _p.label = 6;
+                    case 6:
+                        if (!(_f < _d.length)) return [3 /*break*/, 9];
+                        i = _d[_f];
+                        _h = (_g = result).push;
+                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, i), template: entry.template[i] }), lazyable)];
+                    case 7:
+                        _h.apply(_g, [_p.sent()]);
+                        _p.label = 8;
+                    case 8:
+                        _f++;
+                        return [3 /*break*/, 6];
+                    case 9: return [2 /*return*/, result];
+                    case 10:
+                        result = {};
+                        template = entry.template;
+                        maxObjectMembers = Limit.getMaxObjectMembers(entry);
+                        if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
+                            throw new Jsonarch.ErrorJson(entry, "Too Many Object Members", {
+                                maxObjectMembers: maxObjectMembers,
+                                templateMembers: Jsonarch.objectKeys(template).length,
+                            });
+                        }
+                        nextDepthEntry = Limit.incrementNestDepth(entry);
+                        keys = Jsonarch.objectKeys(template);
+                        _j = [];
+                        for (_k in keys)
+                            _j.push(_k);
+                        _l = 0;
+                        _p.label = 11;
+                    case 11:
+                        if (!(_l < _j.length)) return [3 /*break*/, 14];
+                        i = _j[_l];
+                        key = keys[i];
+                        _m = result;
+                        _o = key;
+                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, key), template: template[key] }), lazyable)];
+                    case 12:
+                        _m[_o] = _p.sent();
+                        _p.label = 13;
+                    case 13:
+                        _l++;
+                        return [3 /*break*/, 11];
+                    case 14: return [2 /*return*/, result];
+                }
+            });
+        }); });
+    };
+    Jsonarch.lazyableApply = function (entry) { var _c; return Jsonarch.apply(entry, (_c = entry.setting.lazyEvaluation) !== null && _c !== void 0 ? _c : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
         var handler, context, callStack, path, rootEvaluateEntry, output, result, error_2, result;
         return __generator(this, function (_c) {
@@ -2199,24 +2318,24 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
-        var _j, _k;
-        return __generator(this, function (_l) {
-            switch (_l.label) {
+        var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template, _j;
+        var _k, _l;
+        return __generator(this, function (_m) {
+            switch (_m.label) {
                 case 0:
                     handler = entry.handler;
                     emptyCache = { "$arch": "cache" };
                     if (!entry.cache) return [3 /*break*/, 2];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: emptyCache, setting: boot_setting_json_1.default, handler: handler, file: entry.cache })];
                 case 1:
-                    _c = _l.sent();
+                    _c = _m.sent();
                     return [3 /*break*/, 3];
                 case 2:
                     _c = emptyCache;
-                    _l.label = 3;
+                    _m.label = 3;
                 case 3:
                     cache = _c;
-                    settingFileContext = (_j = entry.setting) !== null && _j !== void 0 ? _j : Jsonarch.getSystemFileContext("default-setting.json");
+                    settingFileContext = (_k = entry.setting) !== null && _k !== void 0 ? _k : Jsonarch.getSystemFileContext("default-setting.json");
                     _d = Jsonarch.applyRoot;
                     _e = [{
                             handler: handler,
@@ -2226,12 +2345,12 @@ var Jsonarch;
                             profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
-                case 4: return [4 /*yield*/, _d.apply(void 0, _e.concat([_l.sent(), null,
+                case 4: return [4 /*yield*/, _d.apply(void 0, _e.concat([_m.sent(), null,
                         cache,
                         boot_setting_json_1.default]))];
                 case 5:
-                    settingResult = _l.sent();
-                    setting = (_k = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _k !== void 0 ? _k : { "$arch": "setting", };
+                    settingResult = _m.sent();
+                    setting = (_l = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _l !== void 0 ? _l : { "$arch": "setting", };
                     if (!entry.parameter) return [3 /*break*/, 8];
                     _g = Jsonarch.applyRoot;
                     _h = [{
@@ -2242,22 +2361,25 @@ var Jsonarch;
                             profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.parameter })];
-                case 6: return [4 /*yield*/, _g.apply(void 0, _h.concat([_l.sent(), null,
+                case 6: return [4 /*yield*/, _g.apply(void 0, _h.concat([_m.sent(), null,
                         cache,
                         setting]))];
                 case 7:
-                    _f = _l.sent();
+                    _f = _m.sent();
                     return [3 /*break*/, 9];
                 case 8:
                     _f = undefined;
-                    _l.label = 9;
+                    _m.label = 9;
                 case 9:
                     parameterResult = _f;
                     parameter = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output;
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.template })];
                 case 10:
-                    template = _l.sent();
-                    return [2 /*return*/, Jsonarch.applyRoot(entry, template, parameter, cache, setting)];
+                    template = _m.sent();
+                    _j = Jsonarch.resolveDeepLazy;
+                    return [4 /*yield*/, Jsonarch.applyRoot(entry, template, parameter, cache, setting)];
+                case 11: return [4 /*yield*/, _j.apply(void 0, [_m.sent()])];
+                case 12: return [2 /*return*/, _m.sent()];
             }
         });
     }); };

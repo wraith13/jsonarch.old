@@ -2,10 +2,11 @@
     "$schema": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#",
     "$arch": "setting",
     "limit": {
-        "processTimeout": 1000,
+        "processTimeout": 10000,
         "maxCallNestDepth": 16,
         "maxArrayLength": 1000,
         "maxObjectNestDepth": 32,
         "maxObjectMembers": 1000
-    }
+    },
+    "lazyEvaluation": true
 }

@@ -184,11 +184,69 @@ export module Jsonarch
     {
         return (value: unknown) => isTypeList.some(i => i(value));
     }
-    export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
-    export const getLazyValue = <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>): T =>
+    export type Lazy<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
+    export const getLazyValue = <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): T =>
         "function" === typeof lazy ?
             lazy():
             lazy;
+    export const resolveShallowLazy = async <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): Promise<T> =>
+        "function" === typeof lazy ?
+            await resolveShallowLazy(await lazy()):
+            lazy;
+    export const resolveDeepLazy = async <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): Promise<T> =>
+    {
+        if ("function" === typeof lazy)
+        {
+            return await resolveDeepLazy(await lazy());
+        }
+        else
+        if (Array.isArray(lazy))
+        {
+            const result = [];
+            for(const i in lazy)
+            {
+                result.push(await resolveDeepLazy(lazy[i]));
+            }
+            return <T>result;
+        }
+        else
+        if (null !== lazy && "object" === typeof lazy)
+        {
+            const result: { [ key: string ]: any } = { };
+            const keys = objectKeys(lazy);
+            for(const i in keys)
+            {
+                const key = keys[i];
+                result[key] = await resolveDeepLazy(lazy[key]);
+            }
+            return <T>result;
+        }
+        else
+        {
+            return lazy;
+        }
+    };
+    export const hasLazy = <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): boolean =>
+    {
+        if ("function" === typeof lazy)
+        {
+            return true;
+        }
+        else
+        if (Array.isArray(lazy))
+        {
+            return lazy.some(i => hasLazy(i));
+        }
+        else
+        if (null !== lazy && "object" === typeof lazy)
+        {
+            return objectValues(lazy).some(i => hasLazy(<any>i));
+        }
+        else
+        {
+            return false;
+        }
+    };
     export const getTemporaryDummy = Locale.getSystemLocale();
     export const packageJson = require("../package.json") as
     {
@@ -403,6 +461,7 @@ export module Jsonarch
         originMap?: false | "template" | "parameter" | "both";
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
+        lazyEvaluation?: boolean;
     }
     export const isSetting = isJsonarch<Setting>("setting");
     // const bootSettingJson: Setting =
@@ -972,6 +1031,11 @@ export module Jsonarch
             return { $arch: "type", type: "object", member, };
         }
         // else
+        // if ("function" === typeof json)
+        // {
+        //     return { $arch: "type", type: "function", };
+        // }
+        // else
         // {
             return { $arch: "type", type: "never", };
         // }
@@ -1500,7 +1564,7 @@ export module Jsonarch
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
         undefined === entry.template.parameter ?
             undefined:
-            await apply
+            await lazyableApply
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "parameter"),
@@ -2805,18 +2869,22 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                validateParameterType(nextDepthEntry, parameter);
-                const result = await target(nextDepthEntry, parameter);
+                const solid = await resolveDeepLazy(parameter);
+                validateParameterType(nextDepthEntry, solid);
+                const result = await target(nextDepthEntry, solid);
                 if (undefined === result)
                 {
-                    throw UnmatchParameterTypeDefineError(nextDepthEntry, parameter);
+                    throw UnmatchParameterTypeDefineError(nextDepthEntry, solid);
                 }
-                return validateReturnType(nextDepthEntry, parameter, result);
+                return validateReturnType(nextDepthEntry, solid, result);
             }
             else
             if (isTemplateData(target))
             {
-                validateParameterType(nextDepthEntry, parameter);
+                if ( ! hasLazy(parameter))
+                {
+                    validateParameterType(nextDepthEntry, parameter);
+                }
                 return await evaluateTemplate
                 ({
                     ...nextDepthEntry,
@@ -2972,7 +3040,7 @@ export module Jsonarch
         export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
             resetNestDepth(entry, (entry.context.nestDepth ?? 0) +1);
     }
-    export const apply = (entry: EvaluateEntry<Jsonable>): Promise<Jsonable> => profile
+    export const apply = (entry: EvaluateEntry<Jsonable>, lazyable: boolean = false): Promise<Jsonable> => profile
     (
         entry, "apply", async () =>
         {
@@ -2985,7 +3053,10 @@ export module Jsonarch
             else
             if (isEvaluateTargetEntry(entry))
             {
-                return await evaluate(entry);
+                return lazyable ?
+                    <Jsonable><unknown>(async () => await evaluate(entry)):
+                    // await evaluate(entry):
+                    await evaluate(entry);
             }
             else
             if (Array.isArray(entry.template))
@@ -3009,11 +3080,14 @@ export module Jsonarch
                     result.push
                     (
                         await apply
-                        ({
-                            ...nextDepthEntry,
-                            path: makeFullRefer(entry.path, i),
-                            template: entry.template[i],
-                        })
+                        (
+                            {
+                                ...nextDepthEntry,
+                                path: makeFullRefer(entry.path, i),
+                                template: entry.template[i],
+                            },
+                            lazyable
+                        )
                     );
                 }
                 return result;
@@ -3040,17 +3114,20 @@ export module Jsonarch
                 {
                     const key = keys[i];
                     result[key] = await apply
-                    ({
-                        ...nextDepthEntry,
-                        path: makeFullRefer(entry.path, key),
-                        template: template[key] as Jsonable,
-                    });
+                    (
+                        {
+                            ...nextDepthEntry,
+                            path: makeFullRefer(entry.path, key),
+                            template: template[key] as Jsonable,
+                        },
+                        lazyable
+                    );
                 }
-
                 return result;
             }
         }
     );
+    export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.lazyEvaluation ?? true);
     export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
@@ -3107,7 +3184,6 @@ export module Jsonarch
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
-
         const emptyCache: Cache = { "$arch": "cache" };
         const cache = entry.cache ?
             await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: entry.cache }):
@@ -3148,7 +3224,7 @@ export module Jsonarch
             undefined;
         const parameter = parameterResult?.output;
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
-        return applyRoot(entry, template, parameter, cache, setting);
+        return await resolveDeepLazy(await applyRoot(entry, template, parameter, cache, setting));
     };
     export const toLineArrayOrAsIs = (text: string) =>
         0 <= text.indexOf("\n") ? text.split("\n"): text;

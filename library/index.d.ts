@@ -70,8 +70,11 @@ export declare module Jsonarch {
     export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>): IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG>;
     export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>): IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH>;
     export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>, isI: IsType<TypeI>): IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI>;
-    export type Lazy<T extends Structure<JsonableValue | undefined>> = T | (() => T);
-    export const getLazyValue: <T extends Structure<JsonableValue | undefined>>(lazy: Lazy<T>) => T;
+    export type Lazy<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
+    export const getLazyValue: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => T;
+    export const resolveShallowLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => Promise<T>;
+    export const resolveDeepLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => Promise<T>;
+    export const hasLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => boolean;
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
@@ -190,6 +193,7 @@ export declare module Jsonarch {
         originMap?: false | "template" | "parameter" | "both";
         influenceMap?: false | "template" | "parameter" | "both";
         callGraph?: boolean;
+        lazyEvaluation?: boolean;
     }
     export const isSetting: (template: unknown) => template is Setting;
     export interface CallStackEntry extends JsonableObject {
@@ -697,7 +701,8 @@ export declare module Jsonarch {
         const resetNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry, nestDepth?: number) => Entry;
         const incrementNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
     }
-    export const apply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
+    export const apply: (entry: EvaluateEntry<Jsonable>, lazyable?: boolean) => Promise<Jsonable>;
+    export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const toLineArrayOrAsIs: (text: string) => string | string[];
