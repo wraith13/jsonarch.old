@@ -85,6 +85,34 @@
             },
             "additionalProperties": false
         },
+        "Digest": {
+            "type": "object",
+            "properties": {
+                "maxStringLength":
+                {
+                    "type": "number"
+                },
+                "maxArrayLength":
+                {
+                    "type": "number",
+                    "minimum": 100,
+                    "default": 1000
+                },
+                "maxObjectNestDepth":
+                {
+                    "type": "number",
+                    "minimum": 4,
+                    "default": 32
+                },
+                "maxObjectMembers":
+                {
+                    "type": "number",
+                    "minimum": 100,
+                    "default": 1000
+                }
+            },
+            "additionalProperties": false
+        },
         "OutputFormat": {
             "type": "object",
             "properties": {
@@ -95,6 +123,10 @@
                 "text":
                 {
                     "type": "boolean"
+                },
+                "digest":
+                {
+                    "$ref": "#/definitions/Digest"
                 }
             },
             "additionalProperties": false

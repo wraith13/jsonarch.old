@@ -585,6 +585,13 @@ export module Jsonarch
         {
             indent?: "minify" | "smart" | "tab" | number;
             text?: boolean;
+            digest?:
+            {
+                maxStringLength?: number;
+                maxArrayLength?: number;
+                maxObjectNestDepth?: number;
+                maxObjectMembers?: number;
+            };
         };
     }
     export const isSetting = isJsonarch<Setting>("setting");
@@ -3555,37 +3562,93 @@ export module Jsonarch
         }
         return result;
     };
-    export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
+    export const digest = (json: Jsonable, setting: Setting, nestDepth?: number): Jsonable =>
     {
-        const indent = setting.outputFormat?.indent ?? "smart";
-        if ("output" === asType && setting.outputFormat?.text && "string" === typeof json)
+        const digestSetting = setting.outputFormat?.digest;
+        if (digestSetting)
+        {
+            const nextNestDepth = (nestDepth ?? 0) +1;
+            if (Array.isArray(json))
+            {
+                if (digestSetting.maxObjectNestDepth && digestSetting.maxObjectNestDepth < nextNestDepth)
+                {
+                    return `@digest: cliped array ( items: ${json.length} )`;
+                }
+                else
+                {
+                    const result = [];
+                    for(const i in json)
+                    {
+                        result.push(digest(json[i], setting, nextNestDepth));
+                    }
+                    return result;
+                }
+            }
+            else
+            if (null !== json && "object" === typeof json)
+            {
+                if (digestSetting.maxObjectNestDepth && digestSetting.maxObjectNestDepth < nextNestDepth)
+                {
+                    return `@digest: cliped object ( ${JSON.stringify(json).substring(0, 32)}... )`;
+                }
+                else
+                {
+                    const result: JsonableObject = { };
+                    const keys = objectKeys(json);
+                    for(const i in keys)
+                    {
+                        const key = keys[i];
+                        result[key] = digest(<Jsonable>json[key], setting, nextNestDepth);
+                    }
+                    return result;
+                }
+            }
+            if ("string" === typeof json && digestSetting.maxStringLength && digestSetting.maxStringLength < json.length)
+            {
+                return `@digest: cliped string ( ${JSON.stringify(json.substring(0, digestSetting.maxStringLength))}... )`;
+            }
+            else
+            {
+                return json;
+            }
+        }
+        else
         {
             return json;
         }
-        else
-        if ("output" === asType && setting.outputFormat?.text && Array.isArray(json) && 0 === json.filter(line => "string" !== typeof line).length)
+    };
+    export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
+    {
+        const digested = digest(json, setting);
+        const indent = setting.outputFormat?.indent ?? "smart";
+        if ("output" === asType && setting.outputFormat?.text && "string" === typeof digested)
         {
-            return json.join("\n");
+            return digested;
+        }
+        else
+        if ("output" === asType && setting.outputFormat?.text && Array.isArray(digested) && 0 === digested.filter(line => "string" !== typeof line).length)
+        {
+            return digested.join("\n");
         }
         else
         if ("number" === typeof indent)
         {
-            return jsonStringify(json, undefined, indent);
+            return jsonStringify(digested, undefined, indent);
         }
         else
         if ("tab" === indent)
         {
-            return jsonStringify(json, undefined, "\t");
+            return jsonStringify(digested, undefined, "\t");
         }
         else
         if ("smart" === indent)
         {
-            return smartJsonStringify(json, 4);
+            return smartJsonStringify(digested, 4);
         }
         else
         {
             // "minify" === indent
-            return jsonStringify(json);
+            return jsonStringify(digested);
         }
     };
     export const throwIfError = <DataType extends Jsonable>(json: DataType): DataType =>

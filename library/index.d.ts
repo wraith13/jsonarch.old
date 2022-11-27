@@ -204,6 +204,12 @@ export declare module Jsonarch {
         outputFormat?: {
             indent?: "minify" | "smart" | "tab" | number;
             text?: boolean;
+            digest?: {
+                maxStringLength?: number;
+                maxArrayLength?: number;
+                maxObjectNestDepth?: number;
+                maxObjectMembers?: number;
+            };
         };
     }
     export const isSetting: (template: unknown) => template is Setting;
@@ -735,6 +741,7 @@ export declare module Jsonarch {
     export const toLineArrayOrAsIs: (text: string) => string | string[];
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;
+    export const digest: (json: Jsonable, setting: Setting, nestDepth?: number) => Jsonable;
     export const jsonToString: (json: Jsonable, asType: "result" | "output", setting: Setting) => string;
     export const throwIfError: <DataType extends Jsonable>(json: DataType) => DataType;
     export {};

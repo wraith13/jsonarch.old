@@ -2639,27 +2639,70 @@ var Jsonarch;
         }
         return result;
     };
-    Jsonarch.jsonToString = function (json, asType, setting) {
-        var _c, _d, _e, _f;
-        var indent = (_d = (_c = setting.outputFormat) === null || _c === void 0 ? void 0 : _c.indent) !== null && _d !== void 0 ? _d : "smart";
-        if ("output" === asType && ((_e = setting.outputFormat) === null || _e === void 0 ? void 0 : _e.text) && "string" === typeof json) {
+    Jsonarch.digest = function (json, setting, nestDepth) {
+        var _c;
+        var digestSetting = (_c = setting.outputFormat) === null || _c === void 0 ? void 0 : _c.digest;
+        if (digestSetting) {
+            var nextNestDepth = (nestDepth !== null && nestDepth !== void 0 ? nestDepth : 0) + 1;
+            if (Array.isArray(json)) {
+                if (digestSetting.maxObjectNestDepth && digestSetting.maxObjectNestDepth < nextNestDepth) {
+                    return "@digest: cliped array ( items: ".concat(json.length, " )");
+                }
+                else {
+                    var result = [];
+                    for (var i in json) {
+                        result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
+                    }
+                    return result;
+                }
+            }
+            else if (null !== json && "object" === typeof json) {
+                if (digestSetting.maxObjectNestDepth && digestSetting.maxObjectNestDepth < nextNestDepth) {
+                    return "@digest: cliped object ( ".concat(JSON.stringify(json).substring(0, 32), "... )");
+                }
+                else {
+                    var result = {};
+                    var keys = Jsonarch.objectKeys(json);
+                    for (var i in keys) {
+                        var key = keys[i];
+                        result[key] = Jsonarch.digest(json[key], setting, nextNestDepth);
+                    }
+                    return result;
+                }
+            }
+            if ("string" === typeof json && digestSetting.maxStringLength && digestSetting.maxStringLength < json.length) {
+                return "@digest: cliped string ( ".concat(JSON.stringify(json.substring(0, digestSetting.maxStringLength)), "... )");
+            }
+            else {
+                return json;
+            }
+        }
+        else {
             return json;
         }
-        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(json) && 0 === json.filter(function (line) { return "string" !== typeof line; }).length) {
-            return json.join("\n");
+    };
+    Jsonarch.jsonToString = function (json, asType, setting) {
+        var _c, _d, _e, _f;
+        var digested = Jsonarch.digest(json, setting);
+        var indent = (_d = (_c = setting.outputFormat) === null || _c === void 0 ? void 0 : _c.indent) !== null && _d !== void 0 ? _d : "smart";
+        if ("output" === asType && ((_e = setting.outputFormat) === null || _e === void 0 ? void 0 : _e.text) && "string" === typeof digested) {
+            return digested;
+        }
+        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(digested) && 0 === digested.filter(function (line) { return "string" !== typeof line; }).length) {
+            return digested.join("\n");
         }
         else if ("number" === typeof indent) {
-            return Jsonarch.jsonStringify(json, undefined, indent);
+            return Jsonarch.jsonStringify(digested, undefined, indent);
         }
         else if ("tab" === indent) {
-            return Jsonarch.jsonStringify(json, undefined, "\t");
+            return Jsonarch.jsonStringify(digested, undefined, "\t");
         }
         else if ("smart" === indent) {
-            return Jsonarch.smartJsonStringify(json, 4);
+            return Jsonarch.smartJsonStringify(digested, 4);
         }
         else {
             // "minify" === indent
-            return Jsonarch.jsonStringify(json);
+            return Jsonarch.jsonStringify(digested);
         }
     };
     Jsonarch.throwIfError = function (json) {
