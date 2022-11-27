@@ -96,6 +96,91 @@ var Jsonarch;
         return function (parameter) { return undefined === parameter ? defaultResult : target(parameter); };
     }
     Jsonarch.undefinedable = undefinedable;
+    Jsonarch.structure = function (processor) {
+        var self = function (value, key) {
+            if (Array.isArray(value)) {
+                return value.map(function (i, ix) { return self(i, ix); });
+            }
+            else if (null !== value && "object" === typeof value) {
+                var result_1 = {};
+                Jsonarch.objectKeys(value).forEach(function (key) { return result_1[key] = self(value[key], key); });
+                return result_1;
+            }
+            else {
+                return processor(value, key);
+            }
+        };
+        return self;
+    };
+    Jsonarch.structureAsync = function (processor) {
+        var self = function (value, key) { return __awaiter(_this, void 0, void 0, function () {
+            var result, _c, _d, _e, i, _f, _g, result, keys, _h, _j, _k, i, key_1, _l, _m;
+            return __generator(this, function (_o) {
+                switch (_o.label) {
+                    case 0:
+                        if (!Array.isArray(value)) return [3 /*break*/, 5];
+                        result = [];
+                        _c = [];
+                        for (_d in value)
+                            _c.push(_d);
+                        _e = 0;
+                        _o.label = 1;
+                    case 1:
+                        if (!(_e < _c.length)) return [3 /*break*/, 4];
+                        i = _c[_e];
+                        _g = (_f = result).push;
+                        return [4 /*yield*/, self(value[i], i)];
+                    case 2:
+                        _g.apply(_f, [_o.sent()]);
+                        _o.label = 3;
+                    case 3:
+                        _e++;
+                        return [3 /*break*/, 1];
+                    case 4: return [2 /*return*/, result];
+                    case 5:
+                        if (!(null !== value && "object" === typeof value)) return [3 /*break*/, 10];
+                        result = {};
+                        keys = Jsonarch.objectKeys(value);
+                        _h = [];
+                        for (_j in keys)
+                            _h.push(_j);
+                        _k = 0;
+                        _o.label = 6;
+                    case 6:
+                        if (!(_k < _h.length)) return [3 /*break*/, 9];
+                        i = _h[_k];
+                        key_1 = keys[i];
+                        _l = result;
+                        _m = key_1;
+                        return [4 /*yield*/, self(value[key_1], key_1)];
+                    case 7:
+                        _l[_m] = _o.sent();
+                        _o.label = 8;
+                    case 8:
+                        _k++;
+                        return [3 /*break*/, 6];
+                    case 9: return [2 /*return*/, result];
+                    case 10: return [4 /*yield*/, processor(value, key)];
+                    case 11: return [2 /*return*/, _o.sent()];
+                }
+            });
+        }); };
+        return self;
+    };
+    Jsonarch.hasStructure = function (processor) {
+        var self = function (value, key) {
+            if (Array.isArray(value)) {
+                return value.some(function (i, ix) { return self(i, ix); });
+            }
+            else if (null !== value && "object" === typeof value) {
+                return Jsonarch.objectKeys(value).some(function (key) { return self(value[key], key); });
+            }
+            else {
+                return processor(value, key);
+            }
+        };
+        return self;
+    };
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.isJsonableValue = function (value) {
@@ -127,13 +212,13 @@ var Jsonarch;
                     return value.map(function (i) { return Jsonarch.toJsonable(i, maxDepth, currentDepth + 1); });
                 }
                 else {
-                    var result_1 = {};
+                    var result_2 = {};
                     Jsonarch.objectKeys(value).forEach(function (key) {
                         if (undefined !== value[key]) {
-                            result_1[key] = Jsonarch.toJsonable(value[key], maxDepth, currentDepth + 1);
+                            result_2[key] = Jsonarch.toJsonable(value[key], maxDepth, currentDepth + 1);
                         }
                     });
-                    return result_1;
+                    return result_2;
                 }
             }
             else {
@@ -226,77 +311,23 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.resolveDeepLazy = function (lazy) { return __awaiter(_this, void 0, void 0, function () {
-        var _c, result, _d, _e, _f, i, _g, _h, result, keys, _j, _k, _l, i, key, _m, _o;
-        return __generator(this, function (_p) {
-            switch (_p.label) {
-                case 0:
-                    if (!("function" === typeof lazy)) return [3 /*break*/, 3];
-                    _c = Jsonarch.resolveDeepLazy;
-                    return [4 /*yield*/, lazy()];
-                case 1: return [4 /*yield*/, _c.apply(void 0, [_p.sent()])];
-                case 2: return [2 /*return*/, _p.sent()];
-                case 3:
-                    if (!Array.isArray(lazy)) return [3 /*break*/, 8];
-                    result = [];
-                    _d = [];
-                    for (_e in lazy)
-                        _d.push(_e);
-                    _f = 0;
-                    _p.label = 4;
-                case 4:
-                    if (!(_f < _d.length)) return [3 /*break*/, 7];
-                    i = _d[_f];
-                    _h = (_g = result).push;
-                    return [4 /*yield*/, Jsonarch.resolveDeepLazy(lazy[i])];
-                case 5:
-                    _h.apply(_g, [_p.sent()]);
-                    _p.label = 6;
-                case 6:
-                    _f++;
-                    return [3 /*break*/, 4];
-                case 7: return [2 /*return*/, result];
-                case 8:
-                    if (!(null !== lazy && "object" === typeof lazy)) return [3 /*break*/, 13];
-                    result = {};
-                    keys = Jsonarch.objectKeys(lazy);
-                    _j = [];
-                    for (_k in keys)
-                        _j.push(_k);
-                    _l = 0;
-                    _p.label = 9;
-                case 9:
-                    if (!(_l < _j.length)) return [3 /*break*/, 12];
-                    i = _j[_l];
-                    key = keys[i];
-                    _m = result;
-                    _o = key;
-                    return [4 /*yield*/, Jsonarch.resolveDeepLazy(lazy[key])];
-                case 10:
-                    _m[_o] = _p.sent();
-                    _p.label = 11;
-                case 11:
-                    _l++;
-                    return [3 /*break*/, 9];
-                case 12: return [2 /*return*/, result];
-                case 13: return [2 /*return*/, lazy];
-            }
-        });
-    }); };
-    Jsonarch.hasLazy = function (lazy) {
-        if ("function" === typeof lazy) {
-            return true;
+    Jsonarch.resolveDeepLazy = Jsonarch.structureAsync(function (lazy) { return __awaiter(_this, void 0, void 0, function () { var _c, _d; return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                if (!("function" === typeof lazy)) return [3 /*break*/, 3];
+                _d = Jsonarch.resolveDeepLazy;
+                return [4 /*yield*/, lazy()];
+            case 1: return [4 /*yield*/, _d.apply(void 0, [_e.sent()])];
+            case 2:
+                _c = _e.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                _c = lazy;
+                _e.label = 4;
+            case 4: return [2 /*return*/, _c];
         }
-        else if (Array.isArray(lazy)) {
-            return lazy.some(function (i) { return Jsonarch.hasLazy(i); });
-        }
-        else if (null !== lazy && "object" === typeof lazy) {
-            return Jsonarch.objectValues(lazy).some(function (i) { return Jsonarch.hasLazy(i); });
-        }
-        else {
-            return false;
-        }
-    };
+    }); }); });
+    Jsonarch.hasLazy = Jsonarch.hasStructure(function (lazy) { return "function" === typeof lazy; });
     Jsonarch.getTemporaryDummy = Locale.getSystemLocale();
     Jsonarch.packageJson = require("../package.json");
     Jsonarch.name = Jsonarch.packageJson.name;
@@ -2264,7 +2295,7 @@ var Jsonarch;
             });
         }); });
     };
-    Jsonarch.lazyableApply = function (entry) { var _c; return Jsonarch.apply(entry, (_c = entry.setting.lazyEvaluation) !== null && _c !== void 0 ? _c : true); };
+    Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
         var handler, context, callStack, path, rootEvaluateEntry, output, result, error_2, result;
         return __generator(this, function (_c) {
@@ -2383,6 +2414,8 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.encode = Jsonarch.structure(function (json, key) { return "$arch" === key && "string" === typeof json ? "$" + json : json; });
+    Jsonarch.decode = Jsonarch.structure(function (json, key) { return "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1) : json; });
     Jsonarch.toLineArrayOrAsIs = function (text) {
         return 0 <= text.indexOf("\n") ? text.split("\n") : text;
     };
@@ -2487,12 +2520,12 @@ var Jsonarch;
         return result;
     };
     Jsonarch.jsonToString = function (json, asType, setting) {
-        var _c;
-        var indent = (_c = setting.indent) !== null && _c !== void 0 ? _c : "smart";
-        if ("output" === asType && setting.textOutput && "string" === typeof json) {
+        var _c, _d, _e, _f;
+        var indent = (_d = (_c = setting.outputFormat) === null || _c === void 0 ? void 0 : _c.indent) !== null && _d !== void 0 ? _d : "smart";
+        if ("output" === asType && ((_e = setting.outputFormat) === null || _e === void 0 ? void 0 : _e.text) && "string" === typeof json) {
             return json;
         }
-        else if ("output" === asType && setting.textOutput && Array.isArray(json) && 0 === json.filter(function (line) { return "string" !== typeof line; }).length) {
+        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(json) && 0 === json.filter(function (line) { return "string" !== typeof line; }).length) {
             return json.join("\n");
         }
         else if ("number" === typeof indent) {

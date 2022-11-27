@@ -6,6 +6,9 @@ export declare module Jsonarch {
         [key: string]: undefined | Structure<Element>;
     }
     export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
+    export const structure: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => ResultType) => (value: Structure<Element_1>, key?: number | string) => Structure<ResultType>;
+    export const structureAsync: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => Promise<ResultType>) => (value: Structure<Element_1>, key?: number | string) => Promise<Structure<ResultType>>;
+    export const hasStructure: <Element_1>(processor: (value: Element_1, key?: number | string) => boolean) => (value: Structure<Element_1>, key?: number | string) => boolean;
     export type JsonableValue = null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
@@ -73,8 +76,8 @@ export declare module Jsonarch {
     export type Lazy<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
     export const getLazyValue: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => T;
     export const resolveShallowLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => Promise<T>;
-    export const resolveDeepLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => Promise<T>;
-    export const hasLazy: <T extends Structure<Function | JsonableValue | undefined>>(lazy: Lazy<T>) => boolean;
+    export const resolveDeepLazy: <T extends (JsonableValue | undefined | Function)>(lazy: Structure<Lazy<T>>) => Promise<Structure<T>>;
+    export const hasLazy: (value: Structure<Structure<Function | JsonableValue | undefined>>, key?: number | string) => boolean;
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
@@ -178,9 +181,12 @@ export declare module Jsonarch {
     export const isCache: (template: unknown) => template is Cache;
     export interface Setting extends AlphaJsonarch {
         $arch: "setting";
-        language?: string;
-        indent?: "minify" | "smart" | "tab" | number;
-        textOutput?: boolean;
+        locale?: {
+            language?: string;
+        };
+        process?: {
+            lazyEvaluation?: boolean;
+        };
         limit?: {
             processTimeout?: number;
             maxCallNestDepth?: number;
@@ -188,12 +194,17 @@ export declare module Jsonarch {
             maxObjectNestDepth?: number;
             maxObjectMembers?: number;
         };
-        trace?: "stdout" | "stderr" | boolean;
-        profile?: false | "template" | "parameter" | "both";
-        originMap?: false | "template" | "parameter" | "both";
-        influenceMap?: false | "template" | "parameter" | "both";
-        callGraph?: boolean;
-        lazyEvaluation?: boolean;
+        metrics?: {
+            trace?: "stdout" | "stderr" | boolean;
+            profile?: false | "template" | "parameter" | "both";
+            originMap?: false | "template" | "parameter" | "both";
+            influenceMap?: false | "template" | "parameter" | "both";
+            callGraph?: boolean;
+        };
+        outputFormat?: {
+            indent?: "minify" | "smart" | "tab" | number;
+            text?: boolean;
+        };
     }
     export const isSetting: (template: unknown) => template is Setting;
     export interface CallStackEntry extends JsonableObject {
@@ -705,6 +716,8 @@ export declare module Jsonarch {
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting) => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
+    export const encode: (value: Structure<Jsonable>, key?: number | string) => Structure<Jsonable>;
+    export const decode: (value: Structure<Jsonable>, key?: number | string) => Structure<Jsonable>;
     export const toLineArrayOrAsIs: (text: string) => string | string[];
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;

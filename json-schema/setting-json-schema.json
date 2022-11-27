@@ -13,7 +13,7 @@
             "oneOf": [
                 {
                     "type": "string",
-                    "enum": [ "minify", "tab" ]
+                    "enum": [ "minify", "smart", "tab" ]
                 },
                 {
                     "type": "number",
@@ -21,6 +21,26 @@
                     "maximum": 32
                 }
             ]
+        },
+        "Locale": {
+            "type": "object",
+            "properties": {
+                "language":
+                {
+                    "$ref": "#/definitions/Language"
+                }
+            },
+            "additionalProperties": false
+        },
+        "Process": {
+            "type": "object",
+            "properties": {
+                "lazyEvaluation":
+                {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
         },
         "Limit": {
             "type": "object",
@@ -59,6 +79,26 @@
             },
             "additionalProperties": false
         },
+        "Metrics": {
+            "type": "object",
+            "properties": {
+            },
+            "additionalProperties": false
+        },
+        "OutputFormat": {
+            "type": "object",
+            "properties": {
+                "indent":
+                {
+                    "$ref": "#/definitions/Indent"
+                },
+                "text":
+                {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
         "Setting": {
             "type": "object",
             "properties": {
@@ -69,25 +109,25 @@
                     "type": "string",
                     "enum": [ "setting" ]
                 },
-                "language":
+                "locale":
                 {
-                    "$ref": "#/definitions/Language"
+                    "$ref": "#/definitions/Locale"
                 },
-                "indent":
+                "process":
                 {
-                    "$ref": "#/definitions/Indent"
-                },
-                "textOutput":
-                {
-                    "type": "boolean"
+                    "$ref": "#/definitions/Process"
                 },
                 "limit":
                 {
                     "$ref": "#/definitions/Limit"
                 },
-                "lazyEvaluation":
+                "metrics":
                 {
-                    "type": "boolean"
+                    "$ref": "#/definitions/Metrics"
+                },
+                "outputFormat":
+                {
+                    "$ref": "#/definitions/OutputFormat"
                 }
             },
             "required": [

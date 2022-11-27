@@ -1,6 +1,10 @@
 {
     "$schema": "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#",
     "$arch": "setting",
+    "process":
+    {
+        "lazyEvaluation": true
+    },
     "limit":
     {
         "processTimeout": 1000,
@@ -8,6 +12,5 @@
         "maxArrayLength": 1000,
         "maxObjectNestDepth": 32,
         "maxObjectMembers": 1000
-    },
-    "lazyEvaluation": true
+    }
 }

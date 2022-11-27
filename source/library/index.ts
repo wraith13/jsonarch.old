@@ -17,6 +17,83 @@ export module Jsonarch
         [key: string]: undefined | Structure<Element>;
     }
     export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
+    export const structure = <Element, ResultType>(processor: (value: Element, key?: number | string) => ResultType) =>
+    {
+        const self = (value: Structure<Element>, key?: number | string): Structure<ResultType> =>
+        {
+            if (Array.isArray(value))
+            {
+                return value.map((i, ix) => self(i, ix));
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const result: StructureObject<ResultType> = { };
+                objectKeys(value).forEach
+                (
+                    key => result[key] = self(<Element>value[key], key)
+                );
+                return result;
+            }
+            else
+            {
+                return processor(value, key);
+            }
+        };
+        return self;
+    };
+    export const structureAsync = <Element, ResultType>(processor: (value: Element, key?: number | string) => Promise<ResultType>) =>
+    {
+        const self = async (value: Structure<Element>, key?: number | string): Promise<Structure<ResultType>> =>
+        {
+            if (Array.isArray(value))
+            {
+                const result = [];
+                for(const i in value)
+                {
+                    result.push(await self(value[i], i));
+                }
+                return result;
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const result: StructureObject<ResultType> = { };
+                const keys = objectKeys(value);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    result[key] = await self(<Element>value[key], key);
+                }
+                return result;
+            }
+            else
+            {
+                return await processor(value, key);
+            }
+        };
+        return self;
+    };
+    export const hasStructure = <Element>(processor: (value: Element, key?: number | string) => boolean) =>
+    {
+        const self = (value: Structure<Element>, key?: number | string): boolean =>
+        {
+            if (Array.isArray(value))
+            {
+                return value.some((i, ix) => self(i, ix));
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                return objectKeys(value).some(key => self(<Element>value[key], key));
+            }
+            else
+            {
+                return processor(value, key);
+            }
+        };
+        return self;
+    };
     export type JsonableValue = null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
@@ -193,60 +270,9 @@ export module Jsonarch
         "function" === typeof lazy ?
             await resolveShallowLazy(await lazy()):
             lazy;
-    export const resolveDeepLazy = async <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): Promise<T> =>
-    {
-        if ("function" === typeof lazy)
-        {
-            return await resolveDeepLazy(await lazy());
-        }
-        else
-        if (Array.isArray(lazy))
-        {
-            const result = [];
-            for(const i in lazy)
-            {
-                result.push(await resolveDeepLazy(lazy[i]));
-            }
-            return <T>result;
-        }
-        else
-        if (null !== lazy && "object" === typeof lazy)
-        {
-            const result: { [ key: string ]: any } = { };
-            const keys = objectKeys(lazy);
-            for(const i in keys)
-            {
-                const key = keys[i];
-                result[key] = await resolveDeepLazy(lazy[key]);
-            }
-            return <T>result;
-        }
-        else
-        {
-            return lazy;
-        }
-    };
-    export const hasLazy = <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): boolean =>
-    {
-        if ("function" === typeof lazy)
-        {
-            return true;
-        }
-        else
-        if (Array.isArray(lazy))
-        {
-            return lazy.some(i => hasLazy(i));
-        }
-        else
-        if (null !== lazy && "object" === typeof lazy)
-        {
-            return objectValues(lazy).some(i => hasLazy(<any>i));
-        }
-        else
-        {
-            return false;
-        }
-    };
+    export const resolveDeepLazy: <T extends (JsonableValue | undefined | Function)>(lazy: Structure<Lazy<T>>) => Promise<Structure<T>> =
+        structureAsync(async (lazy: Lazy<JsonableValue | undefined | Function>) => "function" === typeof lazy ? await resolveDeepLazy(await lazy()): lazy);
+    export const hasLazy = hasStructure((lazy: Structure<JsonableValue | undefined | Function>) => "function" === typeof lazy);
     export const getTemporaryDummy = Locale.getSystemLocale();
     export const packageJson = require("../package.json") as
     {
@@ -445,9 +471,14 @@ export module Jsonarch
     export interface Setting extends AlphaJsonarch
     {
         $arch: "setting";
-        language?: string;
-        indent?: "minify" | "smart" | "tab" | number;
-        textOutput?: boolean;
+        locale?:
+        {
+            language?: string;
+        };
+        process?:
+        {
+            lazyEvaluation?: boolean;
+        };
         limit?:
         {
             processTimeout?: number;
@@ -456,12 +487,19 @@ export module Jsonarch
             maxObjectNestDepth?: number;
             maxObjectMembers?: number;
         };
-        trace?: "stdout" | "stderr" | boolean;
-        profile?: false | "template" | "parameter" | "both";
-        originMap?: false | "template" | "parameter" | "both";
-        influenceMap?: false | "template" | "parameter" | "both";
-        callGraph?: boolean;
-        lazyEvaluation?: boolean;
+        metrics?:
+        {
+            trace?: "stdout" | "stderr" | boolean;
+            profile?: false | "template" | "parameter" | "both";
+            originMap?: false | "template" | "parameter" | "both";
+            influenceMap?: false | "template" | "parameter" | "both";
+            callGraph?: boolean;
+        };
+        outputFormat?:
+        {
+            indent?: "minify" | "smart" | "tab" | number;
+            text?: boolean;
+        };
     }
     export const isSetting = isJsonarch<Setting>("setting");
     // const bootSettingJson: Setting =
@@ -3127,7 +3165,7 @@ export module Jsonarch
             }
         }
     );
-    export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.lazyEvaluation ?? true);
+    export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
     export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
@@ -3224,8 +3262,10 @@ export module Jsonarch
             undefined;
         const parameter = parameterResult?.output;
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
-        return await resolveDeepLazy(await applyRoot(entry, template, parameter, cache, setting));
+        return <Result> await resolveDeepLazy(await applyRoot(entry, template, parameter, cache, setting));
     };
+    export const encode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json ? "$" +json: json);
+    export const decode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json);
     export const toLineArrayOrAsIs = (text: string) =>
         0 <= text.indexOf("\n") ? text.split("\n"): text;
     export const multiplyString = (text: string, count: number): string =>
@@ -3367,13 +3407,13 @@ export module Jsonarch
     };
     export const jsonToString = (json: Jsonable, asType: "result" | "output", setting: Setting): string =>
     {
-        const indent = setting.indent ?? "smart";
-        if ("output" === asType && setting.textOutput && "string" === typeof json)
+        const indent = setting.outputFormat?.indent ?? "smart";
+        if ("output" === asType && setting.outputFormat?.text && "string" === typeof json)
         {
             return json;
         }
         else
-        if ("output" === asType && setting.textOutput && Array.isArray(json) && 0 === json.filter(line => "string" !== typeof line).length)
+        if ("output" === asType && setting.outputFormat?.text && Array.isArray(json) && 0 === json.filter(line => "string" !== typeof line).length)
         {
             return json.join("\n");
         }
