@@ -94,6 +94,99 @@ export module Jsonarch
         };
         return self;
     };
+    export const structureObject = <Element, ResultType>(processor: (value: StructureObject<Element>, key?: number | string) => ResultType | undefined) =>
+    {
+        const self = (value: Structure<Element>, key?: number | string): Structure<Element | ResultType> =>
+        {
+            if (Array.isArray(value))
+            {
+                return value.map((i, ix) => self(i, ix));
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const processed = processor(<StructureObject<Element>>value, key);
+                if (undefined !== processed)
+                {
+                    return processed;
+                }
+                else
+                {
+                    const result: StructureObject<Element | ResultType> = { };
+                    objectKeys(value).forEach
+                    (
+                        key => result[key] = self(<Element>value[key], key)
+                    );
+                    return result;
+                }
+            }
+            else
+            {
+                return value;
+            }
+        };
+        return self;
+    };
+    export const structureObjectAsync = <Element, ResultType>(processor: (value: StructureObject<Element>, key?: number | string) => Promise<ResultType | undefined>) =>
+    {
+        const self = async (value: Structure<Element>, key?: number | string): Promise<Structure<Element | ResultType>> =>
+        {
+            if (Array.isArray(value))
+            {
+                const result = [];
+                for(const i in value)
+                {
+                    result.push(await self(value[i], i));
+                }
+                return result;
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const processed = await processor(<StructureObject<Element>>value, key);
+                if (undefined !== processed)
+                {
+                    return processed;
+                }
+                else
+                {
+                    const result: StructureObject<Element | ResultType> = { };
+                    const keys = objectKeys(value);
+                    for(const i in keys)
+                    {
+                        const key = keys[i];
+                        result[key] = await self(<Element>value[key], key);
+                    }
+                    return result;
+                }
+            }
+            else
+            {
+                return value;
+            }
+        };
+        return self;
+    };
+    export const hasStructureObject = <Element>(processor: (value: StructureObject<Element>, key?: number | string) => boolean) =>
+    {
+        const self = (value: Structure<Element>, key?: number | string): boolean =>
+        {
+            if (Array.isArray(value))
+            {
+                return value.some((i, ix) => self(i, ix));
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                return processor(<StructureObject<Element>>value, key) || objectKeys(value).some(key => self(<Element>value[key], key));
+            }
+            else
+            {
+                return false;
+            }
+        };
+        return self;
+    };
     export type JsonableValue = null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
@@ -261,18 +354,11 @@ export module Jsonarch
     {
         return (value: unknown) => isTypeList.some(i => i(value));
     }
-    export type Lazy<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
-    export const getLazyValue = <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): T =>
+    export type LazyValue<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
+    export const getLazyValue = <T extends Structure<JsonableValue | undefined | Function>>(lazy: LazyValue<T>): T =>
         "function" === typeof lazy ?
             lazy():
             lazy;
-    export const resolveShallowLazy = async <T extends Structure<JsonableValue | undefined | Function>>(lazy: Lazy<T>): Promise<T> =>
-        "function" === typeof lazy ?
-            await resolveShallowLazy(await lazy()):
-            lazy;
-    export const resolveDeepLazy: <T extends (JsonableValue | undefined | Function)>(lazy: Structure<Lazy<T>>) => Promise<Structure<T>> =
-        structureAsync(async (lazy: Lazy<JsonableValue | undefined | Function>) => "function" === typeof lazy ? await resolveDeepLazy(await lazy()): lazy);
-    export const hasLazy = hasStructure((lazy: Structure<JsonableValue | undefined | Function>) => "function" === typeof lazy);
     export const getTemporaryDummy = Locale.getSystemLocale();
     export const packageJson = require("../package.json") as
     {
@@ -594,6 +680,37 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
     }
+    interface Lazy extends AlphaJsonarch
+    {
+        $arch: "lazy";
+        this?: FullRefer;
+        parameter: Jsonable | undefined;
+        callStack: CallStackEntry[];
+        path: FullRefer;
+        // origin: Origin;
+        originMap?: OriginMap;
+        scope?: JsonableObject | undefined;
+    }
+    export const isLazy = isJsonarch<Lazy>("lazy");
+    export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy =>
+    ({
+        $arch: "lazy",
+        this: entry.this?.path,
+        parameter: entry.parameter,
+        callStack: entry.callStack,
+        path: entry.path,
+        originMap: entry.originMap,
+        scope: entry.scope,
+    });
+    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> =>
+        <Jsonable> await structureObjectAsync
+        (
+            async (value: Jsonable) => isLazy(value) ?
+                await resolveLazy(entry, await evaluateLazy(entry, value)):
+                undefined
+        )
+        (lazy);
+    export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
@@ -1546,10 +1663,11 @@ export module Jsonarch
     (
         entry, "evaluateCases", async () =>
         {
-            for(let i in entry.template)
+            for(const i in entry.template)
             {
-                const case_ = entry.template[i];
-                const path = makeFullRefer(entry.path, i);
+                const ix = parseInt(i);
+                const case_ = entry.template[ix];
+                const path = makeFullRefer(entry.path, ix);
                 if (undefined === case_.case || await evaluateCasePattern({ ...entry, path: makeFullRefer(path, "case"), template: case_.case, }))
                 {
                     return await apply
@@ -1885,7 +2003,7 @@ export module Jsonarch
             return result;
         }
     };
-    export const compositeCompareTypeResult = (...list: Lazy<CompareTypeResult | undefined>[]): CompareTypeResult =>
+    export const compositeCompareTypeResult = (...list: LazyValue<CompareTypeResult | undefined>[]): CompareTypeResult =>
     {
         let result: CompareTypeResult = "equal";
         for(const i in list)
@@ -2221,7 +2339,7 @@ export module Jsonarch
         (
             ...a
                 .filter((_i, ix) => ix < commonLength)
-                .map((_i, ix) => <Lazy<CompareTypeResult | undefined>>(() => compareType(a[ix], b[ix]))),
+                .map((_i, ix) => <LazyValue<CompareTypeResult | undefined>>(() => compareType(a[ix], b[ix]))),
             commonLength < a.length ? "extended": undefined,
             commonLength < b.length ? "base": undefined,
         );
@@ -2907,7 +3025,7 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                const solid = await resolveDeepLazy(parameter);
+                const solid = await resolveLazy(entry, parameter);
                 validateParameterType(nextDepthEntry, solid);
                 const result = await target(nextDepthEntry, solid);
                 if (undefined === result)
@@ -2995,6 +3113,34 @@ export module Jsonarch
             // return entry.template;
         }
     );
+    export const evaluateLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => apply
+    ({
+        context: entry.context,
+        ...lazy,
+        this: <{ template: Template; path: FullRefer; }>
+            (
+                lazy.this ?
+                {
+                    template:<Jsonable>turnRefer<JsonableValue>
+                    (
+                        entry,
+                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.this.root.path],
+                        toLeafFullRefer(lazy.this).refer
+                    ),
+                    path: lazy.this,
+                }:
+                undefined
+            ),
+        template: <Jsonable>turnRefer<JsonableValue>
+        (
+            entry,
+            <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
+            toLeafFullRefer(lazy.path).refer
+        ),
+        cache: entry.cache,
+        setting: entry.setting,
+        handler: entry.handler,
+    });
     export module Limit
     {
         export const getProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
@@ -3092,7 +3238,8 @@ export module Jsonarch
             if (isEvaluateTargetEntry(entry))
             {
                 return lazyable ?
-                    <Jsonable><unknown>(async () => await evaluate(entry)):
+                    makeLazy(entry):
+                    // <Jsonable><unknown>(async () => await evaluate(entry)):
                     // await evaluate(entry):
                     await evaluate(entry);
             }
@@ -3115,14 +3262,15 @@ export module Jsonarch
                 const result: Jsonable[] = [];
                 for(const i in entry.template)
                 {
+                    const ix = parseInt(i);
                     result.push
                     (
                         await apply
                         (
                             {
                                 ...nextDepthEntry,
-                                path: makeFullRefer(entry.path, i),
-                                template: entry.template[i],
+                                path: makeFullRefer(entry.path, ix),
+                                template: entry.template[ix],
                             },
                             lazyable
                         )
@@ -3166,7 +3314,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -3196,7 +3344,9 @@ export module Jsonarch
             };
             try
             {
-                const output = await apply(rootEvaluateEntry);
+                const output = "resolveLazy" === lazy ?
+                    await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
+                    await apply(rootEvaluateEntry);
                 const result: Result =
                 {
                     $arch: "result",
@@ -3262,7 +3412,7 @@ export module Jsonarch
             undefined;
         const parameter = parameterResult?.output;
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
-        return <Result> await resolveDeepLazy(await applyRoot(entry, template, parameter, cache, setting));
+        return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
     };
     export const encode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json ? "$" +json: json);
     export const decode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json);
