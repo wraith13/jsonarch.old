@@ -736,8 +736,8 @@ export declare module Jsonarch {
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
-    export const encode: (value: Structure<Jsonable>, key?: number | string) => Structure<Jsonable>;
-    export const decode: (value: Structure<Jsonable>, key?: number | string) => Structure<Jsonable>;
+    export const encode: (json: Jsonable) => Jsonable;
+    export const decode: (json: Jsonable) => Jsonable;
     export const toLineArrayOrAsIs: (text: string) => string | string[];
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;

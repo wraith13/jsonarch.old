@@ -746,15 +746,18 @@ var Jsonarch;
     Jsonarch.isStaticData = Jsonarch.isJsonarch("static");
     Jsonarch.evaluateStatic = function (entry) {
         return Jsonarch.profile(entry, "evaluateStatic", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
-            return [2 /*return*/, entry.template.return];
+            return [2 /*return*/, Jsonarch.encode(entry.template.return)];
         }); }); });
     };
     Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
     Jsonarch.evaluateIncludeStaticJson = function (entry) { return Jsonarch.profile(entry, "evaluateIncludeStaticJson", function () { return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
-                case 1: return [2 /*return*/, _c.sent()];
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    _c = Jsonarch.encode;
+                    return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
+                case 1: return [2 /*return*/, _c.apply(void 0, [_d.sent()])];
             }
         });
     }); }); };
@@ -2408,9 +2411,9 @@ var Jsonarch;
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, result, error_2, result;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, result, error_2, result;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     handler = entry.handler;
                     context = {
@@ -2433,23 +2436,24 @@ var Jsonarch;
                         setting: setting,
                         handler: handler,
                     };
-                    _f.label = 1;
+                    _g.label = 1;
                 case 1:
-                    _f.trys.push([1, 7, , 8]);
+                    _g.trys.push([1, 7, , 8]);
+                    _c = Jsonarch.decode;
                     if (!("resolveLazy" === lazy)) return [3 /*break*/, 4];
-                    _d = Jsonarch.resolveLazy;
-                    _e = [rootEvaluateEntry];
+                    _e = Jsonarch.resolveLazy;
+                    _f = [rootEvaluateEntry];
                     return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
-                case 2: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent()]))];
+                case 2: return [4 /*yield*/, _e.apply(void 0, _f.concat([_g.sent()]))];
                 case 3:
-                    _c = _f.sent();
+                    _d = _g.sent();
                     return [3 /*break*/, 6];
                 case 4: return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
                 case 5:
-                    _c = _f.sent();
-                    _f.label = 6;
+                    _d = _g.sent();
+                    _g.label = 6;
                 case 6:
-                    output = _c;
+                    output = _c.apply(void 0, [_d]);
                     result = {
                         $arch: "result",
                         output: output,
@@ -2458,7 +2462,7 @@ var Jsonarch;
                     };
                     return [2 /*return*/, result];
                 case 7:
-                    error_2 = _f.sent();
+                    error_2 = _g.sent();
                     result = {
                         $arch: "result",
                         output: Jsonarch.parseErrorJson(error_2),

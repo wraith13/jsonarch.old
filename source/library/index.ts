@@ -936,7 +936,7 @@ export module Jsonarch
     }
     export const isStaticData = isJsonarch<StaticTemplate>("static");
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
-        profile(entry, "evaluateStatic", async () => entry.template.return);
+        profile(entry, "evaluateStatic", async () => encode(entry.template.return));
     export interface IncludeStaticJsonTemplate extends AlphaJsonarch
     {
         $arch: "include-static-json";
@@ -945,11 +945,15 @@ export module Jsonarch
     export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
     export const evaluateIncludeStaticJson = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
     (
-        entry, "evaluateIncludeStaticJson", async () => await loadFile
-        ({
-            ...entry,
-            file: pathToFileContext(entry, entry.template.path)
-        })
+        entry, "evaluateIncludeStaticJson", async () =>
+        encode
+        (
+            await loadFile
+            ({
+                ...entry,
+                file: pathToFileContext(entry, entry.template.path)
+            })
+        )
     );
     type ReferKeyElement = string;
     type ReferIndextElement = number;
@@ -3351,9 +3355,12 @@ export module Jsonarch
             };
             try
             {
-                const output = "resolveLazy" === lazy ?
-                    await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
-                    await apply(rootEvaluateEntry);
+                const output = decode
+                (
+                    "resolveLazy" === lazy ?
+                        await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
+                        await apply(rootEvaluateEntry)
+                );
                 const result: Result =
                 {
                     $arch: "result",
@@ -3421,8 +3428,10 @@ export module Jsonarch
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
     };
-    export const encode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json ? "$" +json: json);
-    export const decode = structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json);
+    export const encode =
+        <(json: Jsonable) => Jsonable>structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json ? "$" +json: json);
+    export const decode =
+        <(json: Jsonable) => Jsonable>structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json);
     export const toLineArrayOrAsIs = (text: string) =>
         0 <= text.indexOf("\n") ? text.split("\n"): text;
     export const multiplyString = (text: string, count: number): string =>
