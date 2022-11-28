@@ -3577,9 +3577,24 @@ export module Jsonarch
                 else
                 {
                     const result = [];
-                    for(const i in json)
+                    if (digestSetting.maxArrayLength && digestSetting.maxArrayLength < json.length)
                     {
-                        result.push(digest(json[i], setting, nextNestDepth));
+                        for(let i = 0; i < Math.ceil(digestSetting.maxArrayLength /2); ++i)
+                        {
+                            result.push(digest(json[i], setting, nextNestDepth));
+                        }
+                        result.push(`@digest: cliped items ( ${json.length -digestSetting.maxArrayLength} )`);
+                        for(let i = json.length -Math.floor(digestSetting.maxArrayLength /2); i < json.length; ++i)
+                        {
+                            result.push(digest(json[i], setting, nextNestDepth));
+                        }
+                    }
+                    else
+                    {
+                        for(const i in json)
+                        {
+                            result.push(digest(json[i], setting, nextNestDepth));
+                        }
                     }
                     return result;
                 }
@@ -3595,10 +3610,27 @@ export module Jsonarch
                 {
                     const result: JsonableObject = { };
                     const keys = objectKeys(json);
-                    for(const i in keys)
+                    if (digestSetting.maxObjectMembers && digestSetting.maxObjectMembers < keys.length)
                     {
-                        const key = keys[i];
-                        result[key] = digest(<Jsonable>json[key], setting, nextNestDepth);
+                        for(let i = 0; i < Math.ceil(digestSetting.maxObjectMembers /2); ++i)
+                        {
+                            const key = keys[i];
+                            result[key] = digest(<Jsonable>json[key], setting, nextNestDepth);
+                        }
+                        result["@digest"] = `@digest: cliped members ( ${keys.length -digestSetting.maxObjectMembers} )`;
+                        for(let i = keys.length -Math.floor(digestSetting.maxObjectMembers /2); i < keys.length; ++i)
+                        {
+                            const key = keys[i];
+                            result[key] = digest(<Jsonable>json[key], setting, nextNestDepth);
+                        }
+                    }
+                    else
+                    {
+                        for(const i in keys)
+                        {
+                            const key = keys[i];
+                            result[key] = digest(<Jsonable>json[key], setting, nextNestDepth);
+                        }
                     }
                     return result;
                 }

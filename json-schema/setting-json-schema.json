@@ -94,21 +94,15 @@
                 },
                 "maxArrayLength":
                 {
-                    "type": "number",
-                    "minimum": 100,
-                    "default": 1000
+                    "type": "number"
                 },
                 "maxObjectNestDepth":
                 {
-                    "type": "number",
-                    "minimum": 4,
-                    "default": 32
+                    "type": "number"
                 },
                 "maxObjectMembers":
                 {
-                    "type": "number",
-                    "minimum": 100,
-                    "default": 1000
+                    "type": "number"
                 }
             },
             "additionalProperties": false

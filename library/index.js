@@ -2650,8 +2650,19 @@ var Jsonarch;
                 }
                 else {
                     var result = [];
-                    for (var i in json) {
-                        result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
+                    if (digestSetting.maxArrayLength && digestSetting.maxArrayLength < json.length) {
+                        for (var i = 0; i < Math.ceil(digestSetting.maxArrayLength / 2); ++i) {
+                            result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
+                        }
+                        result.push("@digest: cliped items ( ".concat(json.length - digestSetting.maxArrayLength, " )"));
+                        for (var i = json.length - Math.floor(digestSetting.maxArrayLength / 2); i < json.length; ++i) {
+                            result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
+                        }
+                    }
+                    else {
+                        for (var i in json) {
+                            result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
+                        }
                     }
                     return result;
                 }
@@ -2663,9 +2674,22 @@ var Jsonarch;
                 else {
                     var result = {};
                     var keys = Jsonarch.objectKeys(json);
-                    for (var i in keys) {
-                        var key = keys[i];
-                        result[key] = Jsonarch.digest(json[key], setting, nextNestDepth);
+                    if (digestSetting.maxObjectMembers && digestSetting.maxObjectMembers < keys.length) {
+                        for (var i = 0; i < Math.ceil(digestSetting.maxObjectMembers / 2); ++i) {
+                            var key = keys[i];
+                            result[key] = Jsonarch.digest(json[key], setting, nextNestDepth);
+                        }
+                        result["@digest"] = "@digest: cliped members ( ".concat(keys.length - digestSetting.maxObjectMembers, " )");
+                        for (var i = keys.length - Math.floor(digestSetting.maxObjectMembers / 2); i < keys.length; ++i) {
+                            var key = keys[i];
+                            result[key] = Jsonarch.digest(json[key], setting, nextNestDepth);
+                        }
+                    }
+                    else {
+                        for (var i in keys) {
+                            var key = keys[i];
+                            result[key] = Jsonarch.digest(json[key], setting, nextNestDepth);
+                        }
                     }
                     return result;
                 }
