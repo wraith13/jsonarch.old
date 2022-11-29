@@ -749,6 +749,11 @@ var Jsonarch;
             return [2 /*return*/, Jsonarch.encode(entry.template.return)];
         }); }); });
     };
+    Jsonarch.evaluateStaticResultType = function (entry) {
+        return Jsonarch.profile(entry, "evaluateStaticResultType", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.typeOfResult(entry, entry.template.return)];
+        }); }); });
+    };
     Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
     Jsonarch.evaluateIncludeStaticJson = function (entry) { return Jsonarch.profile(entry, "evaluateIncludeStaticJson", function () { return __awaiter(_this, void 0, void 0, function () {
         var _c;
@@ -758,6 +763,18 @@ var Jsonarch;
                     _c = Jsonarch.encode;
                     return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
                 case 1: return [2 /*return*/, _c.apply(void 0, [_d.sent()])];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateIncludeStaticJsonResultType = function (entry) { return Jsonarch.profile(entry, "evaluateIncludeStaticJsonResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    _c = Jsonarch.typeOfResult;
+                    _d = [entry];
+                    return [4 /*yield*/, Jsonarch.loadFile(__assign(__assign({}, entry), { file: Jsonarch.pathToFileContext(entry, entry.template.path) }))];
+                case 1: return [2 /*return*/, _c.apply(void 0, _d.concat([_e.sent()]))];
             }
         });
     }); }); };
@@ -926,6 +943,30 @@ var Jsonarch;
                 case 5: return [3 /*break*/, 7];
                 case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.return, parameter: parameter }))];
                 case 7: return [2 /*return*/];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateTemplateResultType = function (entry) { return Jsonarch.profile(entry, "evaluateTemplateResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, parameterType, type, types, i, t;
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    parameter = Jsonarch.applyDefault((_c = entry.template.default) === null || _c === void 0 ? void 0 : _c.parameter, entry.parameter, (_d = entry.template.override) === null || _d === void 0 ? void 0 : _d.parameter);
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, parameter)];
+                case 1:
+                    parameterType = _e.sent();
+                    type = entry.template.type;
+                    if (type) {
+                        types = Array.isArray(type) ? type : [type];
+                        for (i in types) {
+                            t = types[i];
+                            if (Jsonarch.isBaseOrEqual(Jsonarch.compareType(t.parameter, parameterType))) {
+                                return [2 /*return*/, t.return];
+                            }
+                        }
+                    }
+                    return [2 /*return*/, Jsonarch.typeOfResult(entry, entry.template.return)];
             }
         });
     }); }); };
@@ -2187,6 +2228,9 @@ var Jsonarch;
                     if (!Jsonarch.hasLazy(parameter)) {
                         Jsonarch.validateParameterType(nextDepthEntry, parameter);
                     }
+                    else {
+                        Jsonarch.typeOfResult(nextDepthEntry, parameter);
+                    }
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
                 case 5: return [2 /*return*/, _f.sent()];
                 case 6: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
@@ -2195,6 +2239,75 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.typeOfResult = function (entry, json) { return __awaiter(_this, void 0, void 0, function () {
+        var member, keys, _c, _d, _e, i, key, _f, _g;
+        var _h;
+        return __generator(this, function (_j) {
+            switch (_j.label) {
+                case 0:
+                    if (!(undefined === json)) return [3 /*break*/, 1];
+                    return [2 /*return*/, { $arch: "type", type: "never", }];
+                case 1:
+                    if (!(null === json)) return [3 /*break*/, 2];
+                    return [2 /*return*/, { $arch: "type", type: "null", }];
+                case 2:
+                    if (!("boolean" === typeof json)) return [3 /*break*/, 3];
+                    return [2 /*return*/, { $arch: "type", type: "boolean", enum: [json,], }];
+                case 3:
+                    if (!("number" === typeof json)) return [3 /*break*/, 4];
+                    if (isNaN(json) || (!isFinite(json))) {
+                        return [2 /*return*/, { $arch: "type", type: "null", }];
+                    }
+                    else {
+                        return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
+                    }
+                    return [3 /*break*/, 13];
+                case 4:
+                    if (!("string" === typeof json)) return [3 /*break*/, 5];
+                    return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
+                case 5:
+                    if (!Array.isArray(json)) return [3 /*break*/, 7];
+                    _h = { $arch: "type", type: "tuple" };
+                    return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
+                case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
+                case 7:
+                    if (!("object" === typeof json)) return [3 /*break*/, 13];
+                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 8];
+                    return [3 /*break*/, 13];
+                case 8:
+                    member = {};
+                    keys = Jsonarch.objectKeys(json);
+                    _c = [];
+                    for (_d in keys)
+                        _c.push(_d);
+                    _e = 0;
+                    _j.label = 9;
+                case 9:
+                    if (!(_e < _c.length)) return [3 /*break*/, 12];
+                    i = _c[_e];
+                    key = keys[i];
+                    _f = member;
+                    _g = key;
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
+                case 10:
+                    _f[_g] = _j.sent();
+                    _j.label = 11;
+                case 11:
+                    _e++;
+                    return [3 /*break*/, 9];
+                case 12: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
+                case 13: 
+                // else
+                // if ("function" === typeof json)
+                // {
+                //     return { $arch: "type", type: "function", };
+                // }
+                // else
+                // {
+                return [2 /*return*/, { $arch: "type", type: "never", }];
+            }
+        });
+    }); };
     Jsonarch.evaluateValue = function (entry) { return Jsonarch.profile(entry, "evaluateValue", function () { return __awaiter(_this, void 0, void 0, function () {
         var result;
         return __generator(this, function (_c) {
@@ -2250,14 +2363,18 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.getLazyTemplate = function (entry, lazy) {
+        var _c;
+        return Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer);
+    };
     Jsonarch.evaluateLazy = function (entry, lazy) {
-        var _c, _d;
+        var _c;
         return Jsonarch.apply(__assign(__assign({ context: entry.context }, lazy), { this: (lazy.this ?
                 {
                     template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.this.root.path], Jsonarch.toLeafFullRefer(lazy.this).refer),
                     path: lazy.this,
                 } :
-                undefined), template: Jsonarch.turnRefer(entry, (_d = entry.cache.json) === null || _d === void 0 ? void 0 : _d[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer), cache: entry.cache, setting: entry.setting, handler: entry.handler }));
+                undefined), template: Jsonarch.getLazyTemplate(entry, lazy), cache: entry.cache, setting: entry.setting, handler: entry.handler }));
     };
     var Limit;
     (function (Limit) {
@@ -2538,8 +2655,12 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.encode = Jsonarch.structure(function (json, key) { return "$arch" === key && "string" === typeof json ? "$" + json : json; });
-    Jsonarch.decode = Jsonarch.structure(function (json, key) { return "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1) : json; });
+    Jsonarch.encode = Jsonarch.structure(function (json, key) {
+        return "$arch" === key && "string" === typeof json ? "$" + json : json;
+    });
+    Jsonarch.decode = Jsonarch.structure(function (json, key) {
+        return "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1) : json;
+    });
     Jsonarch.toLineArrayOrAsIs = function (text) {
         return 0 <= text.indexOf("\n") ? text.split("\n") : text;
     };

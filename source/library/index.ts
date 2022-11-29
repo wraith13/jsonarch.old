@@ -937,6 +937,8 @@ export module Jsonarch
     export const isStaticData = isJsonarch<StaticTemplate>("static");
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
         profile(entry, "evaluateStatic", async () => encode(entry.template.return));
+    export const evaluateStaticResultType = (entry: EvaluateEntry<StaticTemplate>): Promise<Type> =>
+        profile(entry, "evaluateStaticResultType", async () => typeOfResult(entry, entry.template.return));
     export interface IncludeStaticJsonTemplate extends AlphaJsonarch
     {
         $arch: "include-static-json";
@@ -948,6 +950,19 @@ export module Jsonarch
         entry, "evaluateIncludeStaticJson", async () =>
         encode
         (
+            await loadFile
+            ({
+                ...entry,
+                file: pathToFileContext(entry, entry.template.path)
+            })
+        )
+    );
+    export const evaluateIncludeStaticJsonResultType = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateIncludeStaticJsonResultType", async () =>
+        typeOfResult
+        (
+            entry,
             await loadFile
             ({
                 ...entry,
@@ -1412,6 +1427,33 @@ export module Jsonarch
                     parameter,
                 });
             }
+        }
+    );
+    export const evaluateTemplateResultType = (entry: EvaluateEntry<Template>): Promise<Type> => profile
+    (
+        entry, "evaluateTemplateResultType", async () =>
+        {
+            const parameter = applyDefault
+            (
+                entry.template.default?.parameter,
+                entry.parameter,
+                entry.template.override?.parameter
+            );
+            const parameterType = await typeOfResult(entry, <Jsonable>parameter);
+            const type = entry.template.type;
+            if (type)
+            {
+                const types = Array.isArray(type) ? type: [type];
+                for(const i in types)
+                {
+                    const t = types[i];
+                    if (isBaseOrEqual(compareType(t.parameter, parameterType)))
+                    {
+                        return t.return;
+                    }
+                }
+            }
+            return typeOfResult(entry, entry.template.return);
         }
     );
     export const evaluateMatch = (entry: EvaluateEntry<Match>): Promise<Jsonable> => profile
@@ -3052,6 +3094,10 @@ export module Jsonarch
                 {
                     validateParameterType(nextDepthEntry, parameter);
                 }
+                else
+                {
+                    typeOfResult(nextDepthEntry, parameter);
+                }
                 return await evaluateTemplate
                 ({
                     ...nextDepthEntry,
@@ -3071,6 +3117,73 @@ export module Jsonarch
             }
         }
     );
+    export const typeOfResult = async (entry: EvaluateEntry<Jsonable>, json: Jsonable): Promise<Type> =>
+    {
+        if (undefined === json)
+        {
+            return { $arch: "type", type: "never", };
+        }
+        else
+        if (null === json)
+        {
+            return { $arch: "type", type: "null", };
+        }
+        else
+        if ("boolean" === typeof json)
+        {
+            return { $arch: "type", type: "boolean", enum: [ json, ], };
+        }
+        else
+        if ("number" === typeof json)
+        {
+            if (isNaN(json) || ( ! isFinite(json)))
+            {
+                return { $arch: "type", type: "null", };
+            }
+            else
+            {
+                return <NumberValueType>{ $arch: "type", type: "number", enum: [ json, ], };
+            }
+        }
+        else
+        if ("string" === typeof json)
+        {
+            return { $arch: "type", type: "string", enum: [ json, ], };
+        }
+        else
+        if (Array.isArray(json))
+        {
+            return { $arch: "type", type: "tuple", list: await Promise.all(json.map(i => typeOfResult(entry, i))), };
+        }
+        else
+        if ("object" === typeof json)
+        {
+            if (isLazy(json))
+            {
+
+            }
+            else
+            {
+                const member: { [key:string]: Type } = { };
+                const keys = objectKeys(json);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    member[key] = await typeOfResult(entry, <Jsonable>json[key]);
+                }
+                return { $arch: "type", type: "object", member, };
+            }
+        }
+        // else
+        // if ("function" === typeof json)
+        // {
+        //     return { $arch: "type", type: "function", };
+        // }
+        // else
+        // {
+            return { $arch: "type", type: "never", };
+        // }
+    };
     export const evaluateValue = (entry: EvaluateEntry<Value>): Promise<Jsonable> => profile
     (
         entry, "evaluateValue", async () =>
@@ -3124,6 +3237,12 @@ export module Jsonarch
             // return entry.template;
         }
     );
+    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <Jsonable>turnRefer<JsonableValue>
+    (
+        entry,
+        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
+        toLeafFullRefer(lazy.path).refer
+    );
     export const evaluateLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => apply
     ({
         context: entry.context,
@@ -3142,12 +3261,7 @@ export module Jsonarch
                 }:
                 undefined
             ),
-        template: <Jsonable>turnRefer<JsonableValue>
-        (
-            entry,
-            <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
-            toLeafFullRefer(lazy.path).refer
-        ),
+        template: getLazyTemplate(entry, lazy),
         cache: entry.cache,
         setting: entry.setting,
         handler: entry.handler,
@@ -3428,10 +3542,16 @@ export module Jsonarch
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
     };
-    export const encode =
-        <(json: Jsonable) => Jsonable>structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json ? "$" +json: json);
-    export const decode =
-        <(json: Jsonable) => Jsonable>structure((json: Jsonable, key?: number | string) => "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json);
+    export const encode = structure
+    (
+        (json: JsonableValue, key?: number | string) =>
+            "$arch" === key && "string" === typeof json ? "$" +json: json
+    );
+    export const decode = structure
+    (
+        (json: JsonableValue, key?: number | string) =>
+            "$arch" === key && "string" === typeof json && json.startsWith("$") ? json.substring(1): json
+    );
     export const toLineArrayOrAsIs = (text: string) =>
         0 <= text.indexOf("\n") ? text.split("\n"): text;
     export const multiplyString = (text: string, count: number): string =>

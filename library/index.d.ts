@@ -348,12 +348,14 @@ export declare module Jsonarch {
     }
     export const isStaticData: (template: unknown) => template is StaticTemplate;
     export const evaluateStatic: (entry: EvaluateEntry<StaticTemplate>) => Promise<Jsonable>;
+    export const evaluateStaticResultType: (entry: EvaluateEntry<StaticTemplate>) => Promise<Type>;
     export interface IncludeStaticJsonTemplate extends AlphaJsonarch {
         $arch: "include-static-json";
         path: string;
     }
     export const isIncludeStaticJsonData: (template: unknown) => template is IncludeStaticJsonTemplate;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
+    export const evaluateIncludeStaticJsonResultType: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
     type ReferKeyElement = string;
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
@@ -608,6 +610,7 @@ export declare module Jsonarch {
     export const isLoopResultData: IsType<LoopFalseResult | LoopRegularResult>;
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
+    export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;
     export const evaluateListCasePattern: (entry: EvaluateEntry<ListCasePattern>) => Promise<boolean>;
@@ -716,9 +719,11 @@ export declare module Jsonarch {
         refer: Refer;
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
+    export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
+    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Jsonable;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
     export module Limit {
         const getProcessTimeout: (entry: EvaluateEntry<Jsonable>) => number;
@@ -736,8 +741,8 @@ export declare module Jsonarch {
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
-    export const encode: (json: Jsonable) => Jsonable;
-    export const decode: (json: Jsonable) => Jsonable;
+    export const encode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;
+    export const decode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;
     export const toLineArrayOrAsIs: (text: string) => string | string[];
     export const multiplyString: (text: string, count: number) => string;
     export const smartJsonStringify: (json: Jsonable, indent?: "tab" | number, base?: number) => string;
