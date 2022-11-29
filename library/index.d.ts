@@ -612,6 +612,7 @@ export declare module Jsonarch {
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
+    export const evaluateMatchResultType: (entry: EvaluateEntry<Match>) => Promise<Type>;
     export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;
     export const evaluateListCasePattern: (entry: EvaluateEntry<ListCasePattern>) => Promise<boolean>;
     export const evaluateTypeCasePattern: (entry: EvaluateEntry<TypeCasePattern>) => Promise<boolean>;
@@ -623,6 +624,7 @@ export declare module Jsonarch {
     export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
     export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
+    export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;

@@ -997,6 +997,42 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateMatchResultType = function (entry) { return Jsonarch.profile(entry, "evaluateMatchResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, _c, _d, _e, caseTypes, result, _f;
+        var _g;
+        return __generator(this, function (_h) {
+            switch (_h.label) {
+                case 0:
+                    _c = Jsonarch.applyDefault;
+                    _d = [entry.template.default];
+                    if (!(undefined !== entry.template.parameter)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.lazyableApply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "parameter"), template: entry.template.parameter }))];
+                case 1:
+                    _e = _h.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    _e = entry.parameter;
+                    _h.label = 3;
+                case 3:
+                    parameter = _c.apply(void 0, _d.concat([_e]));
+                    return [4 /*yield*/, Jsonarch.evaluateCasesType(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "cases"), template: entry.template.cases, parameter: parameter }))];
+                case 4:
+                    caseTypes = _h.sent();
+                    _g = {
+                        $arch: "type",
+                        type: "or"
+                    };
+                    _f = [__spreadArray([], caseTypes, true)];
+                    return [4 /*yield*/, Jsonarch.typeOfResult(__assign(__assign({}, entry), { parameter: parameter }), entry.template.default.return)];
+                case 5:
+                    result = (_g.list = __spreadArray.apply(void 0, _f.concat([[
+                            _h.sent()
+                        ], false])),
+                        _g);
+                    return [2 /*return*/, result];
+            }
+        });
+    }); }); };
     Jsonarch.evaluateValueCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateValueCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_c) {
             if (undefined !== entry.parameter) {
@@ -1237,6 +1273,12 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateCasesType = function (entry) { return Jsonarch.profile(entry, "evaluateCasesType", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0: return [4 /*yield*/, Promise.all(entry.template.map(function (i) { return Jsonarch.typeOfResult(entry, i.return); }))];
+            case 1: return [2 /*return*/, _c.sent()];
+        }
+    }); }); }); };
     Jsonarch.evaluateLoop = function (entry) { return Jsonarch.profile(entry, "evaluateLoop", function () { return __awaiter(_this, void 0, void 0, function () {
         var result, index, scope, current;
         var _c;

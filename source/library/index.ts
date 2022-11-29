@@ -1486,6 +1486,49 @@ export module Jsonarch
             return entry.template.default.return;
         }
     );
+    export const evaluateMatchResultType = (entry: EvaluateEntry<Match>): Promise<Type> => profile
+    (
+        entry, "evaluateMatchResultType", async () =>
+        {
+            const parameter = applyDefault
+            (
+                entry.template.default,
+                undefined !== entry.template.parameter ?
+                    await lazyableApply
+                    ({
+                        ...entry,
+                        path: makeFullRefer(entry.path, "parameter"),
+                        template: entry.template.parameter,
+                    }):
+                    entry.parameter
+            );
+            const caseTypes = await evaluateCasesType
+            ({
+                ...entry,
+                path: makeFullRefer(entry.path, "cases"),
+                template: entry.template.cases,
+                parameter,
+            });
+            const result: OrCompositeType =
+            {
+                $arch: "type",
+                type: "or",
+                list:
+                [
+                    ...caseTypes,
+                    await typeOfResult
+                    (
+                        {
+                            ...entry,
+                            parameter,
+                        },
+                        entry.template.default.return
+                    ),
+                ]
+            };
+            return result;
+        }
+    );
     export const evaluateValueCasePattern = (entry: EvaluateEntry<ValueCasePattern>): Promise<boolean> => profile
     (
         entry, "evaluateValueCasePattern", async () =>
@@ -1733,6 +1776,11 @@ export module Jsonarch
             }
             return undefined;
         }
+    );
+    export const evaluateCasesType = (entry: EvaluateEntry<Case[]>): Promise<Type[]> => profile
+    (
+        entry, "evaluateCasesType", async () =>
+            await Promise.all(entry.template.map(i => typeOfResult(entry, i.return)))
     );
     export const evaluateLoop = (entry: EvaluateEntry<Loop>): Promise<Jsonable> => profile
     (
