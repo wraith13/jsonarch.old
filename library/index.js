@@ -825,6 +825,29 @@ var Jsonarch;
     Jsonarch.isArrayTypeData = Jsonarch.isAlphaTypeData("array");
     Jsonarch.isTupleTypeData = Jsonarch.isAlphaTypeData("tuple");
     Jsonarch.isObjectTypeData = Jsonarch.isAlphaTypeData("object");
+    Jsonarch.getMemberType = function (parent, member) {
+        var _c;
+        if (Jsonarch.isObjectTypeData(parent)) {
+            return (_c = parent.member[member]) !== null && _c !== void 0 ? _c : { $arch: "type", type: "never" };
+        }
+        else if (Jsonarch.isOrCompositeTypeData(parent)) {
+            return Jsonarch.regulateType({
+                $arch: "type",
+                type: "or",
+                list: parent.list.map(function (i) { return Jsonarch.getMemberType(i, member); }),
+            });
+        }
+        else if (Jsonarch.isAndCompositeTypeData(parent)) {
+            return Jsonarch.regulateType({
+                $arch: "type",
+                type: "and",
+                list: parent.list.map(function (i) { return Jsonarch.getMemberType(i, member); }),
+            });
+        }
+        else {
+            return { $arch: "type", type: "never" };
+        }
+    };
     Jsonarch.isStructureTypeData = function (template) {
         return Jsonarch.isArrayTypeData(template) ||
             Jsonarch.isTupleTypeData(template) ||
@@ -1306,6 +1329,22 @@ var Jsonarch;
                     ++index;
                     return [3 /*break*/, 1];
                 case 3: return [2 /*return*/, result];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateLoopResultType = function (entry) { return Jsonarch.profile(entry, "evaluateLoopResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var loopType, result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.typeOfResult(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "loop") }), entry.template.loop)];
+                case 1:
+                    loopType = _c.sent();
+                    result = {
+                        $arch: "type",
+                        type: "array",
+                        itemType: Jsonarch.getMemberType(loopType, "return"),
+                    };
+                    return [2 /*return*/, result];
             }
         });
     }); }); };

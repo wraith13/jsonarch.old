@@ -1112,6 +1112,37 @@ export module Jsonarch
         member: { [key: string]: Type; };
     }
     export const isObjectTypeData = isAlphaTypeData<ObjectType>("object");
+    export const getMemberType = (parent: Type, member: string): Type =>
+    {
+        if (isObjectTypeData(parent))
+        {
+            return parent.member[member] ?? { $arch: "type", type: "never" };
+        }
+        else
+        if (isOrCompositeTypeData(parent))
+        {
+            return regulateType
+            ({
+                $arch: "type",
+                type: "or",
+                list: parent.list.map(i => getMemberType(i, member)),
+            });
+        }
+        else
+        if (isAndCompositeTypeData(parent))
+        {
+            return regulateType
+            ({
+                $arch: "type",
+                type: "and",
+                list: parent.list.map(i => getMemberType(i, member)),
+            });
+        }
+        else
+        {
+            return { $arch: "type", type: "never" };
+        }
+    };
     export type StructureType = ArrayType | TupleType | ObjectType;
     export type PrimitiveStructureType = StructureType["type"];
     export const isStructureTypeData = (template: unknown): template is StructureType =>
@@ -1815,6 +1846,29 @@ export module Jsonarch
                 result.push(current.return);
                 ++index;
             }
+            return result;
+        }
+    );
+    export const evaluateLoopResultType = (entry: EvaluateEntry<Loop>): Promise<Type> => profile
+    (
+        entry, "evaluateLoopResultType", async () =>
+        {
+            // const scope = { ...entry.scope, $loop: { index, } };
+            const loopType = await typeOfResult
+            (
+                {
+                    ...entry,
+                    path: makeFullRefer(entry.path, "loop"),
+                    // scope,
+                },
+                entry.template.loop
+            );
+            const result: ArrayType =
+            {
+                $arch: "type",
+                type: "array",
+                itemType: getMemberType(loopType, "return"),
+            };
             return result;
         }
     );

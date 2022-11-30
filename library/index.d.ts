@@ -475,6 +475,7 @@ export declare module Jsonarch {
         };
     }
     export const isObjectTypeData: (template: unknown) => template is ObjectType;
+    export const getMemberType: (parent: Type, member: string) => Type;
     export type StructureType = ArrayType | TupleType | ObjectType;
     export type PrimitiveStructureType = StructureType["type"];
     export const isStructureTypeData: (template: unknown) => template is StructureType;
@@ -626,6 +627,7 @@ export declare module Jsonarch {
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
     export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
+    export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
     export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
