@@ -1903,8 +1903,8 @@ export module Jsonarch
             {
                 const parameterType = typeOfJsonable(parameter);
                 const types = Array.isArray(type) ? type: [type];
-                const comppareTypeResult = types.map(t => compareType(t.parameter, parameterType));
-                if (comppareTypeResult.some(r => isBaseOrEqual(r)))
+                const compareTypeResult = types.map(t => compareType(t.parameter, parameterType));
+                if (compareTypeResult.some(r => isBaseOrEqual(r)))
                 {
                     return parameter;
                 }
@@ -1915,7 +1915,7 @@ export module Jsonarch
                         entry, "Unmatch parameter type",
                         {
                             refer: entry.template.refer,
-                            comppareTypeResult,
+                            compareTypeResult,
                             type:
                             {
                                 template: type,
@@ -1968,8 +1968,8 @@ export module Jsonarch
                 const parameterType = typeOfJsonable(parameter);
                 const resultType = typeOfJsonable(result);
                 const types = Array.isArray(type) ? type: [type];
-                const comppareTypeResult = types.map(t => ({ parameter: compareType(t.parameter, parameterType), return: compareType(t.return, resultType), }));
-                if (comppareTypeResult.some(r => isBaseOrEqual(r.parameter) && isBaseOrEqual(r.return)))
+                const compareTypeResult = types.map(t => ({ parameter: compareType(t.parameter, parameterType), return: compareType(t.return, resultType), }));
+                if (compareTypeResult.some(r => isBaseOrEqual(r.parameter) && isBaseOrEqual(r.return)))
                 {
                     return result;
                 }
@@ -1980,7 +1980,7 @@ export module Jsonarch
                         entry, "Unmatch return type",
                         {
                             refer: entry.template.refer,
-                            comppareTypeResult,
+                            compareTypeResult,
                             type:
                             {
                                 template: type,
@@ -3217,6 +3217,106 @@ export module Jsonarch
                     }
                 );
             }
+        }
+    );
+    export const evaluateCallType = (entry: EvaluateEntry<Call>): Promise<Type> => profile
+    (
+        entry, "evaluateCall", async () =>
+        {
+            Limit.throwIfOverTheCallDepth(entry);
+            const parameter = await makeParameter(entry) ?? null;
+            const path = resolveThisPath
+            (
+                entry.this?.path,
+                {
+                    root: entry.context.template,
+                    refer: entry.template.refer,
+                }
+            );
+            const nextDepthEntry =
+            {
+                ...Limit.resetNestDepth(entry, entry.template.refer.length),
+                callStack: makeCallStack
+                (
+                    entry.callStack,
+                    {
+                        path,
+                        parameter,
+                        caller: entry.path,
+                    }
+                ),
+                path,
+                // origin:
+                // {
+                //     root: getRootOrigin(entry.origin),
+                //     template: getOriginPath(entry.origin),
+                //     parameter,
+                //     originMap: entry.originMap,
+                // },
+            };
+            const functionTemplate = turnRefer<JsonableValue | Function>
+            (
+                entry,
+                librarygJson,
+                entry.template.refer,
+                {
+                    template: entry.path,
+                }
+                // entry.originMap
+            );
+            if (isTemplateData(functionTemplate))
+            {
+                const type = functionTemplate.type;
+                if (type)
+                {
+                    const parameterType = await typeOfResult(nextDepthEntry, parameter);
+                    const types = Array.isArray(type) ? type: [type];
+                    const compareTypeResult = types.map(t => ({ return: t.return, compareTypeResult: compareType(t.parameter, parameterType)}));
+                    const match = compareTypeResult.filter(r => isBaseOrEqual(r.compareTypeResult))[0];
+                    if (match)
+                    {
+                        return match.return;
+                    }
+                    else
+                    {
+                        throw new ErrorJson
+                        (
+                            entry, "Unmatch parameter type",
+                            {
+                                refer: entry.template.refer,
+                                compareTypeResult,
+                                type:
+                                {
+                                    template: type,
+                                    parameter: parameterType,
+                                },
+                                parameter,
+                            }
+                        );
+                        }
+                }
+                else
+                {
+                    throw new ErrorJson
+                    (
+                        entry, "Not found type define",
+                        {
+                            refer: entry.template.refer,
+                        }
+                    );
+                }
+            }
+            else
+            {
+                throw new ErrorJson
+                (
+                    entry, "Not found template",
+                    {
+                        refer: entry.template.refer,
+                    }
+                );
+            }
+    
         }
     );
     export const typeOfResult = async (entry: EvaluateEntry<Jsonable>, json: Jsonable): Promise<Type> =>

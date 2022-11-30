@@ -1376,14 +1376,14 @@ var Jsonarch;
             if (type) {
                 var parameterType_1 = Jsonarch.typeOfJsonable(parameter);
                 var types = Array.isArray(type) ? type : [type];
-                var comppareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
-                if (comppareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
+                var compareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
+                if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
                     return parameter;
                 }
                 else {
                     throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
                         refer: entry.template.refer,
-                        comppareTypeResult: comppareTypeResult,
+                        compareTypeResult: compareTypeResult,
                         type: {
                             template: type,
                             parameter: parameterType_1,
@@ -1416,14 +1416,14 @@ var Jsonarch;
                 var parameterType_2 = Jsonarch.typeOfJsonable(parameter);
                 var resultType_1 = Jsonarch.typeOfJsonable(result);
                 var types = Array.isArray(type) ? type : [type];
-                var comppareTypeResult = types.map(function (t) { return ({ parameter: Jsonarch.compareType(t.parameter, parameterType_2), return: Jsonarch.compareType(t.return, resultType_1), }); });
-                if (comppareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r.parameter) && Jsonarch.isBaseOrEqual(r.return); })) {
+                var compareTypeResult = types.map(function (t) { return ({ parameter: Jsonarch.compareType(t.parameter, parameterType_2), return: Jsonarch.compareType(t.return, resultType_1), }); });
+                if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r.parameter) && Jsonarch.isBaseOrEqual(r.return); })) {
                     return result;
                 }
                 else {
                     throw new Jsonarch.ErrorJson(entry, "Unmatch return type", {
                         refer: entry.template.refer,
-                        comppareTypeResult: comppareTypeResult,
+                        compareTypeResult: compareTypeResult,
                         type: {
                             template: type,
                             parameter: parameterType_2,
@@ -2317,6 +2317,65 @@ var Jsonarch;
                 case 6: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
                     refer: entry.template.refer,
                 });
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateCallType = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
+        var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_3, types, compareTypeResult, match;
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    Limit.throwIfOverTheCallDepth(entry);
+                    return [4 /*yield*/, Jsonarch.makeParameter(entry)];
+                case 1:
+                    parameter = (_c = _e.sent()) !== null && _c !== void 0 ? _c : null;
+                    path = Jsonarch.resolveThisPath((_d = entry.this) === null || _d === void 0 ? void 0 : _d.path, {
+                        root: entry.context.template,
+                        refer: entry.template.refer,
+                    });
+                    nextDepthEntry = __assign(__assign({}, Limit.resetNestDepth(entry, entry.template.refer.length)), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                            path: path,
+                            parameter: parameter,
+                            caller: entry.path,
+                        }), path: path });
+                    functionTemplate = Jsonarch.turnRefer(entry, library_json_1.default, entry.template.refer, {
+                        template: entry.path,
+                    }
+                    // entry.originMap
+                    );
+                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 5];
+                    type = functionTemplate.type;
+                    if (!type) return [3 /*break*/, 3];
+                    return [4 /*yield*/, Jsonarch.typeOfResult(nextDepthEntry, parameter)];
+                case 2:
+                    parameterType_3 = _e.sent();
+                    types = Array.isArray(type) ? type : [type];
+                    compareTypeResult = types.map(function (t) { return ({ return: t.return, compareTypeResult: Jsonarch.compareType(t.parameter, parameterType_3) }); });
+                    match = compareTypeResult.filter(function (r) { return Jsonarch.isBaseOrEqual(r.compareTypeResult); })[0];
+                    if (match) {
+                        return [2 /*return*/, match.return];
+                    }
+                    else {
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
+                            refer: entry.template.refer,
+                            compareTypeResult: compareTypeResult,
+                            type: {
+                                template: type,
+                                parameter: parameterType_3,
+                            },
+                            parameter: parameter,
+                        });
+                    }
+                    return [3 /*break*/, 4];
+                case 3: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                    refer: entry.template.refer,
+                });
+                case 4: return [3 /*break*/, 6];
+                case 5: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                    refer: entry.template.refer,
+                });
+                case 6: return [2 /*return*/];
             }
         });
     }); }); };

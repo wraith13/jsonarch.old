@@ -723,6 +723,7 @@ export declare module Jsonarch {
         refer: Refer;
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
+    export const evaluateCallType: (entry: EvaluateEntry<Call>) => Promise<Type>;
     export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
