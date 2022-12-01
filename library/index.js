@@ -2320,7 +2320,7 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.evaluateCallType = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.evaluateCallResultType = function (entry) { return Jsonarch.profile(entry, "evaluateCallResultType", function () { return __awaiter(_this, void 0, void 0, function () {
         var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_3, types, compareTypeResult, match;
         var _c, _d;
         return __generator(this, function (_e) {
@@ -2460,6 +2460,25 @@ var Jsonarch;
             return [2 /*return*/, result];
         });
     }); }); };
+    Jsonarch.evaluateValueResultType = function (entry) { return Jsonarch.profile(entry, "evaluateValueResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var result;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    if (entry.template.type) {
+                        return [2 /*return*/, entry.template.type];
+                    }
+                    result = Jsonarch.resolveRefer(entry);
+                    if (undefined === result) {
+                        throw new Jsonarch.ErrorJson(entry, "Unknown refer value", {
+                            value: entry.template,
+                        });
+                    }
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, result)];
+                case 1: return [2 /*return*/, _c.sent()];
+            }
+        });
+    }); }); };
     Jsonarch.evaluateIfMatch = function (isMatch, evaluateTarget) {
         return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
             return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
@@ -2488,6 +2507,49 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 4];
                     i = _c[_e];
                     return [4 /*yield*/, evaluatorList[i](entry)];
+                case 2:
+                    result = _f.sent();
+                    if (undefined !== result) {
+                        return [2 /*return*/, result];
+                    }
+                    _f.label = 3;
+                case 3:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    template: entry.template,
+                });
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateResultTypeIfMatch = function (isMatch, evaluateTarget) {
+        return function (entry) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+            return [2 /*return*/, isMatch(entry.template) ? evaluateTarget(entry) : undefined];
+        }); }); };
+    };
+    var evaluatorResultTypeList = [
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isStaticData, Jsonarch.evaluateStaticResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJsonResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isTemplateData, Jsonarch.evaluateTemplateResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isMatchData, Jsonarch.evaluateMatchResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isLoopData, Jsonarch.evaluateLoopResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isCallData, Jsonarch.evaluateCallResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isValueData, Jsonarch.evaluateValueResultType),
+    ];
+    Jsonarch.evaluateType = function (entry) { return Jsonarch.profile(entry, "evaluateResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var _c, _d, _e, i, result;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = [];
+                    for (_d in evaluatorResultTypeList)
+                        _c.push(_d);
+                    _e = 0;
+                    _f.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    i = _c[_e];
+                    return [4 /*yield*/, evaluatorResultTypeList[i](entry)];
                 case 2:
                     result = _f.sent();
                     if (undefined !== result) {

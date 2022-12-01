@@ -355,7 +355,7 @@ export declare module Jsonarch {
     }
     export const isIncludeStaticJsonData: (template: unknown) => template is IncludeStaticJsonTemplate;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
-    export const evaluateIncludeStaticJsonResultType: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
+    export const evaluateIncludeStaticJsonResultType: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Type>;
     type ReferKeyElement = string;
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
@@ -723,11 +723,14 @@ export declare module Jsonarch {
         refer: Refer;
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
-    export const evaluateCallType: (entry: EvaluateEntry<Call>) => Promise<Type>;
+    export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
     export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
+    export const evaluateValueResultType: (entry: EvaluateEntry<Value>) => Promise<Type>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
+    export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
+    export const evaluateType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
     export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Jsonable;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
     export module Limit {

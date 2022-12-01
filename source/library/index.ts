@@ -957,7 +957,7 @@ export module Jsonarch
             })
         )
     );
-    export const evaluateIncludeStaticJsonResultType = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
+    export const evaluateIncludeStaticJsonResultType = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Type> => profile
     (
         entry, "evaluateIncludeStaticJsonResultType", async () =>
         typeOfResult
@@ -3219,9 +3219,9 @@ export module Jsonarch
             }
         }
     );
-    export const evaluateCallType = (entry: EvaluateEntry<Call>): Promise<Type> => profile
+    export const evaluateCallResultType = (entry: EvaluateEntry<Call>): Promise<Type> => profile
     (
-        entry, "evaluateCall", async () =>
+        entry, "evaluateCallResultType", async () =>
         {
             Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry) ?? null;
@@ -3404,6 +3404,28 @@ export module Jsonarch
             return result;
         }
     );
+    export const evaluateValueResultType = (entry: EvaluateEntry<Value>): Promise<Type> => profile
+    (
+        entry, "evaluateValueResultType", async () =>
+        {
+            if (entry.template.type)
+            {
+                return entry.template.type;
+            }
+            const result = resolveRefer(entry);
+            if (undefined === result)
+            {
+                throw new ErrorJson
+                (
+                    entry, "Unknown refer value",
+                    {
+                        value: entry.template,
+                    }
+                );
+            }
+            return await typeOfResult(entry, result);
+        }
+    );
     export const evaluateIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
         async (entry: EvaluateEntry<AlphaJsonarch>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
@@ -3424,6 +3446,41 @@ export module Jsonarch
             for(const i in evaluatorList)
             {
                 const result = await evaluatorList[i](entry);
+                if (undefined !== result)
+                {
+                    return result;
+                }
+            }
+            throw new ErrorJson
+            (
+                entry, "Unknown Jsonarch Type",
+                {
+                    template: entry.template,
+                }
+            );
+            // return entry.template;
+        }
+    );
+    export const evaluateResultTypeIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) =>
+        async (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type | undefined> =>
+            isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
+    const evaluatorResultTypeList: ((entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>)[] =
+    [
+        evaluateResultTypeIfMatch(isStaticData, evaluateStaticResultType),
+        evaluateResultTypeIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJsonResultType),
+        evaluateResultTypeIfMatch(isTemplateData, evaluateTemplateResultType),
+        evaluateResultTypeIfMatch(isMatchData, evaluateMatchResultType),
+        evaluateResultTypeIfMatch(isLoopData, evaluateLoopResultType),
+        evaluateResultTypeIfMatch(isCallData, evaluateCallResultType),
+        evaluateResultTypeIfMatch(isValueData, evaluateValueResultType),
+    ];
+    export const evaluateType = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type> => profile
+    (
+        entry, "evaluateResultType", async () =>
+        {
+            for(const i in evaluatorResultTypeList)
+            {
+                const result = await evaluatorResultTypeList[i](entry);
                 if (undefined !== result)
                 {
                     return result;
