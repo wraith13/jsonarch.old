@@ -285,7 +285,7 @@ export declare module Jsonarch {
     }
     interface Lazy extends AlphaJsonarch {
         $arch: "lazy";
-        this?: FullRefer;
+        thisPath?: FullRefer;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -294,6 +294,7 @@ export declare module Jsonarch {
     }
     export const isLazy: (template: unknown) => template is Lazy;
     export const makeLazy: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => Lazy;
+    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<Jsonable>;
     export const hasLazy: (value: Structure<Function | JsonableValue | undefined>, key?: number | string) => boolean;
     interface ErrorStatus extends JsonableObject {
@@ -336,7 +337,7 @@ export declare module Jsonarch {
         <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined): Error;
         new <TemplateType_2 extends Jsonable, DetailType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_2> | undefined, message: string, detail?: DetailType_1 | undefined): Error;
     };
-    export const parseErrorJson: (error: Error) => JsonarchError<Jsonable>;
+    export const parseErrorJson: (error: unknown) => JsonarchError<Jsonable>;
     export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;
@@ -732,7 +733,6 @@ export declare module Jsonarch {
     export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
     export const evaluateType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
     export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => AlphaJsonarch;
-    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
     export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Type>;
     export module Limit {

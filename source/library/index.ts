@@ -690,7 +690,7 @@ export module Jsonarch
     interface Lazy extends AlphaJsonarch
     {
         $arch: "lazy";
-        this?: FullRefer;
+        thisPath?: FullRefer;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -702,12 +702,35 @@ export module Jsonarch
     export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy =>
     ({
         $arch: "lazy",
-        this: entry.this?.path,
+        thisPath: entry.this?.path,
         parameter: entry.parameter,
         callStack: entry.callStack,
         path: entry.path,
         originMap: entry.originMap,
         scope: entry.scope,
+    });
+    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy): EvaluateEntry<AlphaJsonarch> =>
+    ({
+        context: entry.context,
+        ...lazy,
+        this: <{ template: Template; path: FullRefer; }>
+            (
+                undefined !== lazy.thisPath ?
+                {
+                    template:<Jsonable>turnRefer<JsonableValue>
+                    (
+                        entry,
+                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.thisPath.root.path],
+                        toLeafFullRefer(lazy.thisPath).refer
+                    ),
+                    path: lazy.thisPath,
+                }:
+                undefined
+            ),
+        template: getLazyTemplate(entry, lazy),
+        cache: entry.cache,
+        setting: entry.setting,
+        handler: entry.handler,
     });
     export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> =>
         <Jsonable> await structureObjectAsync
@@ -829,24 +852,42 @@ export module Jsonarch
         new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
         <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
     };
-    export const parseErrorJson = (error: Error): JsonarchError<Jsonable> =>
+    export const parseErrorJson = (error: unknown): JsonarchError<Jsonable> =>
     {
-        if (error.message.startsWith("json:"))
+        if (isError(error))
         {
-            return jsonParse(error.message.replace(/^json\:/, ""));
+            return error;
+        }
+        else
+        if (error instanceof Error)
+        {
+            if (error.message.startsWith("json:"))
+            {
+                return jsonParse(error.message.replace(/^json\:/, ""));
+            }
+            else
+            {
+                const result = <JsonarchError<Jsonable>>
+                {
+                    $arch: "error",
+                    message: "System Error",
+                    detail:
+                    {
+                        name: error.name,
+                        message: error.message,
+                        stack: undefinedable(toLineArrayOrAsIs)(error.stack),
+                    }
+                };
+                return result;
+            }
         }
         else
         {
             const result = <JsonarchError<Jsonable>>
             {
                 $arch: "error",
-                message: "System Error",
-                detail:
-                {
-                    name: error.name,
-                    message: error.message,
-                    stack: undefinedable(toLineArrayOrAsIs)(error.stack),
-                }
+                message: "Unknown Error",
+                detail: toJsonable(error),
             };
             return result;
         }
@@ -3192,17 +3233,18 @@ export module Jsonarch
             else
             if (isTemplateData(target))
             {
-                // validateParameterType
-                // (
-                //     nextDepthEntry,
-                //     hasLazy(parameter) ?
-                //         await typeOfResult(nextDepthEntry, parameter):
-                //         parameter
-                // );
-                if ( ! hasLazy(parameter))
-                {
-                    validateParameterType(nextDepthEntry, parameter);
-                }
+                validateParameterType
+                (
+                    nextDepthEntry,
+                    hasLazy(parameter) ?
+                        await typeOfResult(nextDepthEntry, parameter):
+                        parameter
+                );
+
+                // if ( ! hasLazy(parameter))
+                // {
+                //     validateParameterType(nextDepthEntry, parameter);
+                // }
                 return await evaluateTemplate
                 ({
                     ...nextDepthEntry,
@@ -3260,7 +3302,11 @@ export module Jsonarch
             const functionTemplate = turnRefer<JsonableValue | Function>
             (
                 entry,
-                librarygJson,
+                {
+                    ...librarygJson,
+                    this: entry.this?.template,
+                    template: entry.cache.template,
+                },
                 entry.template.refer,
                 {
                     template: entry.path,
@@ -3365,7 +3411,7 @@ export module Jsonarch
         {
             if (isLazy(json))
             {
-                return evaluateLazyResultType(entry, json);
+                return await evaluateLazyResultType(entry, json);
             }
             else
             {
@@ -3505,29 +3551,6 @@ export module Jsonarch
         <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
         toLeafFullRefer(lazy.path).refer
     );
-    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy): EvaluateEntry<AlphaJsonarch> =>
-    ({
-        context: entry.context,
-        ...lazy,
-        this: <{ template: Template; path: FullRefer; }>
-            (
-                lazy.this ?
-                {
-                    template:<Jsonable>turnRefer<JsonableValue>
-                    (
-                        entry,
-                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.this.root.path],
-                        toLeafFullRefer(lazy.this).refer
-                    ),
-                    path: lazy.this,
-                }:
-                undefined
-            ),
-        template: getLazyTemplate(entry, lazy),
-        cache: entry.cache,
-        setting: entry.setting,
-        handler: entry.handler,
-    });
     export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
         await apply(restoreFromLazy(entry, lazy));
     export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
