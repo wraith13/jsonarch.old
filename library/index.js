@@ -2306,11 +2306,15 @@ var Jsonarch;
                     return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
                 case 4:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 6];
+                    // validateParameterType
+                    // (
+                    //     nextDepthEntry,
+                    //     hasLazy(parameter) ?
+                    //         await typeOfResult(nextDepthEntry, parameter):
+                    //         parameter
+                    // );
                     if (!Jsonarch.hasLazy(parameter)) {
                         Jsonarch.validateParameterType(nextDepthEntry, parameter);
-                    }
-                    else {
-                        Jsonarch.typeOfResult(nextDepthEntry, parameter);
                     }
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
                 case 5: return [2 /*return*/, _f.sent()];
@@ -2413,7 +2417,7 @@ var Jsonarch;
                 case 7:
                     if (!("object" === typeof json)) return [3 /*break*/, 13];
                     if (!Jsonarch.isLazy(json)) return [3 /*break*/, 8];
-                    return [3 /*break*/, 13];
+                    return [2 /*return*/, Jsonarch.evaluateLazyResultType(entry, json)];
                 case 8:
                     member = {};
                     keys = Jsonarch.objectKeys(json);
@@ -2569,15 +2573,27 @@ var Jsonarch;
         var _c;
         return Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer);
     };
-    Jsonarch.evaluateLazy = function (entry, lazy) {
+    Jsonarch.restoreFromLazy = function (entry, lazy) {
         var _c;
-        return Jsonarch.apply(__assign(__assign({ context: entry.context }, lazy), { this: (lazy.this ?
+        return (__assign(__assign({ context: entry.context }, lazy), { this: (lazy.this ?
                 {
                     template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.this.root.path], Jsonarch.toLeafFullRefer(lazy.this).refer),
                     path: lazy.this,
                 } :
                 undefined), template: Jsonarch.getLazyTemplate(entry, lazy), cache: entry.cache, setting: entry.setting, handler: entry.handler }));
     };
+    Jsonarch.evaluateLazy = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0: return [4 /*yield*/, Jsonarch.apply(Jsonarch.restoreFromLazy(entry, lazy))];
+            case 1: return [2 /*return*/, _c.sent()];
+        }
+    }); }); };
+    Jsonarch.evaluateLazyResultType = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0: return [4 /*yield*/, Jsonarch.evaluateType(Jsonarch.restoreFromLazy(entry, lazy))];
+            case 1: return [2 /*return*/, _c.sent()];
+        }
+    }); }); };
     var Limit;
     (function (Limit) {
         Limit.getProcessTimeout = function (entry) {

@@ -731,8 +731,10 @@ export declare module Jsonarch {
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
     export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
     export const evaluateType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
-    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Jsonable;
+    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => AlphaJsonarch;
+    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
+    export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Type>;
     export module Limit {
         const getProcessTimeout: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxCallNestDepth: (entry: EvaluateEntry<Jsonable>) => number;

@@ -3192,13 +3192,16 @@ export module Jsonarch
             else
             if (isTemplateData(target))
             {
+                // validateParameterType
+                // (
+                //     nextDepthEntry,
+                //     hasLazy(parameter) ?
+                //         await typeOfResult(nextDepthEntry, parameter):
+                //         parameter
+                // );
                 if ( ! hasLazy(parameter))
                 {
                     validateParameterType(nextDepthEntry, parameter);
-                }
-                else
-                {
-                    typeOfResult(nextDepthEntry, parameter);
                 }
                 return await evaluateTemplate
                 ({
@@ -3362,7 +3365,7 @@ export module Jsonarch
         {
             if (isLazy(json))
             {
-
+                return evaluateLazyResultType(entry, json);
             }
             else
             {
@@ -3496,13 +3499,13 @@ export module Jsonarch
             // return entry.template;
         }
     );
-    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <Jsonable>turnRefer<JsonableValue>
+    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <AlphaJsonarch>turnRefer<JsonableValue>
     (
         entry,
         <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
         toLeafFullRefer(lazy.path).refer
     );
-    export const evaluateLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => apply
+    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy): EvaluateEntry<AlphaJsonarch> =>
     ({
         context: entry.context,
         ...lazy,
@@ -3525,6 +3528,10 @@ export module Jsonarch
         setting: entry.setting,
         handler: entry.handler,
     });
+    export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
+        await apply(restoreFromLazy(entry, lazy));
+    export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
+        await evaluateType(restoreFromLazy(entry, lazy));
     export module Limit
     {
         export const getProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
