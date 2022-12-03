@@ -630,7 +630,7 @@ export declare module Jsonarch {
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
-    export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => ParameterType;
+    export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => Promise<ParameterType>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export const library: {
@@ -725,7 +725,7 @@ export declare module Jsonarch {
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
-    export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable) => Promise<Type>;
+    export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable | undefined) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateValueResultType: (entry: EvaluateEntry<Value>) => Promise<Type>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;

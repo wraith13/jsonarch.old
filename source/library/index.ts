@@ -1922,7 +1922,7 @@ export module Jsonarch
                 path: makeFullRefer(entry.path, "parameter"),
                 template: entry.template.parameter,
             });
-    export const validateParameterType = <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType): ParameterType =>
+    export const validateParameterType = async <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType): Promise<ParameterType> =>
     {
         const functionTemplate = turnRefer<JsonableValue | Function>
         (
@@ -1942,7 +1942,9 @@ export module Jsonarch
             const type = functionTemplate.type;
             if (type)
             {
-                const parameterType = typeOfJsonable(parameter);
+                const parameterType = hasLazy(parameter) ?
+                    await typeOfResult(entry, parameter):
+                    typeOfJsonable(parameter);
                 const types = Array.isArray(type) ? type: [type];
                 const compareTypeResult = types.map(t => compareType(t.parameter, parameterType));
                 if (compareTypeResult.some(r => isBaseOrEqual(r)))
@@ -3222,7 +3224,7 @@ export module Jsonarch
             if ("function" === typeof target)
             {
                 const solid = await resolveLazy(entry, parameter);
-                validateParameterType(nextDepthEntry, solid);
+                await validateParameterType(nextDepthEntry, solid);
                 const result = await target(nextDepthEntry, solid);
                 if (undefined === result)
                 {
@@ -3233,18 +3235,7 @@ export module Jsonarch
             else
             if (isTemplateData(target))
             {
-                validateParameterType
-                (
-                    nextDepthEntry,
-                    hasLazy(parameter) ?
-                        await typeOfResult(nextDepthEntry, parameter):
-                        parameter
-                );
-
-                // if ( ! hasLazy(parameter))
-                // {
-                //     validateParameterType(nextDepthEntry, parameter);
-                // }
+                await validateParameterType(nextDepthEntry, parameter);
                 return await evaluateTemplate
                 ({
                     ...nextDepthEntry,
@@ -3368,7 +3359,7 @@ export module Jsonarch
     
         }
     );
-    export const typeOfResult = async (entry: EvaluateEntry<Jsonable>, json: Jsonable): Promise<Type> =>
+    export const typeOfResult = async (entry: EvaluateEntry<Jsonable>, json: Jsonable | undefined): Promise<Type> =>
     {
         if (undefined === json)
         {

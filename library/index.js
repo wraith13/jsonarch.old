@@ -1386,46 +1386,58 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.validateParameterType = function (entry, parameter) {
-        var _c;
-        var functionTemplate = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_c = entry.this) === null || _c === void 0 ? void 0 : _c.template }), entry.template.refer, {
-            template: entry.path,
-        }
-        // entry.originMap
-        );
-        if (Jsonarch.isTemplateData(functionTemplate)) {
-            var type = functionTemplate.type;
-            if (type) {
-                var parameterType_1 = Jsonarch.typeOfJsonable(parameter);
-                var types = Array.isArray(type) ? type : [type];
-                var compareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
-                if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
-                    return parameter;
-                }
-                else {
-                    throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
-                        refer: entry.template.refer,
-                        compareTypeResult: compareTypeResult,
-                        type: {
-                            template: type,
-                            parameter: parameterType_1,
-                        },
-                        parameter: parameter,
-                    });
-                }
-            }
-            else {
-                throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+    Jsonarch.validateParameterType = function (entry, parameter) { return __awaiter(_this, void 0, void 0, function () {
+        var functionTemplate, type, parameterType_1, _c, types, compareTypeResult;
+        var _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    functionTemplate = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_d = entry.this) === null || _d === void 0 ? void 0 : _d.template }), entry.template.refer, {
+                        template: entry.path,
+                    }
+                    // entry.originMap
+                    );
+                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 6];
+                    type = functionTemplate.type;
+                    if (!type) return [3 /*break*/, 4];
+                    if (!Jsonarch.hasLazy(parameter)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, parameter)];
+                case 1:
+                    _c = _e.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    _c = Jsonarch.typeOfJsonable(parameter);
+                    _e.label = 3;
+                case 3:
+                    parameterType_1 = _c;
+                    types = Array.isArray(type) ? type : [type];
+                    compareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
+                    if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
+                        return [2 /*return*/, parameter];
+                    }
+                    else {
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
+                            refer: entry.template.refer,
+                            compareTypeResult: compareTypeResult,
+                            type: {
+                                template: type,
+                                parameter: parameterType_1,
+                            },
+                            parameter: parameter,
+                        });
+                    }
+                    return [3 /*break*/, 5];
+                case 4: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                     refer: entry.template.refer,
                 });
+                case 5: return [3 /*break*/, 7];
+                case 6: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                    refer: entry.template.refer,
+                });
+                case 7: return [2 /*return*/];
             }
-        }
-        else {
-            throw new Jsonarch.ErrorJson(entry, "Not found template", {
-                refer: entry.template.refer,
-            });
-        }
-    };
+        });
+    }); };
     Jsonarch.validateReturnType = function (entry, parameter, result) {
         var functionTemplate = Jsonarch.turnRefer(entry, library_json_1.default, entry.template.refer, {
             template: entry.path,
@@ -2291,16 +2303,16 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, target, solid, result, _c, _d, _e;
-        var _f, _g, _h;
-        return __generator(this, function (_j) {
-            switch (_j.label) {
+        var parameter, path, nextDepthEntry, target, solid, result;
+        var _c, _d, _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
                     Limit.throwIfOverTheCallDepth(entry);
                     return [4 /*yield*/, Jsonarch.makeParameter(entry)];
                 case 1:
-                    parameter = (_f = _j.sent()) !== null && _f !== void 0 ? _f : null;
-                    path = Jsonarch.resolveThisPath((_g = entry.this) === null || _g === void 0 ? void 0 : _g.path, {
+                    parameter = (_c = _f.sent()) !== null && _c !== void 0 ? _c : null;
+                    path = Jsonarch.resolveThisPath((_d = entry.this) === null || _d === void 0 ? void 0 : _d.path, {
                         root: entry.context.template,
                         refer: entry.template.refer,
                     });
@@ -2309,45 +2321,33 @@ var Jsonarch;
                             parameter: parameter,
                             caller: entry.path,
                         }), path: path });
-                    target = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_h = entry.this) === null || _h === void 0 ? void 0 : _h.template, template: entry.cache.template }), entry.template.refer, {
+                    target = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }), entry.template.refer, {
                         template: entry.path,
                     }
                     // entry.originMap
                     );
-                    if (!("function" === typeof target)) return [3 /*break*/, 4];
+                    if (!("function" === typeof target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter)];
                 case 2:
-                    solid = _j.sent();
-                    Jsonarch.validateParameterType(nextDepthEntry, solid);
-                    return [4 /*yield*/, target(nextDepthEntry, solid)];
+                    solid = _f.sent();
+                    return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, solid)];
                 case 3:
-                    result = _j.sent();
+                    _f.sent();
+                    return [4 /*yield*/, target(nextDepthEntry, solid)];
+                case 4:
+                    result = _f.sent();
                     if (undefined === result) {
                         throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, solid);
                     }
                     return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
-                case 4:
-                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 9];
-                    _c = Jsonarch.validateParameterType;
-                    _d = [nextDepthEntry];
-                    if (!Jsonarch.hasLazy(parameter)) return [3 /*break*/, 6];
-                    return [4 /*yield*/, Jsonarch.typeOfResult(nextDepthEntry, parameter)];
                 case 5:
-                    _e = _j.sent();
-                    return [3 /*break*/, 7];
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 8];
+                    return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, parameter)];
                 case 6:
-                    _e = parameter;
-                    _j.label = 7;
-                case 7:
-                    _c.apply(void 0, _d.concat([_e]));
+                    _f.sent();
                     return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
-                case 8: 
-                // if ( ! hasLazy(parameter))
-                // {
-                //     validateParameterType(nextDepthEntry, parameter);
-                // }
-                return [2 /*return*/, _j.sent()];
-                case 9: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
+                case 7: return [2 /*return*/, _f.sent()];
+                case 8: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
                     refer: entry.template.refer,
                 });
             }
