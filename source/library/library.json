@@ -127,15 +127,26 @@
         {
             "$arch": "template",
             "type":
-            {
-                "parameter":
+            [
                 {
-                    "$arch": "type",
-                    "type": "array",
-                    "itemType": { "$arch": "type", "type": "number" }
+                    "parameter":
+                    {
+                        "$arch": "type",
+                        "type": "array",
+                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true }
+                    },
+                    "return": { "$arch": "type", "type": "number", "integerOnly": true }
                 },
-                "return": { "$arch": "type", "type": "number" }
-            }
+                {
+                    "parameter":
+                    {
+                        "$arch": "type",
+                        "type": "array",
+                        "itemType": { "$arch": "type", "type": "number" }
+                    },
+                    "return": { "$arch": "type", "type": "number" }
+                }
+            ]
         },
         "remainder":
         {
