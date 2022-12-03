@@ -205,6 +205,7 @@ export declare module Jsonarch {
             indent?: "minify" | "smart" | "tab" | number;
             text?: boolean;
             digest?: {
+                minTargetSize?: number;
                 maxStringLength?: number;
                 maxArrayLength?: number;
                 maxObjectNestDepth?: number;

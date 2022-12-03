@@ -88,6 +88,10 @@
         "Digest": {
             "type": "object",
             "properties": {
+                "minTargetSize":
+                {
+                    "type": "number"
+                },
                 "maxStringLength":
                 {
                     "type": "number"

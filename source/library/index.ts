@@ -587,6 +587,7 @@ export module Jsonarch
             text?: boolean;
             digest?:
             {
+                minTargetSize?: number;
                 maxStringLength?: number;
                 maxArrayLength?: number;
                 maxObjectNestDepth?: number;
@@ -3974,7 +3975,9 @@ export module Jsonarch
     export const digest = (json: Jsonable, setting: Setting, nestDepth?: number): Jsonable =>
     {
         const digestSetting = setting.outputFormat?.digest;
-        if (digestSetting)
+        const minTargetSize = (digestSetting?.minTargetSize ?? 0);
+        const isFirstDepth = (nestDepth ?? 0) <= 0;
+        if (digestSetting && ( ! isFirstDepth || minTargetSize <= 0 || minTargetSize < jsonStringify(json).length))
         {
             const nextNestDepth = (nestDepth ?? 0) +1;
             if (Array.isArray(json))
@@ -3986,6 +3989,10 @@ export module Jsonarch
                 else
                 {
                     const result = [];
+                    if (isFirstDepth)
+                    {
+                        result.push({ $digest: true });
+                    }
                     if (digestSetting.maxArrayLength && digestSetting.maxArrayLength < json.length)
                     {
                         for(let i = 0; i < Math.ceil(digestSetting.maxArrayLength /2); ++i)
@@ -4018,6 +4025,10 @@ export module Jsonarch
                 else
                 {
                     const result: JsonableObject = { };
+                    if (isFirstDepth)
+                    {
+                        result["$digest"] = true;
+                    }
                     const keys = objectKeys(json);
                     if (digestSetting.maxObjectMembers && digestSetting.maxObjectMembers < keys.length)
                     {

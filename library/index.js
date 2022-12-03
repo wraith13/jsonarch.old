@@ -3004,9 +3004,11 @@ var Jsonarch;
         return result;
     };
     Jsonarch.digest = function (json, setting, nestDepth) {
-        var _c;
+        var _c, _d;
         var digestSetting = (_c = setting.outputFormat) === null || _c === void 0 ? void 0 : _c.digest;
-        if (digestSetting) {
+        var minTargetSize = ((_d = digestSetting === null || digestSetting === void 0 ? void 0 : digestSetting.minTargetSize) !== null && _d !== void 0 ? _d : 0);
+        var isFirstDepth = (nestDepth !== null && nestDepth !== void 0 ? nestDepth : 0) <= 0;
+        if (digestSetting && (!isFirstDepth || minTargetSize <= 0 || minTargetSize < Jsonarch.jsonStringify(json).length)) {
             var nextNestDepth = (nestDepth !== null && nestDepth !== void 0 ? nestDepth : 0) + 1;
             if (Array.isArray(json)) {
                 if (digestSetting.maxObjectNestDepth && digestSetting.maxObjectNestDepth < nextNestDepth) {
@@ -3014,6 +3016,9 @@ var Jsonarch;
                 }
                 else {
                     var result = [];
+                    if (isFirstDepth) {
+                        result.push({ $digest: true });
+                    }
                     if (digestSetting.maxArrayLength && digestSetting.maxArrayLength < json.length) {
                         for (var i = 0; i < Math.ceil(digestSetting.maxArrayLength / 2); ++i) {
                             result.push(Jsonarch.digest(json[i], setting, nextNestDepth));
@@ -3037,6 +3042,9 @@ var Jsonarch;
                 }
                 else {
                     var result = {};
+                    if (isFirstDepth) {
+                        result["$digest"] = true;
+                    }
                     var keys = Jsonarch.objectKeys(json);
                     if (digestSetting.maxObjectMembers && digestSetting.maxObjectMembers < keys.length) {
                         for (var i = 0; i < Math.ceil(digestSetting.maxObjectMembers / 2); ++i) {
