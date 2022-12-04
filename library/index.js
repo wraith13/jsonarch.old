@@ -410,21 +410,31 @@ var Jsonarch;
     };
     Jsonarch.makeProfile = function (data) {
         if (data === void 0) { data = {}; }
-        return (__assign({ isProfiling: true, score: {}, stack: [], startAt: Jsonarch.getTicks() }, data));
+        return (__assign({ isProfiling: true, score: {}, template: {}, stack: [], startAt: Jsonarch.getTicks() }, data));
     };
-    Jsonarch.isProfileEntry = Jsonarch.isObject({ name: Jsonarch.isString, startTicks: Jsonarch.isNumber, childrenTicks: Jsonarch.isNumber, });
+    Jsonarch.isProfileEntry = Jsonarch.isObject({ scope: Jsonarch.isString, template: Jsonarch.isString, startTicks: Jsonarch.isNumber, childrenTicks: Jsonarch.isNumber, });
     Jsonarch.isProfileScore = Jsonarch.isObject({ count: Jsonarch.isNumber, time: Jsonarch.isNumber, });
-    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isProfileScore), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
+    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isProfileScore), template: Jsonarch.isMapObject(Jsonarch.isProfileScore), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
     Jsonarch.makeProfileReport = function (profile) {
         var total = Jsonarch.objectValues(profile.score).map(function (i) { return i.time; }).reduce(function (a, b) { return a + b; }, 0);
+        var makeData = function (score) {
+            return ({
+                count: score.count,
+                time: score.time,
+                percent: (score.time / total) * 100,
+            });
+        };
         var result = {
+            template: Jsonarch.objectKeys(profile.template).map(function (path) {
+                return (__assign({ template: Jsonarch.jsonParse(path) }, makeData(profile.template[path])));
+            })
+                .sort(Comparer.make([
+                function (item) { return -item.time; },
+                function (item) { return -item.count; },
+                function (item) { return Jsonarch.jsonStringify(item.template); },
+            ])),
             system: Jsonarch.objectKeys(profile.score).map(function (scope) {
-                return ({
-                    scope: scope,
-                    count: profile.score[scope].count,
-                    time: profile.score[scope].time,
-                    percent: (profile.score[scope].time / total) * 100,
-                });
+                return (__assign({ scope: scope }, makeData(profile.score[scope])));
             })
                 .sort(Comparer.make([
                 function (item) { return -item.time; },
@@ -632,10 +642,11 @@ var Jsonarch;
     Jsonarch.isError = Jsonarch.isJsonarch("error");
     // export const getTicks = () => new Date().getTime();
     Jsonarch.getTicks = function () { return performance.now(); };
-    var beginProfileScope = function (context, name) {
+    var beginProfileScope = function (context, scope, template) {
         var _c, _d, _e;
         var result = {
-            name: name,
+            scope: scope,
+            template: template,
             startTicks: 0,
             childrenTicks: 0,
         };
@@ -645,35 +656,56 @@ var Jsonarch;
         }
         return result;
     };
+    var recordProfileScore = function (score, key, time) {
+        if (undefined === score[key]) {
+            score[key] = { count: 0, time: 0, };
+        }
+        score[key].count += 1;
+        score[key].time += time;
+    };
     var endProfileScope = function (context, entry) {
-        var _c, _d;
+        var _c, _d, _e;
         var profileScore = (_c = context.profile) === null || _c === void 0 ? void 0 : _c.score;
-        var entryStack = (_d = context.profile) === null || _d === void 0 ? void 0 : _d.stack;
-        if (0 !== entry.startTicks && profileScore && entryStack) {
+        var profileTemplate = (_d = context.profile) === null || _d === void 0 ? void 0 : _d.template;
+        var entryStack = (_e = context.profile) === null || _e === void 0 ? void 0 : _e.stack;
+        if (0 !== entry.startTicks && entryStack) {
             var wholeTicks = Jsonarch.getTicks() - entry.startTicks;
-            if (undefined === profileScore[entry.name]) {
-                profileScore[entry.name] = { count: 0, time: 0, };
+            var time = wholeTicks - entry.childrenTicks;
+            if (profileScore) {
+                recordProfileScore(profileScore, entry.scope, time);
             }
-            profileScore[entry.name].count += 1;
-            profileScore[entry.name].time += wholeTicks - entry.childrenTicks;
+            if (profileTemplate) {
+                recordProfileScore(profileTemplate, entry.template, time);
+            }
             entryStack.pop();
             if (0 < entryStack.length) {
                 entryStack[entryStack.length - 1].childrenTicks += wholeTicks;
             }
         }
     };
-    Jsonarch.profile = function (contextOrEntry, name, target) { return __awaiter(_this, void 0, void 0, function () {
-        var context, entry;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+    Jsonarch.getPathFromContextOrEntry = function (contextOrEntry) {
+        if ("path" in contextOrEntry) {
+            var path = contextOrEntry["path"];
+            if (Jsonarch.isFullRefer(path)) {
+                return path;
+            }
+        }
+        return undefined;
+    };
+    Jsonarch.profile = function (contextOrEntry, scope, target) { return __awaiter(_this, void 0, void 0, function () {
+        var context, template, entry;
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     context = Jsonarch.getContext(contextOrEntry);
-                    entry = beginProfileScope(context, name);
-                    _c.label = 1;
+                    template = Jsonarch.jsonStringify((_c = Jsonarch.getPathFromContextOrEntry(contextOrEntry)) !== null && _c !== void 0 ? _c : "root");
+                    entry = beginProfileScope(context, scope, template);
+                    _d.label = 1;
                 case 1:
-                    _c.trys.push([1, , 3, 4]);
+                    _d.trys.push([1, , 3, 4]);
                     return [4 /*yield*/, target()];
-                case 2: return [2 /*return*/, _c.sent()];
+                case 2: return [2 /*return*/, _d.sent()];
                 case 3:
                     endProfileScope(context, entry);
                     return [7 /*endfinally*/];

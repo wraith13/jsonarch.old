@@ -105,12 +105,16 @@ export declare module Jsonarch {
         score: {
             [scope: string]: ProfileScore;
         };
+        template: {
+            [path: string]: ProfileScore;
+        };
         stack: ProfileEntry[];
         startAt: number;
     }
     export const makeProfile: (data?: Partial<Profile>) => Profile;
     export interface ProfileEntry extends JsonableObject {
-        name: string;
+        scope: string;
+        template: string;
         startTicks: number;
         childrenTicks: number;
     }
@@ -118,11 +122,17 @@ export declare module Jsonarch {
     export const isProfileScore: (value: unknown) => value is ProfileScore;
     export const isProfile: (value: unknown) => value is Profile;
     export const makeProfileReport: (profile: Profile) => {
-        system: {
-            scope: string;
+        template: {
             count: number;
             time: number;
             percent: number;
+            template: Jsonable;
+        }[];
+        system: {
+            count: number;
+            time: number;
+            percent: number;
+            scope: string;
         }[];
     };
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
@@ -343,9 +353,8 @@ export declare module Jsonarch {
     }
     export const isError: (template: unknown) => template is JsonarchError<Jsonable>;
     export const getTicks: () => number;
-    export const profile: <ResultT>(contextOrEntry: Context | {
-        context: Context;
-    }, name: string, target: () => Promise<ResultT>) => Promise<ResultT>;
+    export const getPathFromContextOrEntry: (contextOrEntry: ContextOrEntry) => FullRefer | undefined;
+    export const profile: <ResultT>(contextOrEntry: ContextOrEntry, scope: string, target: () => Promise<ResultT>) => Promise<ResultT>;
     export const makeError: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined) => JsonarchError<DetailType>;
     export const ErrorJson: {
         <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined): Error;

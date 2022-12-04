@@ -396,6 +396,7 @@ export module Jsonarch
     {
         isProfiling: boolean;
         score: { [scope: string]: ProfileScore };
+        template: { [path: string]: ProfileScore };
         stack: ProfileEntry[];
         startAt: number;
     }
@@ -403,32 +404,55 @@ export module Jsonarch
     ({
         isProfiling: true,
         score: { },
-        stack: [],
+        template: { },
+        stack: [ ],
         startAt: getTicks(),
         ...data,
     });
     export interface ProfileEntry extends JsonableObject
     {
-        name: string;
+        scope: string;
+        template: string;
         startTicks: number;
         childrenTicks: number;
     }
-    export const isProfileEntry = isObject<ProfileEntry>({ name: isString, startTicks: isNumber, childrenTicks: isNumber, });
+    export const isProfileEntry = isObject<ProfileEntry>({ scope: isString, template: isString, startTicks: isNumber, childrenTicks: isNumber, });
     export const isProfileScore = isObject<ProfileScore>({ count: isNumber, time: isNumber, });
-    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isProfileScore), stack: isArray(isProfileEntry), startAt: isNumber, });
+    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isProfileScore), template: isMapObject(isProfileScore), stack: isArray(isProfileEntry), startAt: isNumber, });
     export const makeProfileReport = (profile: Profile) =>
     {
         const total = objectValues(profile.score).map(i => i.time).reduce((a, b) => a +b, 0);
+        const makeData = (score: ProfileScore) =>
+        ({
+            count: score.count,
+            time: score.time,
+            percent: (score.time /total) *100,
+        });
         const result =
         {
+            template: objectKeys(profile.template).map
+            (
+                path =>
+                ({
+                    template: jsonParse(path),
+                    ...makeData(profile.template[path]),
+                })
+            )
+            .sort
+            (
+                Comparer.make<{ template: Jsonable, count: number, time: number, }>
+                ([
+                    item => -item.time,
+                    item => -item.count,
+                    item => jsonStringify(item.template),
+                ])
+            ),
             system: objectKeys(profile.score).map
             (
                 scope =>
                 ({
                     scope,
-                    count: profile.score[scope].count,
-                    time: profile.score[scope].time,
-                    percent: (profile.score[scope].time /total) *100,
+                    ...makeData(profile.score[scope]),
                 })
             )
             .sort
@@ -830,11 +854,12 @@ export module Jsonarch
     export const isError = isJsonarch<JsonarchError<Jsonable>>("error");
     // export const getTicks = () => new Date().getTime();
     export const getTicks = () => performance.now();
-    const beginProfileScope = (context: Context, name: string): ProfileEntry =>
+    const beginProfileScope = (context: Context, scope: string, template: string): ProfileEntry =>
     {
         const result: ProfileEntry =
         {
-            name,
+            scope,
+            template,
             startTicks: 0,
             childrenTicks: 0,
         };
@@ -845,19 +870,32 @@ export module Jsonarch
         }
         return result;
     };
+    const recordProfileScore = (score: { [key: string]: ProfileScore }, key: string, time: number) =>
+    {
+        if (undefined === score[key])
+        {
+            score[key] = { count:0, time:0, };
+        }
+        score[key].count += 1;
+        score[key].time += time;
+    };
     const endProfileScope = (context: Context, entry: ProfileEntry) =>
     {
         const profileScore = context.profile?.score;
+        const profileTemplate = context.profile?.template;
         const entryStack = context.profile?.stack;
-        if (0 !== entry.startTicks && profileScore && entryStack)
+        if (0 !== entry.startTicks && entryStack)
         {
             const wholeTicks = getTicks() -entry.startTicks;
-            if (undefined === profileScore[entry.name])
+            const time = wholeTicks -entry.childrenTicks;
+            if (profileScore)
             {
-                profileScore[entry.name] = { count:0, time:0, };
+                recordProfileScore(profileScore, entry.scope, time);
             }
-            profileScore[entry.name].count += 1;
-            profileScore[entry.name].time += wholeTicks -entry.childrenTicks;
+            if (profileTemplate)
+            {
+                recordProfileScore(profileTemplate, entry.template, time);
+            }
             entryStack.pop();
             if (0 < entryStack.length)
             {
@@ -865,10 +903,23 @@ export module Jsonarch
             }
         }
     };
-    export const profile = async <ResultT>(contextOrEntry: Context | { context: Context, }, name: string, target: () => Promise<ResultT>): Promise<ResultT> =>
+    export const getPathFromContextOrEntry = (contextOrEntry: ContextOrEntry): FullRefer | undefined =>
+    {
+        if ("path" in contextOrEntry)
+        {
+            const path = contextOrEntry["path"];
+            if (isFullRefer(path))
+            {
+                return path;
+            }
+        }
+        return undefined;
+    };
+    export const profile = async <ResultT>(contextOrEntry: ContextOrEntry, scope: string, target: () => Promise<ResultT>): Promise<ResultT> =>
     {
         const context = getContext(contextOrEntry);
-        const entry = beginProfileScope(context, name);
+        const template = jsonStringify(getPathFromContextOrEntry(contextOrEntry) ?? "root");
+        const entry = beginProfileScope(context, scope, template);
         try
         {
             return await target();
