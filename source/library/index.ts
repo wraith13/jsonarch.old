@@ -1,4 +1,5 @@
 import * as System from "./system";
+import * as Comparer from "./comparer";
 import bootSettingJson from "./boot.setting.json";
 import settingJson from "./setting.json";
 import librarygJson from "./library.json";
@@ -385,16 +386,22 @@ export module Jsonarch
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
+    
+    export interface ProfileScore extends JsonableObject
+    {
+        count: number;
+        time: number;
+    }
     export interface Profile extends JsonableObject
     {
         isProfiling: boolean;
-        score: { [scope: string]: number };
+        score: { [scope: string]: ProfileScore };
         stack: ProfileEntry[];
         startAt: number;
     }
     export const makeProfile = (data: Partial<Profile> = { }): Profile =>
     ({
-        isProfiling: false,
+        isProfiling: true,
         score: { },
         stack: [],
         startAt: getTicks(),
@@ -407,7 +414,31 @@ export module Jsonarch
         childrenTicks: number;
     }
     export const isProfileEntry = isObject<ProfileEntry>({ name: isString, startTicks: isNumber, childrenTicks: isNumber, });
-    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isNumber), stack: isArray(isProfileEntry), startAt: isNumber, });
+    export const isProfileScore = isObject<ProfileScore>({ count: isNumber, time: isNumber, });
+    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isProfileScore), stack: isArray(isProfileEntry), startAt: isNumber, });
+    export const makeProfileReport = (profile: Profile) =>
+    {
+        const total = objectValues(profile.score).map(i => i.time).reduce((a, b) => a +b, 0);
+        return objectKeys(profile.score).map
+        (
+            scope =>
+            ({
+                scope,
+                count: profile.score[scope].count,
+                time: profile.score[scope].time,
+                percent: (profile.score[scope].time /total) *100,
+            })
+        )
+        .sort
+        (
+            Comparer.make<{ scope: string, count: number, time: number, }>
+            ([
+                item => -item.time,
+                item => -item.count,
+                item => item.scope,
+            ])
+        );
+    };
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
     export type HashType = string;
@@ -733,14 +764,16 @@ export module Jsonarch
         setting: entry.setting,
         handler: entry.handler,
     });
-    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> =>
-        <Jsonable> await structureObjectAsync
+    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> => await profil
+    (
+        entry, "resolveLazy", async () => <Jsonable> await structureObjectAsync
         (
             async (value: Jsonable) => isLazy(value) ?
                 await resolveLazy(entry, await evaluateLazy(entry, value)):
                 undefined
         )
-        (lazy);
+        (lazy)
+    );
     export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
     interface ErrorStatus extends JsonableObject
     {
@@ -800,7 +833,7 @@ export module Jsonarch
             startTicks: 0,
             childrenTicks: 0,
         };
-        if (context.profile?.isProfiling)
+        if (context.profile?.isProfiling ?? false)
         {
             result.startTicks = getTicks();
             context.profile?.stack.push(result);
@@ -816,9 +849,10 @@ export module Jsonarch
             const wholeTicks = getTicks() -entry.startTicks;
             if (undefined === profileScore[entry.name])
             {
-                profileScore[entry.name] = 0;
+                profileScore[entry.name] = { count:0, time:0, };
             }
-            profileScore[entry.name] += wholeTicks -entry.childrenTicks;
+            profileScore[entry.name].count += 1;
+            profileScore[entry.name].time += wholeTicks -entry.childrenTicks;
             entryStack.pop();
             if (0 < entryStack.length)
             {
@@ -3224,25 +3258,37 @@ export module Jsonarch
             );
             if ("function" === typeof target)
             {
-                const solid = await resolveLazy(entry, parameter);
-                await validateParameterType(nextDepthEntry, solid);
-                const result = await target(nextDepthEntry, solid);
-                if (undefined === result)
-                {
-                    throw UnmatchParameterTypeDefineError(nextDepthEntry, solid);
-                }
-                return validateReturnType(nextDepthEntry, solid, result);
+                return await profile
+                (
+                    nextDepthEntry, "evaluateCall.library", async () =>
+                    {
+                        const solid = await resolveLazy(entry, parameter);
+                        await validateParameterType(nextDepthEntry, solid);
+                        const result = await target(nextDepthEntry, solid);
+                        if (undefined === result)
+                        {
+                            throw UnmatchParameterTypeDefineError(nextDepthEntry, solid);
+                        }
+                        return validateReturnType(nextDepthEntry, solid, result);
+                    }
+                );
             }
             else
             if (isTemplateData(target))
             {
-                await validateParameterType(nextDepthEntry, parameter);
-                return await evaluateTemplate
-                ({
-                    ...nextDepthEntry,
-                    template: target,
-                    parameter,
-                });
+                return await profile
+                (
+                    nextDepthEntry, "evaluateCall.template", async () =>
+                    {
+                        await validateParameterType(nextDepthEntry, parameter);
+                        return await evaluateTemplate
+                        ({
+                            ...nextDepthEntry,
+                            template: target,
+                            parameter,
+                        });
+                    }
+                );
             }
             else
             {
@@ -3756,10 +3802,12 @@ export module Jsonarch
                         await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
                         await apply(rootEvaluateEntry)
                 );
+                const profileScore = makeProfileReport(context.profile);
                 const result: Result =
                 {
                     $arch: "result",
                     output,
+                    profileScore,
                     cache,
                     setting,
                 };
@@ -3767,10 +3815,12 @@ export module Jsonarch
             }
             catch(error: any)
             {
+                const profileScore = makeProfileReport(context.profile);
                 const result: Result =
                 {
                     $arch: "result",
                     output: parseErrorJson(error),
+                    profileScore,
                     cache,
                     setting,
                 };

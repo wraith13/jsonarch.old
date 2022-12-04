@@ -96,10 +96,14 @@ export declare module Jsonarch {
     }
     export const isJsonarch: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is Type_1;
     export const isAlphaJsonarch: (template: any) => template is AlphaJsonarch;
+    export interface ProfileScore extends JsonableObject {
+        count: number;
+        time: number;
+    }
     export interface Profile extends JsonableObject {
         isProfiling: boolean;
         score: {
-            [scope: string]: number;
+            [scope: string]: ProfileScore;
         };
         stack: ProfileEntry[];
         startAt: number;
@@ -111,7 +115,14 @@ export declare module Jsonarch {
         childrenTicks: number;
     }
     export const isProfileEntry: (value: unknown) => value is ProfileEntry;
+    export const isProfileScore: (value: unknown) => value is ProfileScore;
     export const isProfile: (value: unknown) => value is Profile;
+    export const makeProfileReport: (profile: Profile) => {
+        scope: string;
+        count: number;
+        time: number;
+        percent: number;
+    }[];
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json">;
     export type HashType = string;

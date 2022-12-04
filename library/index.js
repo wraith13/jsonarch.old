@@ -84,6 +84,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonarch = exports.Locale = void 0;
 var System = __importStar(require("./system"));
+var Comparer = __importStar(require("./comparer"));
 var boot_setting_json_1 = __importDefault(require("./boot.setting.json"));
 var setting_json_1 = __importDefault(require("./setting.json"));
 var library_json_1 = __importDefault(require("./library.json"));
@@ -409,10 +410,27 @@ var Jsonarch;
     };
     Jsonarch.makeProfile = function (data) {
         if (data === void 0) { data = {}; }
-        return (__assign({ isProfiling: false, score: {}, stack: [], startAt: Jsonarch.getTicks() }, data));
+        return (__assign({ isProfiling: true, score: {}, stack: [], startAt: Jsonarch.getTicks() }, data));
     };
     Jsonarch.isProfileEntry = Jsonarch.isObject({ name: Jsonarch.isString, startTicks: Jsonarch.isNumber, childrenTicks: Jsonarch.isNumber, });
-    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isNumber), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
+    Jsonarch.isProfileScore = Jsonarch.isObject({ count: Jsonarch.isNumber, time: Jsonarch.isNumber, });
+    Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isProfileScore), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
+    Jsonarch.makeProfileReport = function (profile) {
+        var total = Jsonarch.objectValues(profile.score).map(function (i) { return i.time; }).reduce(function (a, b) { return a + b; }, 0);
+        return Jsonarch.objectKeys(profile.score).map(function (scope) {
+            return ({
+                scope: scope,
+                count: profile.score[scope].count,
+                time: profile.score[scope].time,
+                percent: (profile.score[scope].time / total) * 100,
+            });
+        })
+            .sort(Comparer.make([
+            function (item) { return -item.time; },
+            function (item) { return -item.count; },
+            function (item) { return item.scope; },
+        ]));
+    };
     Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json"]);
     Jsonarch.isSystemFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("system"), id: Jsonarch.isSystemFileType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
     Jsonarch.isNoneFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("none"), data: Jsonarch.isJsonable, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
@@ -603,15 +621,15 @@ var Jsonarch;
     Jsonarch.isError = Jsonarch.isJsonarch("error");
     Jsonarch.getTicks = function () { return new Date().getTime(); };
     var beginProfileScope = function (context, name) {
-        var _c, _d;
+        var _c, _d, _e;
         var result = {
             name: name,
             startTicks: 0,
             childrenTicks: 0,
         };
-        if ((_c = context.profile) === null || _c === void 0 ? void 0 : _c.isProfiling) {
+        if ((_d = (_c = context.profile) === null || _c === void 0 ? void 0 : _c.isProfiling) !== null && _d !== void 0 ? _d : false) {
             result.startTicks = Jsonarch.getTicks();
-            (_d = context.profile) === null || _d === void 0 ? void 0 : _d.stack.push(result);
+            (_e = context.profile) === null || _e === void 0 ? void 0 : _e.stack.push(result);
         }
         return result;
     };
@@ -622,9 +640,10 @@ var Jsonarch;
         if (0 !== entry.startTicks && profileScore && entryStack) {
             var wholeTicks = Jsonarch.getTicks() - entry.startTicks;
             if (undefined === profileScore[entry.name]) {
-                profileScore[entry.name] = 0;
+                profileScore[entry.name] = { count: 0, time: 0, };
             }
-            profileScore[entry.name] += wholeTicks - entry.childrenTicks;
+            profileScore[entry.name].count += 1;
+            profileScore[entry.name].time += wholeTicks - entry.childrenTicks;
             entryStack.pop();
             if (0 < entryStack.length) {
                 entryStack[entryStack.length - 1].childrenTicks += wholeTicks;
@@ -2303,7 +2322,8 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, target, solid, result;
+        var parameter, path, nextDepthEntry, target;
+        var _this = this;
         var _c, _d, _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -2326,28 +2346,43 @@ var Jsonarch;
                     }
                     // entry.originMap
                     );
-                    if (!("function" === typeof target)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter)];
-                case 2:
-                    solid = _f.sent();
-                    return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, solid)];
+                    if (!("function" === typeof target)) return [3 /*break*/, 3];
+                    return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.library", function () { return __awaiter(_this, void 0, void 0, function () {
+                            var solid, result;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0: return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter)];
+                                    case 1:
+                                        solid = _c.sent();
+                                        return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, solid)];
+                                    case 2:
+                                        _c.sent();
+                                        return [4 /*yield*/, target(nextDepthEntry, solid)];
+                                    case 3:
+                                        result = _c.sent();
+                                        if (undefined === result) {
+                                            throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, solid);
+                                        }
+                                        return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
+                                }
+                            });
+                        }); })];
+                case 2: return [2 /*return*/, _f.sent()];
                 case 3:
-                    _f.sent();
-                    return [4 /*yield*/, target(nextDepthEntry, solid)];
-                case 4:
-                    result = _f.sent();
-                    if (undefined === result) {
-                        throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, solid);
-                    }
-                    return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
-                case 5:
-                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 8];
-                    return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, parameter)];
-                case 6:
-                    _f.sent();
-                    return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
-                case 7: return [2 /*return*/, _f.sent()];
-                case 8: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
+                    if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.template", function () { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0: return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, parameter)];
+                                    case 1:
+                                        _c.sent();
+                                        return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
+                                    case 2: return [2 /*return*/, _c.sent()];
+                                }
+                            });
+                        }); })];
+                case 4: return [2 /*return*/, _f.sent()];
+                case 5: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
                     refer: entry.template.refer,
                 });
             }
@@ -2767,7 +2802,7 @@ var Jsonarch;
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, result, error_2, result;
+        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, profileScore, result, error_2, profileScore, result;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
@@ -2810,18 +2845,22 @@ var Jsonarch;
                     _g.label = 6;
                 case 6:
                     output = _c.apply(void 0, [_d]);
+                    profileScore = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
                         output: output,
+                        profileScore: profileScore,
                         cache: cache,
                         setting: setting,
                     };
                     return [2 /*return*/, result];
                 case 7:
                     error_2 = _g.sent();
+                    profileScore = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
                         output: Jsonarch.parseErrorJson(error_2),
+                        profileScore: profileScore,
                         cache: cache,
                         setting: setting,
                     };
