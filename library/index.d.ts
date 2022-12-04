@@ -118,11 +118,13 @@ export declare module Jsonarch {
     export const isProfileScore: (value: unknown) => value is ProfileScore;
     export const isProfile: (value: unknown) => value is Profile;
     export const makeProfileReport: (profile: Profile) => {
-        scope: string;
-        count: number;
-        time: number;
-        percent: number;
-    }[];
+        system: {
+            scope: string;
+            count: number;
+            time: number;
+            percent: number;
+        }[];
+    };
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json">;
     export type HashType = string;

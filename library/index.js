@@ -417,19 +417,22 @@ var Jsonarch;
     Jsonarch.isProfile = Jsonarch.isObject({ isProfiling: Jsonarch.isBoolean, score: Jsonarch.isMapObject(Jsonarch.isProfileScore), stack: Jsonarch.isArray(Jsonarch.isProfileEntry), startAt: Jsonarch.isNumber, });
     Jsonarch.makeProfileReport = function (profile) {
         var total = Jsonarch.objectValues(profile.score).map(function (i) { return i.time; }).reduce(function (a, b) { return a + b; }, 0);
-        return Jsonarch.objectKeys(profile.score).map(function (scope) {
-            return ({
-                scope: scope,
-                count: profile.score[scope].count,
-                time: profile.score[scope].time,
-                percent: (profile.score[scope].time / total) * 100,
-            });
-        })
-            .sort(Comparer.make([
-            function (item) { return -item.time; },
-            function (item) { return -item.count; },
-            function (item) { return item.scope; },
-        ]));
+        var result = {
+            system: Jsonarch.objectKeys(profile.score).map(function (scope) {
+                return ({
+                    scope: scope,
+                    count: profile.score[scope].count,
+                    time: profile.score[scope].time,
+                    percent: (profile.score[scope].time / total) * 100,
+                });
+            })
+                .sort(Comparer.make([
+                function (item) { return -item.time; },
+                function (item) { return -item.count; },
+                function (item) { return item.scope; },
+            ])),
+        };
+        return result;
     };
     Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json"]);
     Jsonarch.isSystemFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("system"), id: Jsonarch.isSystemFileType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
@@ -574,26 +577,34 @@ var Jsonarch;
         var _this = this;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, Jsonarch.structureObjectAsync(function (value) { return __awaiter(_this, void 0, void 0, function () {
-                        var _c, _d, _e;
-                        return __generator(this, function (_f) {
-                            switch (_f.label) {
-                                case 0:
-                                    if (!Jsonarch.isLazy(value)) return [3 /*break*/, 3];
-                                    _d = Jsonarch.resolveLazy;
-                                    _e = [entry];
-                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, value)];
-                                case 1: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent()]))];
-                                case 2:
-                                    _c = _f.sent();
-                                    return [3 /*break*/, 4];
-                                case 3:
-                                    _c = undefined;
-                                    _f.label = 4;
-                                case 4: return [2 /*return*/, _c];
+                case 0: return [4 /*yield*/, Jsonarch.profile(entry, "resolveLazy", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var _this = this;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0: return [4 /*yield*/, Jsonarch.structureObjectAsync(function (value) { return __awaiter(_this, void 0, void 0, function () {
+                                        var _c, _d, _e;
+                                        return __generator(this, function (_f) {
+                                            switch (_f.label) {
+                                                case 0:
+                                                    if (!Jsonarch.isLazy(value)) return [3 /*break*/, 3];
+                                                    _d = Jsonarch.resolveLazy;
+                                                    _e = [entry];
+                                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, value)];
+                                                case 1: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent()]))];
+                                                case 2:
+                                                    _c = _f.sent();
+                                                    return [3 /*break*/, 4];
+                                                case 3:
+                                                    _c = undefined;
+                                                    _f.label = 4;
+                                                case 4: return [2 /*return*/, _c];
+                                            }
+                                        });
+                                    }); })(lazy)];
+                                case 1: return [2 /*return*/, _c.sent()];
                             }
                         });
-                    }); })(lazy)];
+                    }); })];
                 case 1: return [2 /*return*/, _c.sent()];
             }
         });
@@ -619,7 +630,8 @@ var Jsonarch;
     };
     Jsonarch.isResult = Jsonarch.isJsonarch("result");
     Jsonarch.isError = Jsonarch.isJsonarch("error");
-    Jsonarch.getTicks = function () { return new Date().getTime(); };
+    // export const getTicks = () => new Date().getTime();
+    Jsonarch.getTicks = function () { return performance.now(); };
     var beginProfileScope = function (context, name) {
         var _c, _d, _e;
         var result = {
@@ -2802,7 +2814,7 @@ var Jsonarch;
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, profileScore, result, error_2, profileScore, result;
+        var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, profile_1, result, error_2, profile_2, result;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
@@ -2845,22 +2857,22 @@ var Jsonarch;
                     _g.label = 6;
                 case 6:
                     output = _c.apply(void 0, [_d]);
-                    profileScore = Jsonarch.makeProfileReport(context.profile);
+                    profile_1 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
                         output: output,
-                        profileScore: profileScore,
+                        profile: profile_1,
                         cache: cache,
                         setting: setting,
                     };
                     return [2 /*return*/, result];
                 case 7:
                     error_2 = _g.sent();
-                    profileScore = Jsonarch.makeProfileReport(context.profile);
+                    profile_2 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
                         output: Jsonarch.parseErrorJson(error_2),
-                        profileScore: profileScore,
+                        profile: profile_2,
                         cache: cache,
                         setting: setting,
                     };

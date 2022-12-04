@@ -419,25 +419,29 @@ export module Jsonarch
     export const makeProfileReport = (profile: Profile) =>
     {
         const total = objectValues(profile.score).map(i => i.time).reduce((a, b) => a +b, 0);
-        return objectKeys(profile.score).map
-        (
-            scope =>
-            ({
-                scope,
-                count: profile.score[scope].count,
-                time: profile.score[scope].time,
-                percent: (profile.score[scope].time /total) *100,
-            })
-        )
-        .sort
-        (
-            Comparer.make<{ scope: string, count: number, time: number, }>
-            ([
-                item => -item.time,
-                item => -item.count,
-                item => item.scope,
-            ])
-        );
+        const result =
+        {
+            system: objectKeys(profile.score).map
+            (
+                scope =>
+                ({
+                    scope,
+                    count: profile.score[scope].count,
+                    time: profile.score[scope].time,
+                    percent: (profile.score[scope].time /total) *100,
+                })
+            )
+            .sort
+            (
+                Comparer.make<{ scope: string, count: number, time: number, }>
+                ([
+                    item => -item.time,
+                    item => -item.count,
+                    item => item.scope,
+                ])
+            ),
+        };
+        return result;
     };
     export type SystemFileType = "boot-setting.json" | "default-setting.json";
     export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
@@ -764,7 +768,7 @@ export module Jsonarch
         setting: entry.setting,
         handler: entry.handler,
     });
-    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> => await profil
+    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> => await profile
     (
         entry, "resolveLazy", async () => <Jsonable> await structureObjectAsync
         (
@@ -824,7 +828,8 @@ export module Jsonarch
         status?: ErrorStatus;
     }
     export const isError = isJsonarch<JsonarchError<Jsonable>>("error");
-    export const getTicks = () => new Date().getTime();
+    // export const getTicks = () => new Date().getTime();
+    export const getTicks = () => performance.now();
     const beginProfileScope = (context: Context, name: string): ProfileEntry =>
     {
         const result: ProfileEntry =
@@ -3802,12 +3807,12 @@ export module Jsonarch
                         await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
                         await apply(rootEvaluateEntry)
                 );
-                const profileScore = makeProfileReport(context.profile);
+                const profile = makeProfileReport(context.profile);
                 const result: Result =
                 {
                     $arch: "result",
                     output,
-                    profileScore,
+                    profile,
                     cache,
                     setting,
                 };
@@ -3815,12 +3820,12 @@ export module Jsonarch
             }
             catch(error: any)
             {
-                const profileScore = makeProfileReport(context.profile);
+                const profile = makeProfileReport(context.profile);
                 const result: Result =
                 {
                     $arch: "result",
                     output: parseErrorJson(error),
-                    profileScore,
+                    profile,
                     cache,
                     setting,
                 };
