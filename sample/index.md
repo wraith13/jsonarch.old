@@ -12,3 +12,12 @@
 
 - template: [hello.parameter.arch.json](./hello.parameter.arch.json)
 - parameter: [hello.parameter.parameter.arch.json](./hello.parameter.arch.json)
+
+## FizzBuzz
+
+- template: [hello.template.arch.json](./fizzbuzz.arch.json)
+
+## Tak ( tarai mawashi )
+
+- template: [hello.template.arch.json](./tak.arch.json)
+
