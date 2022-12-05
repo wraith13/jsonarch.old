@@ -397,6 +397,7 @@ export module Jsonarch
         isProfiling: boolean;
         score: { [scope: string]: ProfileScore };
         template: { [path: string]: ProfileScore };
+        parameter: { [path: string]: ProfileScore };
         stack: ProfileEntry[];
         startAt: number;
     }
@@ -405,6 +406,7 @@ export module Jsonarch
         isProfiling: true,
         score: { },
         template: { },
+        parameter: { },
         stack: [ ],
         startAt: getTicks(),
         ...data,
@@ -413,12 +415,28 @@ export module Jsonarch
     {
         scope: string;
         template: string;
+        parameter: string[];
         startTicks: number;
         childrenTicks: number;
     }
-    export const isProfileEntry = isObject<ProfileEntry>({ scope: isString, template: isString, startTicks: isNumber, childrenTicks: isNumber, });
+    export const isProfileEntry = isObject<ProfileEntry>
+    ({
+        scope: isString,
+        template: isString,
+        parameter: isArray(isString),
+        startTicks: isNumber,
+        childrenTicks: isNumber,
+    });
     export const isProfileScore = isObject<ProfileScore>({ count: isNumber, time: isNumber, });
-    export const isProfile = isObject<Profile>({ isProfiling: isBoolean, score: isMapObject(isProfileScore), template: isMapObject(isProfileScore), stack: isArray(isProfileEntry), startAt: isNumber, });
+    export const isProfile = isObject<Profile>
+    ({
+        isProfiling: isBoolean,
+        score: isMapObject(isProfileScore),
+        template: isMapObject(isProfileScore),
+        parameter: isMapObject(isProfileScore),
+        stack: isArray(isProfileEntry),
+        startAt: isNumber,
+    });
     export const makeProfileReport = (profile: Profile) =>
     {
         const total = objectValues(profile.score).map(i => i.time).reduce((a, b) => a +b, 0);
@@ -430,6 +448,23 @@ export module Jsonarch
         });
         const result =
         {
+            parameter: objectKeys(profile.parameter).map
+            (
+                path =>
+                ({
+                    parameter: jsonParse(path),
+                    ...makeData(profile.template[path]),
+                })
+            )
+            .sort
+            (
+                Comparer.make<{ parameter: Jsonable, count: number, time: number, }>
+                ([
+                    item => -item.time,
+                    item => -item.count,
+                    item => jsonStringify(item.parameter),
+                ])
+            ),
             template: objectKeys(profile.template).map
             (
                 path =>
@@ -854,12 +889,13 @@ export module Jsonarch
     export const isError = isJsonarch<JsonarchError<Jsonable>>("error");
     // export const getTicks = () => new Date().getTime();
     export const getTicks = () => performance.now();
-    const beginProfileScope = (context: Context, scope: string, template: string): ProfileEntry =>
+    const beginProfileScope = (context: Context, scope: string, template: string, parameter: string[]): ProfileEntry =>
     {
         const result: ProfileEntry =
         {
             scope,
             template,
+            parameter,
             startTicks: 0,
             childrenTicks: 0,
         };
@@ -883,6 +919,7 @@ export module Jsonarch
     {
         const profileScore = context.profile?.score;
         const profileTemplate = context.profile?.template;
+        const profileParameter = context.profile?.parameter;
         const entryStack = context.profile?.stack;
         if (0 !== entry.startTicks && entryStack)
         {
@@ -895,6 +932,10 @@ export module Jsonarch
             if (profileTemplate)
             {
                 recordProfileScore(profileTemplate, entry.template, time);
+            }
+            if (profileParameter)
+            {
+                entry.parameter.forEach(parameter => recordProfileScore(profileParameter, parameter, time));
             }
             entryStack.pop();
             if (0 < entryStack.length)
@@ -915,11 +956,16 @@ export module Jsonarch
         }
         return undefined;
     };
+    export const getParameterOriginFromContextOrEntry = (_contextOrEntry: ContextOrEntry): FullRefer[] =>
+    {
+        return [];
+    };
     export const profile = async <ResultT>(contextOrEntry: ContextOrEntry, scope: string, target: () => Promise<ResultT>): Promise<ResultT> =>
     {
         const context = getContext(contextOrEntry);
         const template = jsonStringify(getPathFromContextOrEntry(contextOrEntry) ?? "root");
-        const entry = beginProfileScope(context, scope, template);
+        const parameter: string[] = getParameterOriginFromContextOrEntry(contextOrEntry).map(i => jsonStringify(i));
+        const entry = beginProfileScope(context, scope, template, parameter);
         try
         {
             return await target();

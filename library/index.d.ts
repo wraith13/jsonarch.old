@@ -108,6 +108,9 @@ export declare module Jsonarch {
         template: {
             [path: string]: ProfileScore;
         };
+        parameter: {
+            [path: string]: ProfileScore;
+        };
         stack: ProfileEntry[];
         startAt: number;
     }
@@ -115,6 +118,7 @@ export declare module Jsonarch {
     export interface ProfileEntry extends JsonableObject {
         scope: string;
         template: string;
+        parameter: string[];
         startTicks: number;
         childrenTicks: number;
     }
@@ -122,6 +126,12 @@ export declare module Jsonarch {
     export const isProfileScore: (value: unknown) => value is ProfileScore;
     export const isProfile: (value: unknown) => value is Profile;
     export const makeProfileReport: (profile: Profile) => {
+        parameter: {
+            count: number;
+            time: number;
+            percent: number;
+            parameter: Jsonable;
+        }[];
         template: {
             count: number;
             time: number;
@@ -354,6 +364,7 @@ export declare module Jsonarch {
     export const isError: (template: unknown) => template is JsonarchError<Jsonable>;
     export const getTicks: () => number;
     export const getPathFromContextOrEntry: (contextOrEntry: ContextOrEntry) => FullRefer | undefined;
+    export const getParameterOriginFromContextOrEntry: (_contextOrEntry: ContextOrEntry) => FullRefer[];
     export const profile: <ResultT>(contextOrEntry: ContextOrEntry, scope: string, target: () => Promise<ResultT>) => Promise<ResultT>;
     export const makeError: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined) => JsonarchError<DetailType>;
     export const ErrorJson: {
