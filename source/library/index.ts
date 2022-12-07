@@ -1449,7 +1449,8 @@ export module Jsonarch
             parameter?: Jsonable;
             setting?: Setting;
         };
-        member?: JsonableObject;
+        template?: { [name: string]: Template };
+        value?: { [name: string]: Jsonable };
         return: Jsonable;
         catch?: Case[];
     }
