@@ -2206,6 +2206,8 @@ export module Jsonarch
     {
         object:
         {
+            typeOf: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Type =>
+                typeOfJsonable(parameter),
             equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
             {
                 if (isArray(isAny)(parameter) && 2 === parameter.length)

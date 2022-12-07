@@ -1579,6 +1579,9 @@ var Jsonarch;
     };
     Jsonarch.library = {
         object: {
+            typeOf: function (_entry, parameter) {
+                return Jsonarch.typeOfJsonable(parameter);
+            },
             equal: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isAny)(parameter) && 2 === parameter.length) {
                     return parameter[0] === parameter[1];

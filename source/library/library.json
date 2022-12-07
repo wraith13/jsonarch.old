@@ -4,6 +4,19 @@
     "object":
     {
         "$arch": "library",
+        "typeOf":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter":
+                {
+                    "$arch": "type",
+                    "type": "any"
+                },
+                "return": { "$arch": "type", "type": "type" }
+            }
+        },
         "equal":
         {
             "$arch": "template",
