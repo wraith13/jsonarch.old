@@ -130,12 +130,8 @@
                         "return":
                         {
                             "$arch": "call",
-                            "refer": [ "this" ],
-                            "parameter":
-                            {
-                                "$arch": "call", "refer": [ "number", "sum" ],
-                                "parameter": { "$arch": "value", "refer": [ "parameter", "i" ] }
-                            }
+                            "refer": [ "this", "template", "fibonacchi" ],
+                            "parameter": { "$arch": "value", "refer": [ "parameter", "i" ] }
                         }
                     }
                 }

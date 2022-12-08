@@ -1031,7 +1031,7 @@ var Jsonarch;
     Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isIfCaseCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
     Jsonarch.isLoopFalseResultData = Jsonarch.isObject({ continue: Jsonarch.isJustValue(false), });
-    Jsonarch.isLoopRegularResultData = Jsonarch.isObject({ continue: isTypeOr(Jsonarch.isUndefined, Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
+    Jsonarch.isLoopRegularResultData = Jsonarch.isObject({ continue: Jsonarch.isUndefinedOr(Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
     Jsonarch.isLoopResultData = isTypeOr(Jsonarch.isLoopFalseResultData, Jsonarch.isLoopRegularResultData);
     Jsonarch.applyDefault = function () {
         var defaults = [];

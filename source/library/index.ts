@@ -1547,7 +1547,7 @@ export module Jsonarch
     }
     export type LoopResult = LoopFalseResult | LoopRegularResult;
     export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
-    export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isTypeOr(isUndefined, isBoolean), return: isJsonable, });
+    export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
     export const applyDefault = <DataType extends Jsonable>(...defaults: (DataType | undefined)[]): DataType | undefined =>
     {
