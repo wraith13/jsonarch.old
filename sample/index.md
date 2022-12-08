@@ -11,13 +11,17 @@
 ## Hello, Parameter!
 
 - template: [hello.parameter.arch.json](./hello.parameter.arch.json)
-- parameter: [hello.parameter.parameter.arch.json](./hello.parameter.arch.json)
+- parameter: [hello.parameter.parameter.arch.json](./hello.parameter.parameter.json)
 
 ## FizzBuzz
 
-- template: [hello.template.arch.json](./fizzbuzz.arch.json)
+- template: [fizzbuzz.arch.json](./fizzbuzz.arch.json)
+
+## Fibonacci
+
+- template: [fibonacci.arch.json](./fibonacci.arch.json)
 
 ## Tak ( tarai mawashi )
 
-- template: [hello.template.arch.json](./tak.arch.json)
+- template: [tak.arch.json](./tak.arch.json)
 

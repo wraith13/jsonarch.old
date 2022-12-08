@@ -1,0 +1,145 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "template",
+    "default":
+    {
+        "parameter": { "length": 100 }
+    },
+    "template":
+    {
+        "fibonacchi":
+        {
+            "$arch": "template",
+            "type":
+            {
+                "parameter": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 },
+                "return": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 }
+            },
+            "return":
+            {
+                "$arch": "match",
+                "cases":
+                [
+                    {
+                        "case":
+                        {
+                            "if":
+                            {
+                                "$arch": "call",
+                                "refer": [ "array", "contain" ],
+                                "parameter":
+                                [
+                                    [ "<", "=" ],
+                                    {
+                                        "$arch": "call",
+                                        "refer": [ "number", "compare" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            1
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        "return": { "$arch": "value", "refer": [ "parameter" ] }
+                    },
+                    {
+                        "return":
+                        {
+                            "$arch": "call", "refer": [ "number", "sum" ],
+                            "parameter":
+                            [
+                                {
+                                    "$arch": "call",
+                                    "refer": [ "this" ],
+                                    "parameter":
+                                    {
+                                        "$arch": "call", "refer": [ "number", "sum" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            -1
+                                        ]
+                                    }
+                                },
+                                {
+                                    "$arch": "call",
+                                    "refer": [ "this" ],
+                                    "parameter":
+                                    {
+                                        "$arch": "call", "refer": [ "number", "sum" ],
+                                        "parameter":
+                                        [
+                                            { "$arch": "value", "refer": [ "parameter" ] },
+                                            -2
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "return":
+    {
+        "$arch": "loop",
+        "loop":
+        {
+            "$arch": "match",
+            "parameter":
+            {
+                "i":
+                {
+                    "$arch": "call", "refer": [ "number", "sum" ],
+                    "parameter":
+                    [
+                        { "$arch": "value", "refer": [ "scope", "$loop", "index" ] },
+                        1
+                    ]
+                },
+                "max": { "$arch": "value", "refer": [ "parameter", "length" ] }
+            },
+            "cases":
+            [
+                {
+                    "case":
+                    {
+                        "ifCase": { "value": ">" },
+                        "parameter":
+                        {
+                            "$arch": "call",
+                            "refer": [ "number", "compare" ],
+                            "parameter":
+                            [
+                                { "$arch": "value", "refer": [ "parameter", "i" ] },
+                                { "$arch": "value", "refer": [ "parameter", "max" ] }
+                            ]
+                        }
+                    },
+                    "return":
+                    {
+                        "continue": false
+                    }
+                },
+                {
+                    "return":
+                    {
+                        "return":
+                        {
+                            "$arch": "call",
+                            "refer": [ "this" ],
+                            "parameter":
+                            {
+                                "$arch": "call", "refer": [ "number", "sum" ],
+                                "parameter": { "$arch": "value", "refer": [ "parameter", "i" ] }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
