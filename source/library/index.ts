@@ -207,6 +207,39 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
+    export const regulateJsonable = <TargetType extends Jsonable>(value: TargetType): TargetType =>
+    {
+        if (undefined === value || null === value)
+        {
+            return null as TargetType;
+        }
+        else
+        if (Array.isArray(value))
+        {
+            return value.map(i => regulateJsonable(i)) as TargetType;
+        }
+        else
+        if ("object" === typeof value)
+        {
+            const result:JsonableObject = { };
+            objectKeys(value).forEach
+            (
+                key =>
+                {
+                    const v = value[key];
+                    if (undefined !== v)
+                    {
+                        result[key] = regulateJsonable(v);
+                    }
+                }
+            );
+            return result as TargetType;
+        }
+        else
+        {
+            return value;
+        }
+    };
     export const toJsonable = (value: any, maxDepth: number = 10, currentDepth: number = 0): Jsonable =>
     {
         if (maxDepth <= currentDepth)
@@ -794,7 +827,7 @@ export module Jsonarch
         scope?: JsonableObject | undefined;
     }
     export const isLazy = isJsonarch<Lazy>("lazy");
-    export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy =>
+    export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy => regulateJsonable
     ({
         $arch: "lazy",
         thisPath: entry.this?.path,

@@ -299,6 +299,27 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
+    Jsonarch.regulateJsonable = function (value) {
+        if (undefined === value || null === value) {
+            return null;
+        }
+        else if (Array.isArray(value)) {
+            return value.map(function (i) { return Jsonarch.regulateJsonable(i); });
+        }
+        else if ("object" === typeof value) {
+            var result_3 = {};
+            Jsonarch.objectKeys(value).forEach(function (key) {
+                var v = value[key];
+                if (undefined !== v) {
+                    result_3[key] = Jsonarch.regulateJsonable(v);
+                }
+            });
+            return result_3;
+        }
+        else {
+            return value;
+        }
+    };
     Jsonarch.toJsonable = function (value, maxDepth, currentDepth) {
         if (maxDepth === void 0) { maxDepth = 10; }
         if (currentDepth === void 0) { currentDepth = 0; }
@@ -311,13 +332,13 @@ var Jsonarch;
                     return value.map(function (i) { return Jsonarch.toJsonable(i, maxDepth, currentDepth + 1); });
                 }
                 else {
-                    var result_3 = {};
+                    var result_4 = {};
                     Jsonarch.objectKeys(value).forEach(function (key) {
                         if (undefined !== value[key]) {
-                            result_3[key] = Jsonarch.toJsonable(value[key], maxDepth, currentDepth + 1);
+                            result_4[key] = Jsonarch.toJsonable(value[key], maxDepth, currentDepth + 1);
                         }
                     });
-                    return result_3;
+                    return result_4;
                 }
             }
             else {
@@ -585,7 +606,7 @@ var Jsonarch;
     Jsonarch.isLazy = Jsonarch.isJsonarch("lazy");
     Jsonarch.makeLazy = function (entry) {
         var _c;
-        return ({
+        return Jsonarch.regulateJsonable({
             $arch: "lazy",
             thisPath: (_c = entry.this) === null || _c === void 0 ? void 0 : _c.path,
             parameter: entry.parameter,
