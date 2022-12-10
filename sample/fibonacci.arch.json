@@ -91,15 +91,7 @@
             "$arch": "match",
             "parameter":
             {
-                "i":
-                {
-                    "$arch": "call", "refer": [ "number", "sum" ],
-                    "parameter":
-                    [
-                        { "$arch": "value", "refer": [ "scope", "$loop", "index" ] },
-                        1
-                    ]
-                },
+                "i": { "$arch": "value", "refer": [ "scope", "$loop", "index" ] },
                 "max": { "$arch": "value", "refer": [ "parameter", "length" ] }
             },
             "cases":

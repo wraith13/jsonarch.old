@@ -115,6 +115,22 @@
                     "parameter": {
                         "$arch": "type",
                         "type": "array",
+                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 }
+                    },
+                    "return": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 }
+                },
+                {
+                    "parameter": {
+                        "$arch": "type",
+                        "type": "array",
+                        "itemType": { "$arch": "type", "type": "number", "minValue": 0 }
+                    },
+                    "return": { "$arch": "type", "type": "number", "minValue": 0 }
+                },
+                {
+                    "parameter": {
+                        "$arch": "type",
+                        "type": "array",
                         "itemType": { "$arch": "type", "type": "number", "integerOnly": true }
                     },
                     "return": { "$arch": "type", "type": "number", "integerOnly": true }
