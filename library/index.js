@@ -1500,34 +1500,50 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.validateParameterType = function (entry, parameter) { return __awaiter(_this, void 0, void 0, function () {
-        var functionTemplate, type, parameterType_1, _c, types, compareTypeResult;
-        var _d;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+    Jsonarch.validateParameterType = function (systemOrTemplate, entry, parameter, cache) { return __awaiter(_this, void 0, void 0, function () {
+        var functionTemplate, type, useCache, liquid, _c, cacheKey, parameterType_1, _d, types, compareTypeResult, result;
+        var _e, _f;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
-                    functionTemplate = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_d = entry.this) === null || _d === void 0 ? void 0 : _d.template }), entry.template.refer, {
+                    functionTemplate = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template }), entry.template.refer, {
                         template: entry.path,
                     }
                     // entry.originMap
                     );
-                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 6];
+                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 9];
                     type = functionTemplate.type;
-                    if (!type) return [3 /*break*/, 4];
-                    if (!Jsonarch.hasLazy(parameter)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, parameter)];
+                    if (!type) return [3 /*break*/, 7];
+                    useCache = (_f = cache !== null && cache !== void 0 ? cache : functionTemplate.cache) !== null && _f !== void 0 ? _f : false;
+                    if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
                 case 1:
-                    _c = _e.sent();
+                    _c = _g.sent();
                     return [3 /*break*/, 3];
                 case 2:
-                    _c = Jsonarch.typeOfJsonable(parameter);
-                    _e.label = 3;
+                    _c = parameter;
+                    _g.label = 3;
                 case 3:
-                    parameterType_1 = _c;
+                    liquid = _c;
+                    cacheKey = useCache ? Jsonarch.jsonStringify({ template: entry.template.refer, parameter: liquid, }) : undefined;
+                    if (!Jsonarch.hasLazy(liquid)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, liquid)];
+                case 4:
+                    _d = _g.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    _d = Jsonarch.typeOfJsonable(liquid);
+                    _g.label = 6;
+                case 6:
+                    parameterType_1 = _d;
                     types = Array.isArray(type) ? type : [type];
                     compareTypeResult = types.map(function (t) { return Jsonarch.compareType(t.parameter, parameterType_1); });
                     if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r); })) {
-                        return [2 /*return*/, parameter];
+                        result = {
+                            parameter: liquid,
+                            cacheKey: cacheKey,
+                        };
+                        return [2 /*return*/, result];
                     }
                     else {
                         throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
@@ -1540,15 +1556,15 @@ var Jsonarch;
                             parameter: parameter,
                         });
                     }
-                    return [3 /*break*/, 5];
-                case 4: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                    return [3 /*break*/, 8];
+                case 7: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                     refer: entry.template.refer,
                 });
-                case 5: return [3 /*break*/, 7];
-                case 6: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                case 8: return [3 /*break*/, 10];
+                case 9: throw new Jsonarch.ErrorJson(entry, "Not found template", {
                     refer: entry.template.refer,
                 });
-                case 7: return [2 /*return*/];
+                case 10: return [2 /*return*/];
             }
         });
     }); };
@@ -2446,22 +2462,33 @@ var Jsonarch;
                     );
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.library", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var solid, result;
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
-                                    case 0: return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter)];
+                            var parameterInfo, result_5, result;
+                            var _c;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0: return [4 /*yield*/, Jsonarch.validateParameterType("system", nextDepthEntry, parameter)];
                                     case 1:
-                                        solid = _c.sent();
-                                        return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, solid)];
-                                    case 2:
-                                        _c.sent();
-                                        return [4 /*yield*/, target(nextDepthEntry, solid)];
-                                    case 3:
-                                        result = _c.sent();
-                                        if (undefined === result) {
-                                            throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, solid);
+                                        parameterInfo = _d.sent();
+                                        if (undefined !== parameterInfo.cacheKey) {
+                                            result_5 = (_c = entry.cache.call) === null || _c === void 0 ? void 0 : _c[parameterInfo.cacheKey];
+                                            if (undefined !== result_5) {
+                                                return [2 /*return*/, result_5];
+                                            }
                                         }
-                                        return [2 /*return*/, Jsonarch.validateReturnType(nextDepthEntry, solid, result)];
+                                        return [4 /*yield*/, target(nextDepthEntry, parameterInfo.parameter)];
+                                    case 2:
+                                        result = _d.sent();
+                                        if (undefined === result) {
+                                            throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
+                                        }
+                                        Jsonarch.validateReturnType(nextDepthEntry, parameterInfo.parameter, result);
+                                        if (undefined !== parameterInfo.cacheKey) {
+                                            if (undefined === entry.cache.call) {
+                                                entry.cache.call = {};
+                                            }
+                                            entry.cache.call[parameterInfo.cacheKey] = result;
+                                        }
+                                        return [2 /*return*/, result];
                                 }
                             });
                         }); })];
@@ -2469,13 +2496,29 @@ var Jsonarch;
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.template", function () { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
-                                    case 0: return [4 /*yield*/, Jsonarch.validateParameterType(nextDepthEntry, parameter)];
+                            var parameterInfo, result_6, result;
+                            var _c;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0: return [4 /*yield*/, Jsonarch.validateParameterType("template", nextDepthEntry, parameter)];
                                     case 1:
-                                        _c.sent();
-                                        return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameter }))];
-                                    case 2: return [2 /*return*/, _c.sent()];
+                                        parameterInfo = _d.sent();
+                                        if (undefined !== parameterInfo.cacheKey) {
+                                            result_6 = (_c = entry.cache.call) === null || _c === void 0 ? void 0 : _c[parameterInfo.cacheKey];
+                                            if (undefined !== result_6) {
+                                                return [2 /*return*/, result_6];
+                                            }
+                                        }
+                                        return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameterInfo.parameter }))];
+                                    case 2:
+                                        result = _d.sent();
+                                        if (undefined !== parameterInfo.cacheKey) {
+                                            if (undefined === entry.cache.call) {
+                                                entry.cache.call = {};
+                                            }
+                                            entry.cache.call[parameterInfo.cacheKey] = result;
+                                        }
+                                        return [2 /*return*/, result];
                                 }
                             });
                         }); })];

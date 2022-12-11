@@ -211,6 +211,9 @@ export declare module Jsonarch {
         value?: {
             [key: string]: Jsonable;
         };
+        call?: {
+            [key: string]: Jsonable;
+        };
     }
     export const isCache: (template: unknown) => template is Cache;
     export interface Setting extends AlphaJsonarch {
@@ -545,6 +548,7 @@ export declare module Jsonarch {
     export const isTypeData: (template: unknown) => template is Type;
     export interface Call extends AlphaJsonarch {
         $arch: "call";
+        cache?: boolean;
         refer: Refer;
         parameter?: Jsonable;
     }
@@ -571,6 +575,7 @@ export declare module Jsonarch {
             parameter?: Jsonable;
             setting?: Setting;
         };
+        cache?: boolean;
         template?: {
             [name: string]: Template;
         };
@@ -670,7 +675,11 @@ export declare module Jsonarch {
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
-    export const validateParameterType: <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType) => Promise<ParameterType>;
+    interface ValidateParameterTypeResult {
+        parameter: Jsonable;
+        cacheKey?: string;
+    }
+    export const validateParameterType: (systemOrTemplate: "system" | "template", entry: EvaluateEntry<Call>, parameter: Jsonable, cache?: boolean) => Promise<ValidateParameterTypeResult>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export const library: {

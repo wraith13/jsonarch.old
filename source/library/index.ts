@@ -679,6 +679,7 @@ export module Jsonarch
         template?: { [key: string]: Jsonable; };
         type?: { [key: string]: Jsonable; };
         value?: { [key: string]: Jsonable; };
+        call?: { [key: string]: Jsonable; };
     }
     export const isCache = isJsonarch<Cache>("cache");
     export interface Setting extends AlphaJsonarch
@@ -1397,6 +1398,7 @@ export module Jsonarch
     export interface Call extends AlphaJsonarch
     {
         $arch: "call";
+        cache?: boolean;
         refer: Refer;
         parameter?: Jsonable;
     }
@@ -1482,6 +1484,7 @@ export module Jsonarch
             parameter?: Jsonable;
             setting?: Setting;
         };
+        cache?: boolean;
         template?: { [name: string]: Template };
         value?: { [name: string]: Jsonable };
         return: Jsonable;
@@ -2093,7 +2096,12 @@ export module Jsonarch
                 path: makeFullRefer(entry.path, "parameter"),
                 template: entry.template.parameter,
             });
-    export const validateParameterType = async <ParameterType extends Jsonable | undefined>(entry: EvaluateEntry<Call>, parameter: ParameterType): Promise<ParameterType> =>
+    interface ValidateParameterTypeResult
+    {
+        parameter: Jsonable;
+        cacheKey?: string;
+    }
+    export const validateParameterType = async (systemOrTemplate: "system" | "template", entry: EvaluateEntry<Call>, parameter: Jsonable, cache?: boolean): Promise<ValidateParameterTypeResult> =>
     {
         const functionTemplate = turnRefer<JsonableValue | Function>
         (
@@ -2113,14 +2121,24 @@ export module Jsonarch
             const type = functionTemplate.type;
             if (type)
             {
-                const parameterType = hasLazy(parameter) ?
-                    await typeOfResult(entry, parameter):
-                    typeOfJsonable(parameter);
+                const useCache = cache ?? functionTemplate.cache ?? false;
+                const liquid = "system" === systemOrTemplate || useCache ?
+                    await resolveLazy(entry, parameter ?? null):
+                    parameter;
+                const cacheKey = useCache ? jsonStringify({ template: entry.template.refer, parameter: liquid, }): undefined;
+                const parameterType = hasLazy(liquid) ?
+                    await typeOfResult(entry, liquid):
+                    typeOfJsonable(liquid);
                 const types = Array.isArray(type) ? type: [type];
                 const compareTypeResult = types.map(t => compareType(t.parameter, parameterType));
                 if (compareTypeResult.some(r => isBaseOrEqual(r)))
                 {
-                    return parameter;
+                    const result: ValidateParameterTypeResult =
+                    {
+                        parameter: liquid,
+                        cacheKey,
+                    };
+                    return result;
                 }
                 else
                 {
@@ -3400,14 +3418,31 @@ export module Jsonarch
                 (
                     nextDepthEntry, "evaluateCall.library", async () =>
                     {
-                        const solid = await resolveLazy(entry, parameter);
-                        await validateParameterType(nextDepthEntry, solid);
-                        const result = await target(nextDepthEntry, solid);
+                        // const solid = await resolveLazy(entry, parameter);
+                        const parameterInfo = await validateParameterType("system", nextDepthEntry, parameter);
+                        if (undefined !== parameterInfo.cacheKey)
+                        {
+                            const result = entry.cache.call?.[parameterInfo.cacheKey];
+                            if (undefined !== result)
+                            {
+                                return result;
+                            }
+                        }
+                        const result = await target(nextDepthEntry, parameterInfo.parameter);
                         if (undefined === result)
                         {
-                            throw UnmatchParameterTypeDefineError(nextDepthEntry, solid);
+                            throw UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
                         }
-                        return validateReturnType(nextDepthEntry, solid, result);
+                        validateReturnType(nextDepthEntry, parameterInfo.parameter, result);
+                        if (undefined !== parameterInfo.cacheKey)
+                        {
+                            if (undefined === entry.cache.call)
+                            {
+                                entry.cache.call = { };
+                            }
+                            entry.cache.call[parameterInfo.cacheKey] = result;
+                        }
+                        return result;
                     }
                 );
             }
@@ -3418,13 +3453,30 @@ export module Jsonarch
                 (
                     nextDepthEntry, "evaluateCall.template", async () =>
                     {
-                        await validateParameterType(nextDepthEntry, parameter);
-                        return await evaluateTemplate
+                        const parameterInfo = await validateParameterType("template", nextDepthEntry, parameter);
+                        if (undefined !== parameterInfo.cacheKey)
+                        {
+                            const result = entry.cache.call?.[parameterInfo.cacheKey];
+                            if (undefined !== result)
+                            {
+                                return result;
+                            }
+                        }
+                        const result = await evaluateTemplate
                         ({
                             ...nextDepthEntry,
                             template: target,
-                            parameter,
+                            parameter: parameterInfo.parameter,
                         });
+                        if (undefined !== parameterInfo.cacheKey)
+                        {
+                            if (undefined === entry.cache.call)
+                            {
+                                entry.cache.call = { };
+                            }
+                            entry.cache.call[parameterInfo.cacheKey] = result;
+                        }
+                        return result;
                     }
                 );
             }
