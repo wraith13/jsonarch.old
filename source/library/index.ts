@@ -1465,11 +1465,13 @@ export module Jsonarch
             return { $arch: "type", type: "never", };
         // }
     };
-    export interface CallTypeInterface extends AlphaJsonarch
+    export interface CallTypeInterface extends JsonableObject
     {
         parameter: Type;
         return: Type;
     }
+    export const isCallTypeInterface = (value: unknown): value is CallTypeInterface =>
+        isObject<CallTypeInterface>({ parameter: isTypeData, return: isTypeData, })(value);
     export interface Template extends AlphaJsonarch
     {
         $arch: "template";
@@ -2096,64 +2098,90 @@ export module Jsonarch
                 path: makeFullRefer(entry.path, "parameter"),
                 template: entry.template.parameter,
             });
-    interface ValidateParameterTypeResult
+    export interface CallTemplateRegular extends JsonableObject
     {
+        template: Template;
+        type: CallTypeInterface;
         parameter: Jsonable;
         cacheKey?: string;
     }
-    export const validateParameterType = async (systemOrTemplate: "system" | "template", entry: EvaluateEntry<Call>, parameter: Jsonable, cache?: boolean): Promise<ValidateParameterTypeResult> =>
+    export interface CallTemplateCache extends JsonableObject
     {
-        const functionTemplate = turnRefer<JsonableValue | Function>
-        (
-            entry,
-            {
-                ...librarygJson,
-                this: entry.this?.template,
-            },
-            entry.template.refer,
-            {
-                template: entry.path,
-            }
-            // entry.originMap
-        );
-        if (isTemplateData(functionTemplate))
+        template: Template;
+        parameter: Jsonable;
+        cacheKey: string;
+        result: Jsonable;
+    }
+    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isTemplateData, parameter: isJsonable, cacheKey: isString, result: isJsonable, });
+    export type CallTemplate = CallTemplateRegular | CallTemplateCache;
+    export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
+    export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable): Promise<CallTemplate> => profile
+    (
+        entry, "getTemplate", async () =>
         {
-            const type = functionTemplate.type;
-            if (type)
-            {
-                const useCache = cache ?? functionTemplate.cache ?? false;
-                const liquid = "system" === systemOrTemplate || useCache ?
-                    await resolveLazy(entry, parameter ?? null):
-                    parameter;
-                const cacheKey = useCache ? jsonStringify({ template: entry.template.refer, parameter: liquid, }): undefined;
-                const parameterType = hasLazy(liquid) ?
-                    await typeOfResult(entry, liquid):
-                    typeOfJsonable(liquid);
-                const types = Array.isArray(type) ? type: [type];
-                const compareTypeResult = types.map(t => compareType(t.parameter, parameterType));
-                if (compareTypeResult.some(r => isBaseOrEqual(r)))
+            const template = turnRefer<JsonableValue | Function>
+            (
+                entry,
                 {
-                    const result: ValidateParameterTypeResult =
+                    ...librarygJson,
+                    this: entry.this?.template,
+                },
+                entry.template.refer,
+                {
+                    template: entry.path,
+                }
+                // entry.originMap
+            );
+            if (isTemplateData(template))
+            {
+                if (template.type)
+                {
+                    const useCache = entry.template.cache ?? template.cache ?? false;
+                    const liquid = "system" === systemOrTemplate || useCache ?
+                        await resolveLazy(entry, parameter ?? null):
+                        parameter;
+                    const cacheKey = useCache ? makeCallCacheKey(entry.template.refer, liquid): undefined;
+                    if (undefined !== cacheKey)
                     {
-                        parameter: liquid,
-                        cacheKey,
-                    };
-                    return result;
+                        const result = entry.cache.call?.[cacheKey];
+                        if (undefined !== result)
+                        {
+                            return { template, parameter: liquid, cacheKey, result, };
+                        }
+                    }
+                    const parameterType = hasLazy(liquid) ?
+                        await typeOfResult(entry, liquid):
+                        typeOfJsonable(liquid);
+                    const types = Array.isArray(template.type) ? template.type: [template.type];
+                    const type = types.find(t => isBaseOrEqual(compareType(t.parameter, parameterType)));
+                    if (type)
+                    {
+                        return { template, type, parameter: liquid, cacheKey };
+                    }
+                    else
+                    {
+                        throw new ErrorJson
+                        (
+                            entry, "Unmatch parameter type",
+                            {
+                                refer: entry.template.refer,
+                                type:
+                                {
+                                    template: template.type,
+                                    parameter: parameterType,
+                                },
+                                parameter,
+                            }
+                        );
+                    }
                 }
                 else
                 {
                     throw new ErrorJson
                     (
-                        entry, "Unmatch parameter type",
+                        entry, "Not found type define",
                         {
                             refer: entry.template.refer,
-                            compareTypeResult,
-                            type:
-                            {
-                                template: type,
-                                parameter: parameterType,
-                            },
-                            parameter,
                         }
                     );
                 }
@@ -2162,24 +2190,14 @@ export module Jsonarch
             {
                 throw new ErrorJson
                 (
-                    entry, "Not found type define",
+                    entry, "Not found template",
                     {
                         refer: entry.template.refer,
                     }
                 );
             }
         }
-        else
-        {
-            throw new ErrorJson
-            (
-                entry, "Not found template",
-                {
-                    refer: entry.template.refer,
-                }
-            );
-        }
-    };
+    );
     export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType): ResultType =>
     {
         const functionTemplate = turnRefer<JsonableValue | Function>
@@ -3418,15 +3436,10 @@ export module Jsonarch
                 (
                     nextDepthEntry, "evaluateCall.library", async () =>
                     {
-                        // const solid = await resolveLazy(entry, parameter);
-                        const parameterInfo = await validateParameterType("system", nextDepthEntry, parameter);
-                        if (undefined !== parameterInfo.cacheKey)
+                        const parameterInfo = await getTemplate(nextDepthEntry, "system", parameter);
+                        if (isCallTemplateCache(parameterInfo))
                         {
-                            const result = entry.cache.call?.[parameterInfo.cacheKey];
-                            if (undefined !== result)
-                            {
-                                return result;
-                            }
+                            return parameterInfo.result;
                         }
                         const result = await target(nextDepthEntry, parameterInfo.parameter);
                         if (undefined === result)
@@ -3440,7 +3453,7 @@ export module Jsonarch
                             {
                                 entry.cache.call = { };
                             }
-                            entry.cache.call[parameterInfo.cacheKey] = result;
+                            entry.cache.call[parameterInfo.cacheKey] = regulateJsonable(result);
                         }
                         return result;
                     }
@@ -3453,28 +3466,27 @@ export module Jsonarch
                 (
                     nextDepthEntry, "evaluateCall.template", async () =>
                     {
-                        const parameterInfo = await validateParameterType("template", nextDepthEntry, parameter);
-                        if (undefined !== parameterInfo.cacheKey)
+                        const parameterInfo = await getTemplate(nextDepthEntry, "template", parameter);
+                        if (isCallTemplateCache(parameterInfo))
                         {
-                            const result = entry.cache.call?.[parameterInfo.cacheKey];
-                            if (undefined !== result)
-                            {
-                                return result;
-                            }
+                            return parameterInfo.result;
                         }
-                        const result = await evaluateTemplate
-                        ({
-                            ...nextDepthEntry,
-                            template: target,
-                            parameter: parameterInfo.parameter,
-                        });
+                        const result = regulateJsonable
+                        (
+                            await evaluateTemplate
+                            ({
+                                ...nextDepthEntry,
+                                template: target,
+                                parameter: parameterInfo.parameter,
+                            })
+                        );
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)
                             {
                                 entry.cache.call = { };
                             }
-                            entry.cache.call[parameterInfo.cacheKey] = result;
+                            entry.cache.call[parameterInfo.cacheKey] = regulateJsonable(result);
                         }
                         return result;
                     }

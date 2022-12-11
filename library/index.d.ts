@@ -560,10 +560,11 @@ export declare module Jsonarch {
     }
     export const isValueData: (template: unknown) => template is Value;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
-    export interface CallTypeInterface extends AlphaJsonarch {
+    export interface CallTypeInterface extends JsonableObject {
         parameter: Type;
         return: Type;
     }
+    export const isCallTypeInterface: (value: unknown) => value is CallTypeInterface;
     export interface Template extends AlphaJsonarch {
         $arch: "template";
         type?: CallTypeInterface | CallTypeInterface[];
@@ -675,11 +676,22 @@ export declare module Jsonarch {
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
-    interface ValidateParameterTypeResult {
+    export interface CallTemplateRegular extends JsonableObject {
+        template: Template;
+        type: CallTypeInterface;
         parameter: Jsonable;
         cacheKey?: string;
     }
-    export const validateParameterType: (systemOrTemplate: "system" | "template", entry: EvaluateEntry<Call>, parameter: Jsonable, cache?: boolean) => Promise<ValidateParameterTypeResult>;
+    export interface CallTemplateCache extends JsonableObject {
+        template: Template;
+        parameter: Jsonable;
+        cacheKey: string;
+        result: Jsonable;
+    }
+    export const isCallTemplateCache: (value: unknown) => value is CallTemplateCache;
+    export type CallTemplate = CallTemplateRegular | CallTemplateCache;
+    export const makeCallCacheKey: (template: Refer, parameter: Jsonable) => string;
+    export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable) => Promise<CallTemplate>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export const library: {
