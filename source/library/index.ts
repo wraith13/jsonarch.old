@@ -311,9 +311,9 @@ export module Jsonarch
             null !== value &&
             "object" === typeof value &&
             ! Array.isArray(value) &&
-            0 === objectValues(value).filter(i => ! isType(i)).length;
+            ! objectValues(value).some(i => ! isType(i));
     export const isArray = <T>(isType: IsType<T>): (value: unknown) => value is T[] =>
-        (value: unknown): value is T[] => Array.isArray(value) && 0 === value.filter(i => ! isType(i)).length;
+        (value: unknown): value is T[] => Array.isArray(value) && ! value.some(i => ! isType(i));
     export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
         IsType<[ TypeA, TypeB, ]>;
     export function isTuple<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>):
@@ -940,13 +940,16 @@ export module Jsonarch
         }
         return result;
     };
-    const recordProfileScore = (score: { [key: string]: ProfileScore }, key: string, time: number) =>
+    const recordProfileScore = (score: { [key: string]: ProfileScore }, key: string, time: number, countUp: boolean = true) =>
     {
         if (undefined === score[key])
         {
             score[key] = { count:0, time:0, };
         }
-        score[key].count += 1;
+        if (countUp)
+        {
+            score[key].count += 1;
+        }
         score[key].time += time;
     };
     const endProfileScope = (context: Context, entry: ProfileEntry) =>
@@ -965,7 +968,13 @@ export module Jsonarch
             }
             if (profileTemplate)
             {
-                recordProfileScore(profileTemplate, entry.template, time);
+                recordProfileScore
+                (
+                    profileTemplate,
+                    entry.template,
+                    time,
+                    [ "evaluateCall.library", "evaluateTemplate", ].includes(entry.scope)
+                );
             }
             if (profileParameter)
             {
@@ -2983,7 +2992,7 @@ export module Jsonarch
             else
             if (undefined !== aEnum && undefined !== bEnum)
             {
-                result.enum = aEnum.filter(i => 0 <= bEnum.indexOf(i));
+                result.enum = aEnum.filter(i => bEnum.includes(i));
             }
         }
         if ( ! isNeverTypeData(result))
@@ -2999,7 +3008,7 @@ export module Jsonarch
                 else
                 if (undefined !== aNeverEnum && undefined !== bNeverEnum)
                 {
-                    result.neverEnum = aNeverEnum.concat(bNeverEnum.filter(i => aNeverEnum.indexOf(i) < 0));
+                    result.neverEnum = aNeverEnum.concat(bNeverEnum.filter(i => ! aNeverEnum.includes(i)));
                 }
             }
             const neverEnum = result.neverEnum;
@@ -3007,7 +3016,7 @@ export module Jsonarch
             {
                 if (undefined !== result.enum)
                 {
-                    result.enum = result.enum.filter(i => neverEnum.indexOf(i) < 0);
+                    result.enum = result.enum.filter(i => ! neverEnum.includes(i));
                     result.neverEnum = undefined;
                 }
                 else
@@ -3561,7 +3570,7 @@ export module Jsonarch
                     const parameterType = await typeOfResult(nextDepthEntry, parameter);
                     const types = Array.isArray(type) ? type: [type];
                     const compareTypeResult = types.map(t => ({ return: t.return, compareTypeResult: compareType(t.parameter, parameterType)}));
-                    const match = compareTypeResult.filter(r => isBaseOrEqual(r.compareTypeResult))[0];
+                    const match = compareTypeResult.find(r => isBaseOrEqual(r.compareTypeResult));
                     if (match)
                     {
                         return match.return;
@@ -4330,7 +4339,7 @@ export module Jsonarch
             return digested;
         }
         else
-        if ("output" === asType && setting.outputFormat?.text && Array.isArray(digested) && 0 === digested.filter(line => "string" !== typeof line).length)
+        if ("output" === asType && setting.outputFormat?.text && Array.isArray(digested) && ! digested.some(line => "string" !== typeof line))
         {
             return digested.join("\n");
         }

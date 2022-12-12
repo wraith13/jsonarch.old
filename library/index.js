@@ -381,11 +381,11 @@ var Jsonarch;
             return null !== value &&
                 "object" === typeof value &&
                 !Array.isArray(value) &&
-                0 === Jsonarch.objectValues(value).filter(function (i) { return !isType(i); }).length;
+                !Jsonarch.objectValues(value).some(function (i) { return !isType(i); });
         };
     };
     Jsonarch.isArray = function (isType) {
-        return function (value) { return Array.isArray(value) && 0 === value.filter(function (i) { return !isType(i); }).length; };
+        return function (value) { return Array.isArray(value) && !value.some(function (i) { return !isType(i); }); };
     };
     function isTuple() {
         var isTypeList = [];
@@ -699,11 +699,14 @@ var Jsonarch;
         }
         return result;
     };
-    var recordProfileScore = function (score, key, time) {
+    var recordProfileScore = function (score, key, time, countUp) {
+        if (countUp === void 0) { countUp = true; }
         if (undefined === score[key]) {
             score[key] = { count: 0, time: 0, };
         }
-        score[key].count += 1;
+        if (countUp) {
+            score[key].count += 1;
+        }
         score[key].time += time;
     };
     var endProfileScope = function (context, entry) {
@@ -719,7 +722,7 @@ var Jsonarch;
                 recordProfileScore(profileScore, entry.scope, time_1);
             }
             if (profileTemplate) {
-                recordProfileScore(profileTemplate, entry.template, time_1);
+                recordProfileScore(profileTemplate, entry.template, time_1, ["evaluateCall.library", "evaluateTemplate",].includes(entry.scope));
             }
             if (profileParameter) {
                 entry.parameter.forEach(function (parameter) { return recordProfileScore(profileParameter, parameter, time_1); });
@@ -2140,7 +2143,7 @@ var Jsonarch;
                 result.enum = bEnum;
             }
             else if (undefined !== aEnum && undefined !== bEnum) {
-                result.enum = aEnum.filter(function (i) { return 0 <= bEnum.indexOf(i); });
+                result.enum = aEnum.filter(function (i) { return bEnum.includes(i); });
             }
         }
         if (!Jsonarch.isNeverTypeData(result)) {
@@ -2151,13 +2154,13 @@ var Jsonarch;
                     result.neverEnum = bNeverEnum;
                 }
                 else if (undefined !== aNeverEnum_1 && undefined !== bNeverEnum) {
-                    result.neverEnum = aNeverEnum_1.concat(bNeverEnum.filter(function (i) { return aNeverEnum_1.indexOf(i) < 0; }));
+                    result.neverEnum = aNeverEnum_1.concat(bNeverEnum.filter(function (i) { return !aNeverEnum_1.includes(i); }));
                 }
             }
             var neverEnum_1 = result.neverEnum;
             if (undefined !== neverEnum_1) {
                 if (undefined !== result.enum) {
-                    result.enum = result.enum.filter(function (i) { return neverEnum_1.indexOf(i) < 0; });
+                    result.enum = result.enum.filter(function (i) { return !neverEnum_1.includes(i); });
                     result.neverEnum = undefined;
                 }
                 else {
@@ -2564,7 +2567,7 @@ var Jsonarch;
                     parameterType_3 = _f.sent();
                     types = Array.isArray(type) ? type : [type];
                     compareTypeResult = types.map(function (t) { return ({ return: t.return, compareTypeResult: Jsonarch.compareType(t.parameter, parameterType_3) }); });
-                    match = compareTypeResult.filter(function (r) { return Jsonarch.isBaseOrEqual(r.compareTypeResult); })[0];
+                    match = compareTypeResult.find(function (r) { return Jsonarch.isBaseOrEqual(r.compareTypeResult); });
                     if (match) {
                         return [2 /*return*/, match.return];
                     }
@@ -3267,7 +3270,7 @@ var Jsonarch;
         if ("output" === asType && ((_e = setting.outputFormat) === null || _e === void 0 ? void 0 : _e.text) && "string" === typeof digested) {
             return digested;
         }
-        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(digested) && 0 === digested.filter(function (line) { return "string" !== typeof line; }).length) {
+        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(digested) && !digested.some(function (line) { return "string" !== typeof line; })) {
             return digested.join("\n");
         }
         else if ("number" === typeof indent) {
