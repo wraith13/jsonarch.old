@@ -2476,6 +2476,7 @@ var Jsonarch;
                     if (!("function" === typeof target)) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.library", function () { return __awaiter(_this, void 0, void 0, function () {
                             var parameterInfo, result;
+                            var _this = this;
                             return __generator(this, function (_c) {
                                 switch (_c.label) {
                                     case 0: return [4 /*yield*/, Jsonarch.getTemplate(nextDepthEntry, "system", parameter)];
@@ -2484,7 +2485,12 @@ var Jsonarch;
                                         if (Jsonarch.isCallTemplateCache(parameterInfo)) {
                                             return [2 /*return*/, parameterInfo.result];
                                         }
-                                        return [4 /*yield*/, target(nextDepthEntry, parameterInfo.parameter)];
+                                        return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "library.".concat(entry.template.refer.join(".")), function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+                                                switch (_c.label) {
+                                                    case 0: return [4 /*yield*/, target(nextDepthEntry, parameterInfo.parameter)];
+                                                    case 1: return [2 /*return*/, _c.sent()];
+                                                }
+                                            }); }); })];
                                     case 2:
                                         result = _c.sent();
                                         if (undefined === result) {

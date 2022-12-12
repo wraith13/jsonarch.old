@@ -3450,7 +3450,12 @@ export module Jsonarch
                         {
                             return parameterInfo.result;
                         }
-                        const result = await target(nextDepthEntry, parameterInfo.parameter);
+                        const result = await profile
+                        (
+                            nextDepthEntry,
+                            `library.${entry.template.refer.join(".")}`,
+                            async () => await target(nextDepthEntry, parameterInfo.parameter)
+                        );
                         if (undefined === result)
                         {
                             throw UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
