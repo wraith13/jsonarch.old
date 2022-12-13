@@ -722,7 +722,14 @@ var Jsonarch;
                 recordProfileScore(profileScore, entry.scope, time_1);
             }
             if (profileTemplate) {
-                recordProfileScore(profileTemplate, entry.template, time_1, ["evaluateCall.library", "evaluateCall.template", "apply", "evaluateCases", "evaluateCasePattern",].includes(entry.scope));
+                recordProfileScore(profileTemplate, entry.template, time_1, [
+                    "apply",
+                    "evaluateCall.library",
+                    "evaluateCall.template",
+                    "evaluateCases",
+                    "evaluateCasePattern",
+                ]
+                    .includes(entry.scope));
             }
             if (profileParameter) {
                 entry.parameter.forEach(function (parameter) { return recordProfileScore(profileParameter, parameter, time_1); });
@@ -2960,6 +2967,12 @@ var Jsonarch;
                         cache: cache,
                         setting: setting,
                         handler: handler,
+                        originMap: Jsonarch.regulateJsonable({
+                            paremter: {
+                                root: entry.parameter,
+                                refer: "root",
+                            },
+                        })
                     };
                     _g.label = 1;
                 case 1:

@@ -973,7 +973,14 @@ export module Jsonarch
                     profileTemplate,
                     entry.template,
                     time,
-                    [ "evaluateCall.library", "evaluateCall.template", "apply", "evaluateCases", "evaluateCasePattern", ].includes(entry.scope)
+                    [
+                        "apply",
+                        "evaluateCall.library",
+                        "evaluateCall.template",
+                        "evaluateCases",
+                        "evaluateCasePattern",
+                    ]
+                    .includes(entry.scope)
                 );
             }
             if (profileParameter)
@@ -3973,6 +3980,14 @@ export module Jsonarch
                 cache,
                 setting,
                 handler,
+                originMap: regulateJsonable
+                ({
+                    paremter: <Origin>
+                    {
+                        root: entry.parameter,
+                        refer: "root",
+                    },
+                })
             };
             try
             {
