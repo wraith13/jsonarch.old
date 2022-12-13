@@ -973,7 +973,7 @@ export module Jsonarch
                     profileTemplate,
                     entry.template,
                     time,
-                    [ "evaluateCall.library", "evaluateTemplate", ].includes(entry.scope)
+                    [ "evaluateCall.library", "evaluateCall.template", "apply", "evaluateCases", "evaluateCasePattern", ].includes(entry.scope)
                 );
             }
             if (profileParameter)
@@ -2207,68 +2207,32 @@ export module Jsonarch
             }
         }
     );
-    export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType): ResultType =>
+    export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType): ResultType =>
     {
-        const functionTemplate = turnRefer<JsonableValue | Function>
-        (
-            entry,
-            librarygJson,
-            entry.template.refer,
-            {
-                template: entry.path,
-            }
-            // entry.originMap
-        );
-        if (isTemplateData(functionTemplate))
+        const parameter = parameterInfo.parameter;
+        const parameterType = typeOfJsonable(parameter);
+        const resultType = typeOfJsonable(result);
+        const type = parameterInfo.type;
+        const compareTypeResult = compareType(type.return, resultType);
+        if (isBaseOrEqual(compareTypeResult))
         {
-            const type = functionTemplate.type;
-            if (type)
-            {
-                const parameterType = typeOfJsonable(parameter);
-                const resultType = typeOfJsonable(result);
-                const types = Array.isArray(type) ? type: [type];
-                const compareTypeResult = types.map(t => ({ parameter: compareType(t.parameter, parameterType), return: compareType(t.return, resultType), }));
-                if (compareTypeResult.some(r => isBaseOrEqual(r.parameter) && isBaseOrEqual(r.return)))
-                {
-                    return result;
-                }
-                else
-                {
-                    throw new ErrorJson
-                    (
-                        entry, "Unmatch return type",
-                        {
-                            refer: entry.template.refer,
-                            compareTypeResult,
-                            type:
-                            {
-                                template: type,
-                                parameter: parameterType,
-                                result: resultType,
-                            },
-                            parameter,
-                        }
-                    );
-                }
-            }
-            else
-            {
-                throw new ErrorJson
-                (
-                    entry, "Not found type define",
-                    {
-                        refer: entry.template.refer,
-                    }
-                );
-            }
+            return result;
         }
         else
         {
             throw new ErrorJson
             (
-                entry, "Not found template",
+                entry, "Unmatch return type",
                 {
                     refer: entry.template.refer,
+                    compareTypeResult,
+                    type:
+                    {
+                        template: type,
+                        parameter: parameterType,
+                        result: resultType,
+                    },
+                    parameter,
                 }
             );
         }
@@ -3460,7 +3424,7 @@ export module Jsonarch
                         {
                             throw UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
                         }
-                        validateReturnType(nextDepthEntry, parameterInfo.parameter, result);
+                        validateReturnType(nextDepthEntry, parameterInfo, result);
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)

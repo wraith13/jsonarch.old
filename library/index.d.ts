@@ -692,7 +692,7 @@ export declare module Jsonarch {
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey: (template: Refer, parameter: Jsonable) => string;
     export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable) => Promise<CallTemplate>;
-    export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameter: Jsonable | undefined, result: ResultType) => ResultType;
+    export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
     export const library: {
         object: {

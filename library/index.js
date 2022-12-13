@@ -722,7 +722,7 @@ var Jsonarch;
                 recordProfileScore(profileScore, entry.scope, time_1);
             }
             if (profileTemplate) {
-                recordProfileScore(profileTemplate, entry.template, time_1, ["evaluateCall.library", "evaluateTemplate",].includes(entry.scope));
+                recordProfileScore(profileTemplate, entry.template, time_1, ["evaluateCall.library", "evaluateCall.template", "apply", "evaluateCases", "evaluateCasePattern",].includes(entry.scope));
             }
             if (profileParameter) {
                 entry.parameter.forEach(function (parameter) { return recordProfileScore(profileParameter, parameter, time_1); });
@@ -1581,44 +1581,25 @@ var Jsonarch;
                 }); })];
         });
     }); };
-    Jsonarch.validateReturnType = function (entry, parameter, result) {
-        var functionTemplate = Jsonarch.turnRefer(entry, library_json_1.default, entry.template.refer, {
-            template: entry.path,
-        }
-        // entry.originMap
-        );
-        if (Jsonarch.isTemplateData(functionTemplate)) {
-            var type = functionTemplate.type;
-            if (type) {
-                var parameterType_2 = Jsonarch.typeOfJsonable(parameter);
-                var resultType_1 = Jsonarch.typeOfJsonable(result);
-                var types = Array.isArray(type) ? type : [type];
-                var compareTypeResult = types.map(function (t) { return ({ parameter: Jsonarch.compareType(t.parameter, parameterType_2), return: Jsonarch.compareType(t.return, resultType_1), }); });
-                if (compareTypeResult.some(function (r) { return Jsonarch.isBaseOrEqual(r.parameter) && Jsonarch.isBaseOrEqual(r.return); })) {
-                    return result;
-                }
-                else {
-                    throw new Jsonarch.ErrorJson(entry, "Unmatch return type", {
-                        refer: entry.template.refer,
-                        compareTypeResult: compareTypeResult,
-                        type: {
-                            template: type,
-                            parameter: parameterType_2,
-                            result: resultType_1,
-                        },
-                        parameter: parameter,
-                    });
-                }
-            }
-            else {
-                throw new Jsonarch.ErrorJson(entry, "Not found type define", {
-                    refer: entry.template.refer,
-                });
-            }
+    Jsonarch.validateReturnType = function (entry, parameterInfo, result) {
+        var parameter = parameterInfo.parameter;
+        var parameterType = Jsonarch.typeOfJsonable(parameter);
+        var resultType = Jsonarch.typeOfJsonable(result);
+        var type = parameterInfo.type;
+        var compareTypeResult = Jsonarch.compareType(type.return, resultType);
+        if (Jsonarch.isBaseOrEqual(compareTypeResult)) {
+            return result;
         }
         else {
-            throw new Jsonarch.ErrorJson(entry, "Not found template", {
+            throw new Jsonarch.ErrorJson(entry, "Unmatch return type", {
                 refer: entry.template.refer,
+                compareTypeResult: compareTypeResult,
+                type: {
+                    template: type,
+                    parameter: parameterType,
+                    result: resultType,
+                },
+                parameter: parameter,
             });
         }
     };
@@ -2496,7 +2477,7 @@ var Jsonarch;
                                         if (undefined === result) {
                                             throw Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
                                         }
-                                        Jsonarch.validateReturnType(nextDepthEntry, parameterInfo.parameter, result);
+                                        Jsonarch.validateReturnType(nextDepthEntry, parameterInfo, result);
                                         if (undefined !== parameterInfo.cacheKey) {
                                             if (undefined === entry.cache.call) {
                                                 entry.cache.call = {};
@@ -2542,7 +2523,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateCallResultType = function (entry) { return Jsonarch.profile(entry, "evaluateCallResultType", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_3, types, compareTypeResult, match;
+        var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_2, types, compareTypeResult, match;
         var _c, _d, _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -2570,9 +2551,9 @@ var Jsonarch;
                     if (!type) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.typeOfResult(nextDepthEntry, parameter)];
                 case 2:
-                    parameterType_3 = _f.sent();
+                    parameterType_2 = _f.sent();
                     types = Array.isArray(type) ? type : [type];
-                    compareTypeResult = types.map(function (t) { return ({ return: t.return, compareTypeResult: Jsonarch.compareType(t.parameter, parameterType_3) }); });
+                    compareTypeResult = types.map(function (t) { return ({ return: t.return, compareTypeResult: Jsonarch.compareType(t.parameter, parameterType_2) }); });
                     match = compareTypeResult.find(function (r) { return Jsonarch.isBaseOrEqual(r.compareTypeResult); });
                     if (match) {
                         return [2 /*return*/, match.return];
@@ -2583,7 +2564,7 @@ var Jsonarch;
                             compareTypeResult: compareTypeResult,
                             type: {
                                 template: type,
-                                parameter: parameterType_3,
+                                parameter: parameterType_2,
                             },
                             parameter: parameter,
                         });
