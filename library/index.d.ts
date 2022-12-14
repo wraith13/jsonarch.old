@@ -335,6 +335,16 @@ export declare module Jsonarch {
     export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<Jsonable>;
     export const hasLazy: (value: Structure<Function | JsonableValue | undefined>, key?: number | string) => boolean;
+    export interface Intermediate extends AlphaJsonarch {
+        type: Type;
+        value: JsonableValue | Intermediate[] | {
+            [key: string]: Intermediate;
+        };
+        origin: Origin;
+        typeContext?: {
+            [path: string]: Type;
+        };
+    }
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;

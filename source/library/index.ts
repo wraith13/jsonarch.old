@@ -872,6 +872,13 @@ export module Jsonarch
         (lazy)
     );
     export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
+    export interface Intermediate extends AlphaJsonarch
+    {
+        type: Type;
+        value: JsonableValue | Intermediate[] | { [key: string]: Intermediate; };
+        origin: Origin;
+        typeContext?: { [path: string]: Type; };
+    }
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
