@@ -195,14 +195,14 @@ export module Jsonarch
     export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
     export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
     export const isJsonableValue = (value: unknown): value is JsonableValue =>
-        null === value || 0 <= [ "boolean", "number", "string" ].indexOf(typeof value);
+        null === value || [ "boolean", "number", "string" ].includes(typeof value);
     export const isJsonableObject = (value: unknown): value is JsonableObject =>
         null !== value &&
         "object" === typeof value &&
         ! Array.isArray(value) &&
-        ! objectValues(value).some(i => ! isJsonable(i));
+        objectValues(value).every(i => isJsonable(i));
     export const isJsonableArray = (value: unknown): value is Jsonable[] =>
-        Array.isArray(value) && ! value.some(i => ! isJsonable(i));
+        Array.isArray(value) && value.every(i => isJsonable(i));
     export const isJsonable = (value: unknown): value is Jsonable =>
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
@@ -305,15 +305,15 @@ export module Jsonarch
             null !== value &&
             "object" === typeof value &&
             ! Array.isArray(value) &&
-            ! objectKeys(isMember).some(key => ! isMember[key]((<{ [key:string]: unknown }>value)[key]));
+            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value)[key]));
     export const isMapObject = <T extends { [key: string | number]: U}, U>(isType: IsType<U>): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
             "object" === typeof value &&
             ! Array.isArray(value) &&
-            ! objectValues(value).some(i => ! isType(i));
+            objectValues(value).every(i => isType(i));
     export const isArray = <T>(isType: IsType<T>): (value: unknown) => value is T[] =>
-        (value: unknown): value is T[] => Array.isArray(value) && ! value.some(i => ! isType(i));
+        (value: unknown): value is T[] => Array.isArray(value) && value.every(i => isType(i));
     export function isTuple<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
         IsType<[ TypeA, TypeB, ]>;
     export function isTuple<TypeA, TypeB, TypeC>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>):
@@ -332,7 +332,7 @@ export module Jsonarch
         IsType<[ TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI, ]>;
     export function isTuple(...isTypeList: ((value: unknown) => boolean)[])
     {
-        return (value: unknown) => Array.isArray(value) && ! isTypeList.some((i, ix) => ! i(value[ix]));
+        return (value: unknown) => Array.isArray(value) && isTypeList.every((i, ix) => i(value[ix]));
     }
     export function isEnum<TypeA, TypeB>(list: [TypeA, TypeB]):
         IsType<TypeA | TypeB>;
@@ -366,7 +366,7 @@ export module Jsonarch
         IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI | TypeJ | TypeK | TypeL | TypeM | TypeN | TypeO | TypeP>;
     export function isEnum(list: unknown[])
     {
-        return (value: unknown) => list.some(i => i === value);
+        return (value: unknown) => list.includes(value);
     }
     export function isTypeOr<TypeA, TypeB>(isA: IsType<TypeA>, isB: IsType<TypeB>):
         IsType<TypeA | TypeB>;
@@ -905,7 +905,7 @@ export module Jsonarch
         handler: Handler;
     }
     const isPureDataType = (template: AlphaJsonarch) =>
-        0 <= [ "setting", "cache", ].indexOf(template.$arch);
+        [ "setting", "cache", ].includes(template.$arch);
     export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
         isAlphaJsonarch(entry.template) && ! isPureDataType(entry.template);
     export interface Result extends AlphaJsonarch
@@ -2280,7 +2280,7 @@ export module Jsonarch
             {
                 if (isTuple<any[], any>(isArray(isAny), isAny)(parameter))
                 {
-                    return 0 <= parameter[0].indexOf(parameter[1]);
+                    return parameter[0].includes(parameter[1]);
                 }
                 return undefined;
             }
@@ -2307,7 +2307,7 @@ export module Jsonarch
             {
                 if (isArray(isBoolean)(parameter))
                 {
-                    return ! parameter.some(i => ! i);
+                    return parameter.every(i => i);
                 }
                 return undefined;
             },
@@ -2477,8 +2477,8 @@ export module Jsonarch
         }
         else
         {
-            const aHasUnmatch = aEnum.some(i => bEnum.indexOf(i) < 0);
-            const bHasUnmatch = bEnum.some(i => aEnum.indexOf(i) < 0);
+            const aHasUnmatch = aEnum.some(i => ! bEnum.includes(i));
+            const bHasUnmatch = bEnum.some(i => ! aEnum.includes(i));
             if (( ! aHasUnmatch) && ( ! bHasUnmatch))
             {
                 return "equal";
@@ -2519,8 +2519,8 @@ export module Jsonarch
         }
         else
         {
-            const aHasUnmatch = aNeverEnum.some(i => bNeverEnum.indexOf(i) < 0);
-            const bHasUnmatch = bNeverEnum.some(i => aNeverEnum.indexOf(i) < 0);
+            const aHasUnmatch = aNeverEnum.some(i => ! bNeverEnum.includes(i));
+            const bHasUnmatch = bNeverEnum.some(i => ! aNeverEnum.includes(i));
             if (( ! aHasUnmatch) && ( ! bHasUnmatch))
             {
                 return "equal";
@@ -2619,7 +2619,7 @@ export module Jsonarch
         else
         if (isEnumNumberValueTypeData(type) && type.enum)
         {
-            return ! type.enum.some(i => i !== Math.floor(i));
+            return type.enum.every(i => i === Math.floor(i));
         }
         return false;
     };
@@ -2742,9 +2742,9 @@ export module Jsonarch
     {
         const aMemberList = objectKeys(a.member);
         const bMemberList = objectKeys(b.member);
-        const commonMemberList = aMemberList.filter(a => bMemberList.some(b => a === b));
-        const aOnlyMemberList = aMemberList.filter(a => ! commonMemberList.some(i => a === i));
-        const bOnlyMemberList = bMemberList.filter(b => ! commonMemberList.some(i => b === i));
+        const commonMemberList = aMemberList.filter(a => bMemberList.includes(a));
+        const aOnlyMemberList = aMemberList.filter(a => ! commonMemberList.includes(a));
+        const bOnlyMemberList = bMemberList.filter(b => ! commonMemberList.includes(b));
         return compositeCompareTypeResult
         (
             ...commonMemberList.map(i => () => compareType(a.member[i], b.member[i])),
@@ -2774,7 +2774,7 @@ export module Jsonarch
     export const compareTypeOrComposite = (a: OrCompositeType, b: Type): CompareTypeResult =>
     {
         const resultList = a.list.map(i => compareType(i, b));
-        if (( ! resultList.some(i => "equal" !== i)) && isOrCompositeTypeData(b) && a.list.length === b.list.length)
+        if (resultList.every(i => "equal" === i) && isOrCompositeTypeData(b) && a.list.length === b.list.length)
         {
             return "equal";
         }
@@ -2782,7 +2782,7 @@ export module Jsonarch
         {
             return "base";
         }
-        if (( ! resultList.some(i => ! isEqualOrExtented(i))))
+        if (resultList.every(i => isEqualOrExtented(i)))
         {
             return "extended";
         }
@@ -4330,7 +4330,7 @@ export module Jsonarch
             return digested;
         }
         else
-        if ("output" === asType && setting.outputFormat?.text && Array.isArray(digested) && ! digested.some(line => "string" !== typeof line))
+        if ("output" === asType && setting.outputFormat?.text && Array.isArray(digested) && digested.every(line => "string" === typeof line))
         {
             return digested.join("\n");
         }

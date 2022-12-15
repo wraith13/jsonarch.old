@@ -283,16 +283,16 @@ var Jsonarch;
     Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
     Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
     Jsonarch.isJsonableValue = function (value) {
-        return null === value || 0 <= ["boolean", "number", "string"].indexOf(typeof value);
+        return null === value || ["boolean", "number", "string"].includes(typeof value);
     };
     Jsonarch.isJsonableObject = function (value) {
         return null !== value &&
             "object" === typeof value &&
             !Array.isArray(value) &&
-            !Jsonarch.objectValues(value).some(function (i) { return !Jsonarch.isJsonable(i); });
+            Jsonarch.objectValues(value).every(function (i) { return Jsonarch.isJsonable(i); });
     };
     Jsonarch.isJsonableArray = function (value) {
-        return Array.isArray(value) && !value.some(function (i) { return !Jsonarch.isJsonable(i); });
+        return Array.isArray(value) && value.every(function (i) { return Jsonarch.isJsonable(i); });
     };
     Jsonarch.isJsonable = function (value) {
         return Jsonarch.isJsonableValue(value) || Jsonarch.isJsonableArray(value) || Jsonarch.isJsonableObject(value);
@@ -373,7 +373,7 @@ var Jsonarch;
             return null !== value &&
                 "object" === typeof value &&
                 !Array.isArray(value) &&
-                !Jsonarch.objectKeys(isMember).some(function (key) { return !isMember[key](value[key]); });
+                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value[key]); });
         };
     };
     Jsonarch.isMapObject = function (isType) {
@@ -381,22 +381,22 @@ var Jsonarch;
             return null !== value &&
                 "object" === typeof value &&
                 !Array.isArray(value) &&
-                !Jsonarch.objectValues(value).some(function (i) { return !isType(i); });
+                Jsonarch.objectValues(value).every(function (i) { return isType(i); });
         };
     };
     Jsonarch.isArray = function (isType) {
-        return function (value) { return Array.isArray(value) && !value.some(function (i) { return !isType(i); }); };
+        return function (value) { return Array.isArray(value) && value.every(function (i) { return isType(i); }); };
     };
     function isTuple() {
         var isTypeList = [];
         for (var _c = 0; _c < arguments.length; _c++) {
             isTypeList[_c] = arguments[_c];
         }
-        return function (value) { return Array.isArray(value) && !isTypeList.some(function (i, ix) { return !i(value[ix]); }); };
+        return function (value) { return Array.isArray(value) && isTypeList.every(function (i, ix) { return i(value[ix]); }); };
     }
     Jsonarch.isTuple = isTuple;
     function isEnum(list) {
-        return function (value) { return list.some(function (i) { return i === value; }); };
+        return function (value) { return list.includes(value); };
     }
     Jsonarch.isEnum = isEnum;
     function isTypeOr() {
@@ -675,7 +675,7 @@ var Jsonarch;
         });
     };
     var isPureDataType = function (template) {
-        return 0 <= ["setting", "cache",].indexOf(template.$arch);
+        return ["setting", "cache",].includes(template.$arch);
     };
     Jsonarch.isEvaluateTargetEntry = function (entry) {
         return Jsonarch.isAlphaJsonarch(entry.template) && !isPureDataType(entry.template);
@@ -1630,7 +1630,7 @@ var Jsonarch;
         array: {
             contain: function (_entry, parameter) {
                 if (isTuple(Jsonarch.isArray(Jsonarch.isAny), Jsonarch.isAny)(parameter)) {
-                    return 0 <= parameter[0].indexOf(parameter[1]);
+                    return parameter[0].includes(parameter[1]);
                 }
                 return undefined;
             }
@@ -1650,7 +1650,7 @@ var Jsonarch;
             },
             and: function (_entry, parameter) {
                 if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter)) {
-                    return !parameter.some(function (i) { return !i; });
+                    return parameter.every(function (i) { return i; });
                 }
                 return undefined;
             },
@@ -1783,8 +1783,8 @@ var Jsonarch;
             return "extended";
         }
         else {
-            var aHasUnmatch = aEnum.some(function (i) { return bEnum.indexOf(i) < 0; });
-            var bHasUnmatch = bEnum.some(function (i) { return aEnum.indexOf(i) < 0; });
+            var aHasUnmatch = aEnum.some(function (i) { return !bEnum.includes(i); });
+            var bHasUnmatch = bEnum.some(function (i) { return !aEnum.includes(i); });
             if ((!aHasUnmatch) && (!bHasUnmatch)) {
                 return "equal";
             }
@@ -1812,8 +1812,8 @@ var Jsonarch;
             return "extended";
         }
         else {
-            var aHasUnmatch = aNeverEnum.some(function (i) { return bNeverEnum.indexOf(i) < 0; });
-            var bHasUnmatch = bNeverEnum.some(function (i) { return aNeverEnum.indexOf(i) < 0; });
+            var aHasUnmatch = aNeverEnum.some(function (i) { return !bNeverEnum.includes(i); });
+            var bHasUnmatch = bNeverEnum.some(function (i) { return !aNeverEnum.includes(i); });
             if ((!aHasUnmatch) && (!bHasUnmatch)) {
                 return "equal";
             }
@@ -1885,7 +1885,7 @@ var Jsonarch;
             return (_c = type.integerOnly) !== null && _c !== void 0 ? _c : false;
         }
         else if (Jsonarch.isEnumNumberValueTypeData(type) && type.enum) {
-            return !type.enum.some(function (i) { return i !== Math.floor(i); });
+            return type.enum.every(function (i) { return i === Math.floor(i); });
         }
         return false;
     };
@@ -1966,9 +1966,9 @@ var Jsonarch;
     Jsonarch.compareTypeObjectMember = function (a, b) {
         var aMemberList = Jsonarch.objectKeys(a.member);
         var bMemberList = Jsonarch.objectKeys(b.member);
-        var commonMemberList = aMemberList.filter(function (a) { return bMemberList.some(function (b) { return a === b; }); });
-        var aOnlyMemberList = aMemberList.filter(function (a) { return !commonMemberList.some(function (i) { return a === i; }); });
-        var bOnlyMemberList = bMemberList.filter(function (b) { return !commonMemberList.some(function (i) { return b === i; }); });
+        var commonMemberList = aMemberList.filter(function (a) { return bMemberList.includes(a); });
+        var aOnlyMemberList = aMemberList.filter(function (a) { return !commonMemberList.includes(a); });
+        var bOnlyMemberList = bMemberList.filter(function (b) { return !commonMemberList.includes(b); });
         return Jsonarch.compositeCompareTypeResult.apply(void 0, __spreadArray(__spreadArray([], commonMemberList.map(function (i) { return function () { return Jsonarch.compareType(a.member[i], b.member[i]); }; }), false), [function () {
                 if (0 === aOnlyMemberList.length && 0 === bOnlyMemberList.length) {
                     return "equal";
@@ -1986,13 +1986,13 @@ var Jsonarch;
     };
     Jsonarch.compareTypeOrComposite = function (a, b) {
         var resultList = a.list.map(function (i) { return Jsonarch.compareType(i, b); });
-        if ((!resultList.some(function (i) { return "equal" !== i; })) && Jsonarch.isOrCompositeTypeData(b) && a.list.length === b.list.length) {
+        if (resultList.every(function (i) { return "equal" === i; }) && Jsonarch.isOrCompositeTypeData(b) && a.list.length === b.list.length) {
             return "equal";
         }
         if (resultList.some(function (i) { return Jsonarch.isBaseOrEqual(i); })) {
             return "base";
         }
-        if ((!resultList.some(function (i) { return !Jsonarch.isEqualOrExtented(i); }))) {
+        if (resultList.every(function (i) { return Jsonarch.isEqualOrExtented(i); })) {
             return "extended";
         }
         return "unmatch";
@@ -3270,7 +3270,7 @@ var Jsonarch;
         if ("output" === asType && ((_e = setting.outputFormat) === null || _e === void 0 ? void 0 : _e.text) && "string" === typeof digested) {
             return digested;
         }
-        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(digested) && !digested.some(function (line) { return "string" !== typeof line; })) {
+        else if ("output" === asType && ((_f = setting.outputFormat) === null || _f === void 0 ? void 0 : _f.text) && Array.isArray(digested) && digested.every(function (line) { return "string" === typeof line; })) {
             return digested.join("\n");
         }
         else if ("number" === typeof indent) {
