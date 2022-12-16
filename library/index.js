@@ -672,6 +672,36 @@ var Jsonarch;
         });
     }); };
     Jsonarch.hasLazy = Jsonarch.hasStructureObject(function (value) { return Jsonarch.isLazy(value); });
+    Jsonarch.isIntermediate = Jsonarch.isJsonarch("intermediate");
+    Jsonarch.makeResult = function (intermediate, base) {
+        var originMap = {};
+        originMap[Jsonarch.jsonStringify(base)] = intermediate.origin;
+        if (Array.isArray(intermediate.value)) {
+            var result = [];
+            for (var i in intermediate.value) {
+                var ix = parseInt(i);
+                var r = Jsonarch.makeResult(intermediate.value[ix], Jsonarch.makeOrigin(base, ix));
+                result[ix] = r.result;
+                Object.assign(originMap, r.originMap);
+            }
+            return { result: result, originMap: originMap, };
+        }
+        else if (null !== intermediate.value && "object" === typeof intermediate.value) {
+            var result = {};
+            var keys = Jsonarch.objectKeys(intermediate.value);
+            for (var i in keys) {
+                var key = keys[i];
+                var r = Jsonarch.makeResult(intermediate.value[key], Jsonarch.makeOrigin(base, key));
+                result[key] = r.result;
+                Object.assign(originMap, r.originMap);
+            }
+            return { result: result, originMap: originMap, };
+        }
+        else {
+            var result = intermediate.value;
+            return { result: result, originMap: originMap, };
+        }
+    };
     Jsonarch.toErrorStatusFromEvaluateEntry = function (entry) {
         var _c;
         return ({

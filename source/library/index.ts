@@ -891,11 +891,49 @@ export module Jsonarch
     export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
     export interface Intermediate extends AlphaJsonarch
     {
+        $arch: "intermediate";
         type: Type;
         value: JsonableValue | Intermediate[] | { [key: string]: Intermediate; };
         origin: Origin;
         typeContext?: { [path: string]: Type; };
     }
+    export const isIntermediate = isJsonarch<Intermediate>("intermediate");
+    export const makeResult = (intermediate: Intermediate, base: Origin): { result: Jsonable; originMap: OriginMap; } =>
+    {
+        const originMap: OriginMap = { };
+        originMap[jsonStringify(base)] = intermediate.origin;
+        if (Array.isArray(intermediate.value))
+        {
+            const result: Jsonable[] = [ ];
+            for(const i in intermediate.value)
+            {
+                const ix = parseInt(i);
+                const r = makeResult(intermediate.value[ix] as Intermediate, makeOrigin(base, ix));
+                result[ix] = r.result;
+                Object.assign(originMap, r.originMap);
+            }
+            return { result, originMap, };
+        }
+        else
+        if (null !== intermediate.value && "object" === typeof intermediate.value)
+        {
+            const result: JsonableObject = { };
+            const keys = objectKeys<JsonableObject>(intermediate.value);
+            for(const i in keys)
+            {
+                const key = keys[i];
+                const r = makeResult(intermediate.value[key] as Intermediate, makeOrigin(base, key));
+                result[key] = r.result;
+                Object.assign(originMap, r.originMap);
+            }
+            return { result, originMap, };
+        }
+        else
+        {
+            const result = intermediate.value;
+            return { result, originMap, };
+        }
+    };
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
