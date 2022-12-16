@@ -207,7 +207,7 @@ export module Jsonarch
         isJsonableValue(value) || isJsonableArray(value) || isJsonableObject(value);
     export const objectKeys = <T extends { }>(target: T) => Object.keys(target) as (keyof T & string)[];
     export const objectValues = <T extends { }>(target: T) => Object.values(target) as (T[keyof T])[];
-    export const regulateJsonable = <TargetType extends Jsonable>(value: TargetType): TargetType =>
+    export const regulateJsonable = <TargetType extends Jsonable>(value: TargetType, shallowOrDeep: "shallow" | "deep"): TargetType =>
     {
         if (undefined === value || null === value)
         {
@@ -216,8 +216,14 @@ export module Jsonarch
         else
         if (Array.isArray(value))
         {
-            // return (<Jsonable[]>value).map(i => regulateJsonable(i)) as TargetType;
-            return value;
+            if ("shallow" === shallowOrDeep)
+            {
+                return value;
+            }
+            else
+            {
+                return (<Jsonable[]>value).map(i => regulateJsonable(i, shallowOrDeep)) as TargetType;
+            }
         }
         else
         if ("object" === typeof value)
@@ -230,8 +236,14 @@ export module Jsonarch
                     const v = value[key];
                     if (undefined !== v)
                     {
-                        // result[key] = regulateJsonable(v);
-                        result[key] = v;
+                        if ("shallow" === shallowOrDeep)
+                        {
+                            result[key] = v;
+                        }
+                        else
+                        {
+                            result[key] = regulateJsonable(v, shallowOrDeep);
+                        }
                     }
                 }
             );
@@ -831,15 +843,18 @@ export module Jsonarch
     }
     export const isLazy = isJsonarch<Lazy>("lazy");
     export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy => regulateJsonable
-    ({
-        $arch: "lazy",
-        thisPath: entry.this?.path,
-        parameter: entry.parameter,
-        callStack: entry.callStack,
-        path: entry.path,
-        originMap: entry.originMap,
-        scope: entry.scope,
-    });
+    (
+        {
+            $arch: "lazy",
+            thisPath: entry.this?.path,
+            parameter: entry.parameter,
+            callStack: entry.callStack,
+            path: entry.path,
+            originMap: entry.originMap,
+            scope: entry.scope,
+        },
+        "shallow"
+    );
     export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy): EvaluateEntry<AlphaJsonarch> =>
     ({
         context: entry.context,

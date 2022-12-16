@@ -299,21 +299,29 @@ var Jsonarch;
     };
     Jsonarch.objectKeys = function (target) { return Object.keys(target); };
     Jsonarch.objectValues = function (target) { return Object.values(target); };
-    Jsonarch.regulateJsonable = function (value) {
+    Jsonarch.regulateJsonable = function (value, shallowOrDeep) {
         if (undefined === value || null === value) {
             return null;
         }
         else if (Array.isArray(value)) {
-            // return (<Jsonable[]>value).map(i => regulateJsonable(i)) as TargetType;
-            return value;
+            if ("shallow" === shallowOrDeep) {
+                return value;
+            }
+            else {
+                return value.map(function (i) { return Jsonarch.regulateJsonable(i, shallowOrDeep); });
+            }
         }
         else if ("object" === typeof value) {
             var result_3 = {};
             Jsonarch.objectKeys(value).forEach(function (key) {
                 var v = value[key];
                 if (undefined !== v) {
-                    // result[key] = regulateJsonable(v);
-                    result_3[key] = v;
+                    if ("shallow" === shallowOrDeep) {
+                        result_3[key] = v;
+                    }
+                    else {
+                        result_3[key] = Jsonarch.regulateJsonable(v, shallowOrDeep);
+                    }
                 }
             });
             return result_3;
@@ -616,7 +624,7 @@ var Jsonarch;
             path: entry.path,
             originMap: entry.originMap,
             scope: entry.scope,
-        });
+        }, "shallow");
     };
     Jsonarch.restoreFromLazy = function (entry, lazy) {
         var _c;
