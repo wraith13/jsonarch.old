@@ -304,14 +304,16 @@ var Jsonarch;
             return null;
         }
         else if (Array.isArray(value)) {
-            return value.map(function (i) { return Jsonarch.regulateJsonable(i); });
+            // return (<Jsonable[]>value).map(i => regulateJsonable(i)) as TargetType;
+            return value;
         }
         else if ("object" === typeof value) {
             var result_3 = {};
             Jsonarch.objectKeys(value).forEach(function (key) {
                 var v = value[key];
                 if (undefined !== v) {
-                    result_3[key] = Jsonarch.regulateJsonable(v);
+                    // result[key] = regulateJsonable(v);
+                    result_3[key] = v;
                 }
             });
             return result_3;
@@ -2489,7 +2491,7 @@ var Jsonarch;
                                             if (undefined === entry.cache.call) {
                                                 entry.cache.call = {};
                                             }
-                                            entry.cache.call[parameterInfo.cacheKey] = Jsonarch.regulateJsonable(result);
+                                            entry.cache.call[parameterInfo.cacheKey] = result;
                                         }
                                         return [2 /*return*/, result];
                                 }
@@ -2499,24 +2501,23 @@ var Jsonarch;
                 case 3:
                     if (!Jsonarch.isTemplateData(target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.template", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var parameterInfo, result, _c;
-                            return __generator(this, function (_d) {
-                                switch (_d.label) {
+                            var parameterInfo, result;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
                                     case 0: return [4 /*yield*/, Jsonarch.getTemplate(nextDepthEntry, "template", parameter)];
                                     case 1:
-                                        parameterInfo = _d.sent();
+                                        parameterInfo = _c.sent();
                                         if (Jsonarch.isCallTemplateCache(parameterInfo)) {
                                             return [2 /*return*/, parameterInfo.result];
                                         }
-                                        _c = Jsonarch.regulateJsonable;
                                         return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameterInfo.parameter }))];
                                     case 2:
-                                        result = _c.apply(void 0, [_d.sent()]);
+                                        result = _c.sent();
                                         if (undefined !== parameterInfo.cacheKey) {
                                             if (undefined === entry.cache.call) {
                                                 entry.cache.call = {};
                                             }
-                                            entry.cache.call[parameterInfo.cacheKey] = Jsonarch.regulateJsonable(result);
+                                            entry.cache.call[parameterInfo.cacheKey] = result;
                                         }
                                         return [2 /*return*/, result];
                                 }
@@ -2967,12 +2968,14 @@ var Jsonarch;
                         cache: cache,
                         setting: setting,
                         handler: handler,
-                        originMap: Jsonarch.regulateJsonable({
-                            paremter: {
-                                root: entry.parameter,
-                                refer: "root",
-                            },
-                        })
+                        originMap: (entry.parameter ?
+                            ({
+                                paremter: {
+                                    root: entry.parameter,
+                                    refer: "root",
+                                },
+                            }) :
+                            undefined),
                     };
                     _g.label = 1;
                 case 1:

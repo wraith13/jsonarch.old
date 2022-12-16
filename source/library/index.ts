@@ -216,12 +216,13 @@ export module Jsonarch
         else
         if (Array.isArray(value))
         {
-            return value.map(i => regulateJsonable(i)) as TargetType;
+            // return (<Jsonable[]>value).map(i => regulateJsonable(i)) as TargetType;
+            return value;
         }
         else
         if ("object" === typeof value)
         {
-            const result:JsonableObject = { };
+            const result: JsonableObject = { };
             objectKeys(value).forEach
             (
                 key =>
@@ -229,7 +230,8 @@ export module Jsonarch
                     const v = value[key];
                     if (undefined !== v)
                     {
-                        result[key] = regulateJsonable(v);
+                        // result[key] = regulateJsonable(v);
+                        result[key] = v;
                     }
                 }
             );
@@ -3445,7 +3447,7 @@ export module Jsonarch
                             {
                                 entry.cache.call = { };
                             }
-                            entry.cache.call[parameterInfo.cacheKey] = regulateJsonable(result);
+                            entry.cache.call[parameterInfo.cacheKey] = result;
                         }
                         return result;
                     }
@@ -3463,22 +3465,19 @@ export module Jsonarch
                         {
                             return parameterInfo.result;
                         }
-                        const result = regulateJsonable
-                        (
-                            await evaluateTemplate
-                            ({
-                                ...nextDepthEntry,
-                                template: target,
-                                parameter: parameterInfo.parameter,
-                            })
-                        );
+                        const result = await evaluateTemplate
+                        ({
+                            ...nextDepthEntry,
+                            template: target,
+                            parameter: parameterInfo.parameter,
+                        });
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)
                             {
                                 entry.cache.call = { };
                             }
-                            entry.cache.call[parameterInfo.cacheKey] = regulateJsonable(result);
+                            entry.cache.call[parameterInfo.cacheKey] = result;
                         }
                         return result;
                     }
@@ -3987,14 +3986,18 @@ export module Jsonarch
                 cache,
                 setting,
                 handler,
-                originMap: regulateJsonable
-                ({
-                    paremter: <Origin>
-                    {
-                        root: entry.parameter,
-                        refer: "root",
-                    },
-                })
+                originMap: <OriginMap>
+                (
+                    entry.parameter ?
+                    ({
+                        paremter: <Origin>
+                        {
+                            root: entry.parameter,
+                            refer: "root",
+                        },
+                    }):
+                    undefined
+                ),
             };
             try
             {
