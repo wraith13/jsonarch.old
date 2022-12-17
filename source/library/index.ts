@@ -893,7 +893,7 @@ export module Jsonarch
     {
         $arch: "intermediate";
         type: Type;
-        value: JsonableValue | Intermediate[] | { [key: string]: Intermediate; };
+        value: Jsonable | Intermediate[] | { [key: string]: Intermediate; };
         origin: Origin;
         typeContext?: { [path: string]: Type; };
     }
@@ -908,9 +908,18 @@ export module Jsonarch
             for(const i in intermediate.value)
             {
                 const ix = parseInt(i);
-                const r = makeResult(intermediate.value[ix] as Intermediate, makeOrigin(base, ix));
-                result[ix] = r.result;
-                Object.assign(originMap, r.originMap);
+                const value = intermediate.value[ix];
+                if (isIntermediate(value))
+                {
+                    const r = makeResult(value, makeOrigin(base, ix));
+                    result.push(r.result);
+                    Object.assign(originMap, r.originMap);
+                }
+                else
+                {
+                    result.push(value);
+                    // originMap[jsonStringify(makeOrigin(base, ix))] = makeOrigin(intermediate.origin, ix);
+                }
             }
             return { result, originMap, };
         }
@@ -922,9 +931,18 @@ export module Jsonarch
             for(const i in keys)
             {
                 const key = keys[i];
-                const r = makeResult(intermediate.value[key] as Intermediate, makeOrigin(base, key));
-                result[key] = r.result;
-                Object.assign(originMap, r.originMap);
+                const value = intermediate.value[key];
+                if (isIntermediate(value))
+                {
+                    const r = makeResult(value, makeOrigin(base, key));
+                    result[key] = r.result;
+                    Object.assign(originMap, r.originMap);
+                }
+                else
+                {
+                    result[key] = value;
+                    // originMap[jsonStringify(makeOrigin(base, key))] = makeOrigin(intermediate.origin, key);
+                }
             }
             return { result, originMap, };
         }

@@ -680,9 +680,16 @@ var Jsonarch;
             var result = [];
             for (var i in intermediate.value) {
                 var ix = parseInt(i);
-                var r = Jsonarch.makeResult(intermediate.value[ix], Jsonarch.makeOrigin(base, ix));
-                result[ix] = r.result;
-                Object.assign(originMap, r.originMap);
+                var value = intermediate.value[ix];
+                if (Jsonarch.isIntermediate(value)) {
+                    var r = Jsonarch.makeResult(value, Jsonarch.makeOrigin(base, ix));
+                    result.push(r.result);
+                    Object.assign(originMap, r.originMap);
+                }
+                else {
+                    result.push(value);
+                    // originMap[jsonStringify(makeOrigin(base, ix))] = makeOrigin(intermediate.origin, ix);
+                }
             }
             return { result: result, originMap: originMap, };
         }
@@ -691,9 +698,16 @@ var Jsonarch;
             var keys = Jsonarch.objectKeys(intermediate.value);
             for (var i in keys) {
                 var key = keys[i];
-                var r = Jsonarch.makeResult(intermediate.value[key], Jsonarch.makeOrigin(base, key));
-                result[key] = r.result;
-                Object.assign(originMap, r.originMap);
+                var value = intermediate.value[key];
+                if (Jsonarch.isIntermediate(value)) {
+                    var r = Jsonarch.makeResult(value, Jsonarch.makeOrigin(base, key));
+                    result[key] = r.result;
+                    Object.assign(originMap, r.originMap);
+                }
+                else {
+                    result[key] = value;
+                    // originMap[jsonStringify(makeOrigin(base, key))] = makeOrigin(intermediate.origin, key);
+                }
             }
             return { result: result, originMap: originMap, };
         }

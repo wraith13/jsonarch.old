@@ -338,7 +338,7 @@ export declare module Jsonarch {
     export interface Intermediate extends AlphaJsonarch {
         $arch: "intermediate";
         type: Type;
-        value: JsonableValue | Intermediate[] | {
+        value: Jsonable | Intermediate[] | {
             [key: string]: Intermediate;
         };
         origin: Origin;
