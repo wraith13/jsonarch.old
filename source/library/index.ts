@@ -895,7 +895,6 @@ export module Jsonarch
         type: Type;
         value: Jsonable | Intermediate[] | { [key: string]: Intermediate; };
         origin: Origin;
-        typeContext?: { [path: string]: Type; };
     }
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
     export const makeResult = (intermediate: Intermediate, base: Origin): { result: Jsonable; originMap: OriginMap; } =>
@@ -952,6 +951,13 @@ export module Jsonarch
             return { result, originMap, };
         }
     };
+    export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
+    ({
+        $arch: "intermediate",
+        type: await typeOfResult(entry, value),
+        value,
+        origin,
+    });
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
@@ -1246,7 +1252,7 @@ export module Jsonarch
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
         profile(entry, "evaluateStatic", async () => encode(entry.template.return));
     export const evaluateStaticResultType = (entry: EvaluateEntry<StaticTemplate>): Promise<Type> =>
-        profile(entry, "evaluateStaticResultType", async () => typeOfResult(entry, entry.template.return));
+        profile(entry, "evaluateStaticResultType", async () => await typeOfResult(entry, entry.template.return));
     export interface IncludeStaticJsonTemplate extends AlphaJsonarch
     {
         $arch: "include-static-json";

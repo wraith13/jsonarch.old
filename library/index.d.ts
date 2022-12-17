@@ -342,15 +342,13 @@ export declare module Jsonarch {
             [key: string]: Intermediate;
         };
         origin: Origin;
-        typeContext?: {
-            [path: string]: Type;
-        };
     }
     export const isIntermediate: (template: unknown) => template is Intermediate;
     export const makeResult: (intermediate: Intermediate, base: Origin) => {
         result: Jsonable;
         originMap: OriginMap;
     };
+    export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin) => Promise<Intermediate>;
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;

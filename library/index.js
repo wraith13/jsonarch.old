@@ -716,6 +716,22 @@ var Jsonarch;
             return { result: result, originMap: originMap, };
         }
     };
+    Jsonarch.makeIntermediate = function (entry, value, origin) { return __awaiter(_this, void 0, void 0, function () {
+        var _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    _c = {
+                        $arch: "intermediate"
+                    };
+                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, value)];
+                case 1: return [2 /*return*/, (_c.type = _d.sent(),
+                        _c.value = value,
+                        _c.origin = origin,
+                        _c)];
+            }
+        });
+    }); };
     Jsonarch.toErrorStatusFromEvaluateEntry = function (entry) {
         var _c;
         return ({
@@ -951,7 +967,10 @@ var Jsonarch;
     };
     Jsonarch.evaluateStaticResultType = function (entry) {
         return Jsonarch.profile(entry, "evaluateStaticResultType", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
-            return [2 /*return*/, Jsonarch.typeOfResult(entry, entry.template.return)];
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.typeOfResult(entry, entry.template.return)];
+                case 1: return [2 /*return*/, _c.sent()];
+            }
         }); }); });
     };
     Jsonarch.isIncludeStaticJsonData = Jsonarch.isJsonarch("include-static-json");
