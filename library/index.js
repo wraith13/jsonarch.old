@@ -716,19 +716,88 @@ var Jsonarch;
             return { result: result, originMap: originMap, };
         }
     };
-    Jsonarch.makeIntermediate = function (entry, value, origin) { return __awaiter(_this, void 0, void 0, function () {
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+    // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
+    // ({
+    //     $arch: "intermediate",
+    //     type: await typeOfResult(entry, value),
+    //     value,
+    //     origin,
+    // });
+    Jsonarch.makeIntermediate = function (entry, target, origin) { return __awaiter(_this, void 0, void 0, function () {
+        var value, result_5, _c, _d, _e, i, ix, v, _f, _g, result_6, keys, _h, _j, _k, i, key, v, _l, _m, result;
+        var _o;
+        return __generator(this, function (_p) {
+            switch (_p.label) {
                 case 0:
-                    _c = {
+                    value = target;
+                    if (!Array.isArray(value)) return [3 /*break*/, 6];
+                    result_5 = [];
+                    _c = [];
+                    for (_d in value)
+                        _c.push(_d);
+                    _e = 0;
+                    _p.label = 1;
+                case 1:
+                    if (!(_e < _c.length)) return [3 /*break*/, 5];
+                    i = _c[_e];
+                    ix = parseInt(i);
+                    v = value[ix];
+                    if (!Jsonarch.isIntermediate(v)) return [3 /*break*/, 2];
+                    result_5.push(v);
+                    return [3 /*break*/, 4];
+                case 2:
+                    _g = (_f = result_5).push;
+                    return [4 /*yield*/, Jsonarch.makeIntermediate(entry, v, Jsonarch.makeOrigin(origin, ix))];
+                case 3:
+                    _g.apply(_f, [_p.sent()]);
+                    _p.label = 4;
+                case 4:
+                    _e++;
+                    return [3 /*break*/, 1];
+                case 5:
+                    value = result_5;
+                    return [3 /*break*/, 12];
+                case 6:
+                    if (!(null !== value && "object" === typeof value)) return [3 /*break*/, 12];
+                    result_6 = {};
+                    keys = Jsonarch.objectKeys(value);
+                    _h = [];
+                    for (_j in keys)
+                        _h.push(_j);
+                    _k = 0;
+                    _p.label = 7;
+                case 7:
+                    if (!(_k < _h.length)) return [3 /*break*/, 11];
+                    i = _h[_k];
+                    key = keys[i];
+                    v = value[key];
+                    if (!Jsonarch.isIntermediate(v)) return [3 /*break*/, 9];
+                    _l = result_6;
+                    _m = key;
+                    return [4 /*yield*/, Jsonarch.makeIntermediate(entry, v, Jsonarch.makeOrigin(origin, key))];
+                case 8:
+                    _l[_m] = _p.sent();
+                    return [3 /*break*/, 10];
+                case 9:
+                    result_6[key] = v;
+                    _p.label = 10;
+                case 10:
+                    _k++;
+                    return [3 /*break*/, 7];
+                case 11:
+                    value = result_6;
+                    _p.label = 12;
+                case 12:
+                    _o = {
                         $arch: "intermediate"
                     };
                     return [4 /*yield*/, Jsonarch.typeOfResult(entry, value)];
-                case 1: return [2 /*return*/, (_c.type = _d.sent(),
-                        _c.value = value,
-                        _c.origin = origin,
-                        _c)];
+                case 13:
+                    result = (_o.type = _p.sent(),
+                        _o.value = value,
+                        _o.origin = origin,
+                        _o);
+                    return [2 /*return*/, result];
             }
         });
     }); };

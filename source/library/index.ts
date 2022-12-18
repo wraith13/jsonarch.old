@@ -951,13 +951,63 @@ export module Jsonarch
             return { result, originMap, };
         }
     };
-    export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
-    ({
-        $arch: "intermediate",
-        type: await typeOfResult(entry, value),
-        value,
-        origin,
-    });
+    // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
+    // ({
+    //     $arch: "intermediate",
+    //     type: await typeOfResult(entry, value),
+    //     value,
+    //     origin,
+    // });
+    export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin): Promise<Intermediate> =>
+    {
+        let value = target;
+        if (Array.isArray(value))
+        {
+            const result: Jsonable[] = [ ];
+            for(const i in value)
+            {
+                const ix = parseInt(i);
+                const v = value[ix];
+                if (isIntermediate(v))
+                {
+                    result.push(v);
+                }
+                else
+                {
+                    result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
+                }
+            }
+            value = result;
+        }
+        else
+        if (null !== value && "object" === typeof value)
+        {
+            const result: JsonableObject = { };
+            const keys = objectKeys<JsonableObject>(value);
+            for(const i in keys)
+            {
+                const key = keys[i];
+                const v = value[key];
+                if (isIntermediate(v))
+                {
+                    result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
+                }
+                else
+                {
+                    result[key] = v;
+                }
+            }
+            value = result;
+        }
+        const result: Intermediate =
+        {
+            $arch: "intermediate",
+            type: await typeOfResult(entry, value),
+            value,
+            origin,
+        };
+        return result;
+    };
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;

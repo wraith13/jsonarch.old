@@ -348,7 +348,7 @@ export declare module Jsonarch {
         result: Jsonable;
         originMap: OriginMap;
     };
-    export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin) => Promise<Intermediate>;
+    export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin) => Promise<Intermediate>;
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;
