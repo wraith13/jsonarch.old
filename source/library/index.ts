@@ -1008,6 +1008,8 @@ export module Jsonarch
         };
         return result;
     };
+    export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
+        isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;

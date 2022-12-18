@@ -801,6 +801,9 @@ var Jsonarch;
             }
         });
     }); };
+    Jsonarch.getValueFromIntermediateOrValue = function (intermediateOrValue) {
+        return Jsonarch.isIntermediate(intermediateOrValue) ? intermediateOrValue.value : intermediateOrValue;
+    };
     Jsonarch.toErrorStatusFromEvaluateEntry = function (entry) {
         var _c;
         return ({
