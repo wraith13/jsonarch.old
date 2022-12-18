@@ -2549,6 +2549,9 @@ var Jsonarch;
             if (rest.length <= 0) {
                 return current;
             }
+            if (Jsonarch.isIntermediate(current)) {
+                current = current.value;
+            }
             if (undefined === current || null === current || "object" !== typeof current) {
                 return undefined;
             }

@@ -3452,6 +3452,10 @@ export module Jsonarch
             {
                 return current;
             }
+            if (isIntermediate(current))
+            {
+                current = <Structure<Element>>current.value;
+            }
             if (undefined === current || null === current || "object" !== typeof current)
             {
                 return undefined;
