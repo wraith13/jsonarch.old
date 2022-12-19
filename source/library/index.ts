@@ -3773,6 +3773,11 @@ export module Jsonarch
         else
         if ("object" === typeof json)
         {
+            if (isIntermediate(json))
+            {
+                return json.type;
+            }
+            else
             if (isLazy(json))
             {
                 return await evaluateLazyResultType(entry, json);

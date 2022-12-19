@@ -2757,7 +2757,7 @@ var Jsonarch;
                     else {
                         return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
                     }
-                    return [3 /*break*/, 14];
+                    return [3 /*break*/, 15];
                 case 4:
                     if (!("string" === typeof json)) return [3 /*break*/, 5];
                     return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
@@ -2767,33 +2767,36 @@ var Jsonarch;
                     return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
                 case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
                 case 7:
-                    if (!("object" === typeof json)) return [3 /*break*/, 14];
-                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 9];
+                    if (!("object" === typeof json)) return [3 /*break*/, 15];
+                    if (!Jsonarch.isIntermediate(json)) return [3 /*break*/, 8];
+                    return [2 /*return*/, json.type];
+                case 8:
+                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 10];
                     return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
-                case 8: return [2 /*return*/, _j.sent()];
-                case 9:
+                case 9: return [2 /*return*/, _j.sent()];
+                case 10:
                     member = {};
                     keys = Jsonarch.objectKeys(json);
                     _c = [];
                     for (_d in keys)
                         _c.push(_d);
                     _e = 0;
-                    _j.label = 10;
-                case 10:
-                    if (!(_e < _c.length)) return [3 /*break*/, 13];
+                    _j.label = 11;
+                case 11:
+                    if (!(_e < _c.length)) return [3 /*break*/, 14];
                     i = _c[_e];
                     key = keys[i];
                     _f = member;
                     _g = key;
                     return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
-                case 11:
-                    _f[_g] = _j.sent();
-                    _j.label = 12;
                 case 12:
+                    _f[_g] = _j.sent();
+                    _j.label = 13;
+                case 13:
                     _e++;
-                    return [3 /*break*/, 10];
-                case 13: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
-                case 14: 
+                    return [3 /*break*/, 11];
+                case 14: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
+                case 15: 
                 // else
                 // if ("function" === typeof json)
                 // {
