@@ -314,6 +314,7 @@ export module Jsonarch
     export const isBoolean = (value: unknown): value is boolean => "boolean" === typeof value;
     export const isNumber = (value: unknown): value is number => "number" === typeof value;
     export const isString = (value: unknown): value is string => "string" === typeof value;
+    export const isFunction = <FunctionType extends Function>(value: unknown): value is FunctionType => "function" === typeof value;
     export const isObject = <T extends { }>(isMember: Required<{ [key in keyof T]: IsType<T[key]> }>): (value: unknown) => value is T =>
         (value: unknown): value is T =>
             null !== value &&
@@ -750,6 +751,15 @@ export module Jsonarch
         originMap?: OriginMap;
         caller: FullRefer;
     }
+    export const isCallStackEntry = (value: unknown): value is CallStackEntry =>
+        isObject<CallStackEntry>
+        ({
+            path: isFullRefer,
+            parameter: isJsonable,
+            originMap: isUndefinedOr(isOriginMap),
+            caller: isFullRefer,
+        })
+        (value);
     export const makeCallStack = (callStack: CallStackEntry[], next: CallStackEntry) => [ ...callStack, next];
     export interface ReturnOrigin extends JsonableObject
     {
@@ -811,6 +821,7 @@ export module Jsonarch
     {
         load?: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
     }
+    export const isHandler = isObject<Handler>({ load: isUndefinedOr(isFunction<(entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>>), });
     interface EvaluateEntry<TemplateType extends Jsonable>
     {
         context: Context;
@@ -830,6 +841,21 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
     }
+    export const isEvaluateEntry = <TemplateType extends Jsonable>(isTemplateType: (template: unknown) => template is TemplateType) =>
+        isObject<EvaluateEntry<TemplateType>>
+        ({
+            context: isContext,
+            this: isUndefinedOr(isObject({ template: isTemplateData, path: isFullRefer, })),
+            template: isTemplateType,
+            parameter: isUndefinedOr(isJsonable),
+            callStack: isArray(isCallStackEntry),
+            path: isFullRefer,
+            originMap: isUndefinedOr(isOriginMap),
+            scope: isUndefinedOr(isJsonableObject),
+            cache: isCache,
+            setting: isSetting,
+            handler: isHandler,
+        });
     interface Lazy extends AlphaJsonarch
     {
         $arch: "lazy";
@@ -1354,7 +1380,7 @@ export module Jsonarch
     }
     export type FullRefer = RootFullRefer | LeafFullRefer;
     export const isLeafFullRefer = isObject({ root: isOriginRoot, refer: isRefer, });
-    export const isFullRefer = isTypeOr(isRootFullRefer, isLeafFullRefer);
+    export const isFullRefer = (value: unknown): value is FullRefer => isTypeOr(isRootFullRefer, isLeafFullRefer)(value);
     export const toLeafFullRefer = (refer: FullRefer): LeafFullRefer => isRootFullRefer(refer) ? { root: refer.root, refer: [], }: refer;
     export const regulateFullRefer = (refer: FullRefer): FullRefer => isLeafFullRefer(refer) && refer.refer.length <= 0 ? { root: refer.root, refer: "root", }: refer;
     export const resolveThisPath = (this_: FullRefer | undefined, path: FullRefer): FullRefer => this_ && "this" === path.refer[0] ?
@@ -1920,6 +1946,7 @@ export module Jsonarch
                     ...caseTypes,
                     await typeOfResult
                     (
+                        <EvaluateEntry<Jsonable>>
                         {
                             ...entry,
                             parameter,
@@ -2227,6 +2254,7 @@ export module Jsonarch
             // const scope = { ...entry.scope, $loop: { index, } };
             const loopType = await typeOfResult
             (
+                <EvaluateEntry<Jsonable>>
                 {
                     ...entry,
                     path: makeFullRefer(entry.path, "loop"),
@@ -3732,7 +3760,7 @@ export module Jsonarch
     
         }
     );
-    export const typeOfResult = async (entry: EvaluateEntry<Jsonable>, json: Jsonable | undefined): Promise<Type> =>
+    export const typeOfResult = async (entry: ContextOrEntry, json: Jsonable | undefined): Promise<Type> =>
     {
         if (undefined === json)
         {
@@ -3780,7 +3808,14 @@ export module Jsonarch
             else
             if (isLazy(json))
             {
-                return await evaluateLazyResultType(entry, json);
+                if (isEvaluateEntry(isJsonable)(entry))
+                {
+                    return await evaluateLazyResultType(entry, json);
+                }
+                else
+                {
+                    throw new ErrorJson(undefined, "never: Lazy in Loading");
+                }
             }
             else
             {

@@ -378,6 +378,7 @@ var Jsonarch;
     Jsonarch.isBoolean = function (value) { return "boolean" === typeof value; };
     Jsonarch.isNumber = function (value) { return "number" === typeof value; };
     Jsonarch.isString = function (value) { return "string" === typeof value; };
+    Jsonarch.isFunction = function (value) { return "function" === typeof value; };
     Jsonarch.isObject = function (isMember) {
         return function (value) {
             return null !== value &&
@@ -584,6 +585,14 @@ var Jsonarch;
     };
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
+    Jsonarch.isCallStackEntry = function (value) {
+        return Jsonarch.isObject({
+            path: Jsonarch.isFullRefer,
+            parameter: Jsonarch.isJsonable,
+            originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap),
+            caller: Jsonarch.isFullRefer,
+        })(value);
+    };
     Jsonarch.makeCallStack = function (callStack, next) { return __spreadArray(__spreadArray([], callStack, true), [next], false); };
     Jsonarch.isReturnOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isJsonable, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
@@ -613,6 +622,22 @@ var Jsonarch;
     Jsonarch.isNoneFileLoadEntryStrict = function (isType) { return function (entry) { return Jsonarch.isNoneFileContextStrict(isType)(entry.file); }; };
     Jsonarch.isNetFileLoadEntry = function (entry) { return Jsonarch.isNetFileContext(entry.file); };
     Jsonarch.isLocalFileLoadEntry = function (entry) { return Jsonarch.isLocalFileContext(entry.file); };
+    Jsonarch.isHandler = Jsonarch.isObject({ load: Jsonarch.isUndefinedOr((Jsonarch.isFunction)), });
+    Jsonarch.isEvaluateEntry = function (isTemplateType) {
+        return Jsonarch.isObject({
+            context: Jsonarch.isContext,
+            this: Jsonarch.isUndefinedOr(Jsonarch.isObject({ template: Jsonarch.isTemplateData, path: Jsonarch.isFullRefer, })),
+            template: isTemplateType,
+            parameter: Jsonarch.isUndefinedOr(Jsonarch.isJsonable),
+            callStack: Jsonarch.isArray(Jsonarch.isCallStackEntry),
+            path: Jsonarch.isFullRefer,
+            originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap),
+            scope: Jsonarch.isUndefinedOr(Jsonarch.isJsonableObject),
+            cache: Jsonarch.isCache,
+            setting: Jsonarch.isSetting,
+            handler: Jsonarch.isHandler,
+        });
+    };
     Jsonarch.isLazy = Jsonarch.isJsonarch("lazy");
     Jsonarch.makeLazy = function (entry) {
         var _c;
@@ -1072,7 +1097,7 @@ var Jsonarch;
     Jsonarch.isRefer = Jsonarch.isArray(isTypeOr(Jsonarch.isString, Jsonarch.isNumber));
     Jsonarch.isRootFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isJustValue("root"), });
     Jsonarch.isLeafFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer, });
-    Jsonarch.isFullRefer = isTypeOr(Jsonarch.isRootFullRefer, Jsonarch.isLeafFullRefer);
+    Jsonarch.isFullRefer = function (value) { return isTypeOr(Jsonarch.isRootFullRefer, Jsonarch.isLeafFullRefer)(value); };
     Jsonarch.toLeafFullRefer = function (refer) { return Jsonarch.isRootFullRefer(refer) ? { root: refer.root, refer: [], } : refer; };
     Jsonarch.regulateFullRefer = function (refer) { return Jsonarch.isLeafFullRefer(refer) && refer.refer.length <= 0 ? { root: refer.root, refer: "root", } : refer; };
     Jsonarch.resolveThisPath = function (this_, path) { return this_ && "this" === path.refer[0] ?
@@ -2757,7 +2782,7 @@ var Jsonarch;
                     else {
                         return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
                     }
-                    return [3 /*break*/, 15];
+                    return [3 /*break*/, 17];
                 case 4:
                     if (!("string" === typeof json)) return [3 /*break*/, 5];
                     return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
@@ -2767,36 +2792,39 @@ var Jsonarch;
                     return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
                 case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
                 case 7:
-                    if (!("object" === typeof json)) return [3 /*break*/, 15];
+                    if (!("object" === typeof json)) return [3 /*break*/, 17];
                     if (!Jsonarch.isIntermediate(json)) return [3 /*break*/, 8];
                     return [2 /*return*/, json.type];
                 case 8:
-                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 10];
+                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 12];
+                    if (!Jsonarch.isEvaluateEntry(Jsonarch.isJsonable)(entry)) return [3 /*break*/, 10];
                     return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
                 case 9: return [2 /*return*/, _j.sent()];
-                case 10:
+                case 10: throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading");
+                case 11: return [3 /*break*/, 17];
+                case 12:
                     member = {};
                     keys = Jsonarch.objectKeys(json);
                     _c = [];
                     for (_d in keys)
                         _c.push(_d);
                     _e = 0;
-                    _j.label = 11;
-                case 11:
-                    if (!(_e < _c.length)) return [3 /*break*/, 14];
+                    _j.label = 13;
+                case 13:
+                    if (!(_e < _c.length)) return [3 /*break*/, 16];
                     i = _c[_e];
                     key = keys[i];
                     _f = member;
                     _g = key;
                     return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
-                case 12:
+                case 14:
                     _f[_g] = _j.sent();
-                    _j.label = 13;
-                case 13:
+                    _j.label = 15;
+                case 15:
                     _e++;
-                    return [3 /*break*/, 11];
-                case 14: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
-                case 15: 
+                    return [3 /*break*/, 13];
+                case 16: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
+                case 17: 
                 // else
                 // if ("function" === typeof json)
                 // {

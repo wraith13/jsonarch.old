@@ -40,6 +40,7 @@ export declare module Jsonarch {
     export const isBoolean: (value: unknown) => value is boolean;
     export const isNumber: (value: unknown) => value is number;
     export const isString: (value: unknown) => value is string;
+    export const isFunction: <FunctionType extends Function>(value: unknown) => value is FunctionType;
     export const isObject: <T extends {}>(isMember: Required<{ [key in keyof T]: IsType<T[key]>; }>) => (value: unknown) => value is T;
     export const isMapObject: <T extends {
         [key: string]: U;
@@ -257,6 +258,7 @@ export declare module Jsonarch {
         originMap?: OriginMap;
         caller: FullRefer;
     }
+    export const isCallStackEntry: (value: unknown) => value is CallStackEntry;
     export const makeCallStack: (callStack: CallStackEntry[], next: CallStackEntry) => CallStackEntry[];
     export interface ReturnOrigin extends JsonableObject {
         root: OriginRoot;
@@ -305,6 +307,7 @@ export declare module Jsonarch {
     export interface Handler {
         load?: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
     }
+    export const isHandler: (value: unknown) => value is Handler;
     interface EvaluateEntry<TemplateType extends Jsonable> {
         context: Context;
         this?: {
@@ -321,6 +324,7 @@ export declare module Jsonarch {
         setting: Setting;
         handler: Handler;
     }
+    export const isEvaluateEntry: <TemplateType_1 extends Jsonable>(isTemplateType: (template: unknown) => template is TemplateType_1) => (value: unknown) => value is EvaluateEntry<TemplateType_1>;
     interface Lazy extends AlphaJsonarch {
         $arch: "lazy";
         thisPath?: FullRefer;
@@ -432,13 +436,7 @@ export declare module Jsonarch {
         root: OriginRoot;
         refer: (string | number)[];
     };
-    export const isFullRefer: IsType<{
-        root: OriginRoot;
-        refer: string;
-    } | {
-        root: OriginRoot;
-        refer: (string | number)[];
-    }>;
+    export const isFullRefer: (value: unknown) => value is FullRefer;
     export const toLeafFullRefer: (refer: FullRefer) => LeafFullRefer;
     export const regulateFullRefer: (refer: FullRefer) => FullRefer;
     export const resolveThisPath: (this_: FullRefer | undefined, path: FullRefer) => FullRefer;
@@ -802,7 +800,7 @@ export declare module Jsonarch {
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
-    export const typeOfResult: (entry: EvaluateEntry<Jsonable>, json: Jsonable | undefined) => Promise<Type>;
+    export const typeOfResult: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateValueResultType: (entry: EvaluateEntry<Value>) => Promise<Type>;
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
