@@ -1760,8 +1760,8 @@ var Jsonarch;
     }); };
     Jsonarch.validateReturnType = function (entry, parameterInfo, result) {
         var parameter = parameterInfo.parameter;
-        var parameterType = Jsonarch.typeOfJsonable(parameter);
-        var resultType = Jsonarch.typeOfJsonable(result);
+        var parameterType = Jsonarch.isIntermediate(parameter) ? parameter.type : Jsonarch.typeOfJsonable(parameter);
+        var resultType = Jsonarch.isIntermediate(result) ? result.type : Jsonarch.typeOfJsonable(result);
         var type = parameterInfo.type;
         var compareTypeResult = Jsonarch.compareType(type.return, resultType);
         if (Jsonarch.isBaseOrEqual(compareTypeResult)) {
@@ -2761,79 +2761,84 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.typeOfResult = function (entry, json) { return __awaiter(_this, void 0, void 0, function () {
-        var member, keys, _c, _d, _e, i, key, _f, _g;
-        var _h;
-        return __generator(this, function (_j) {
-            switch (_j.label) {
-                case 0:
-                    if (!(undefined === json)) return [3 /*break*/, 1];
-                    return [2 /*return*/, { $arch: "type", type: "never", }];
-                case 1:
-                    if (!(null === json)) return [3 /*break*/, 2];
-                    return [2 /*return*/, { $arch: "type", type: "null", }];
-                case 2:
-                    if (!("boolean" === typeof json)) return [3 /*break*/, 3];
-                    return [2 /*return*/, { $arch: "type", type: "boolean", enum: [json,], }];
-                case 3:
-                    if (!("number" === typeof json)) return [3 /*break*/, 4];
-                    if (isNaN(json) || (!isFinite(json))) {
-                        return [2 /*return*/, { $arch: "type", type: "null", }];
-                    }
-                    else {
-                        return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
-                    }
-                    return [3 /*break*/, 17];
-                case 4:
-                    if (!("string" === typeof json)) return [3 /*break*/, 5];
-                    return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
-                case 5:
-                    if (!Array.isArray(json)) return [3 /*break*/, 7];
-                    _h = { $arch: "type", type: "tuple" };
-                    return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
-                case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
-                case 7:
-                    if (!("object" === typeof json)) return [3 /*break*/, 17];
-                    if (!Jsonarch.isIntermediate(json)) return [3 /*break*/, 8];
-                    return [2 /*return*/, json.type];
-                case 8:
-                    if (!Jsonarch.isLazy(json)) return [3 /*break*/, 12];
-                    if (!Jsonarch.isEvaluateEntry(Jsonarch.isJsonable)(entry)) return [3 /*break*/, 10];
-                    return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
-                case 9: return [2 /*return*/, _j.sent()];
-                case 10: throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading");
-                case 11: return [3 /*break*/, 17];
-                case 12:
-                    member = {};
-                    keys = Jsonarch.objectKeys(json);
-                    _c = [];
-                    for (_d in keys)
-                        _c.push(_d);
-                    _e = 0;
-                    _j.label = 13;
-                case 13:
-                    if (!(_e < _c.length)) return [3 /*break*/, 16];
-                    i = _c[_e];
-                    key = keys[i];
-                    _f = member;
-                    _g = key;
-                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
-                case 14:
-                    _f[_g] = _j.sent();
-                    _j.label = 15;
-                case 15:
-                    _e++;
-                    return [3 /*break*/, 13];
-                case 16: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
-                case 17: 
-                // else
-                // if ("function" === typeof json)
-                // {
-                //     return { $arch: "type", type: "function", };
-                // }
-                // else
-                // {
-                return [2 /*return*/, { $arch: "type", type: "never", }];
-            }
+        var _this = this;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.profile(entry, "typeOfResult", function () { return __awaiter(_this, void 0, void 0, function () {
+                    var member, keys, _c, _d, _e, i, key, _f, _g;
+                    var _h;
+                    return __generator(this, function (_j) {
+                        switch (_j.label) {
+                            case 0:
+                                if (!(undefined === json)) return [3 /*break*/, 1];
+                                return [2 /*return*/, { $arch: "type", type: "never", }];
+                            case 1:
+                                if (!(null === json)) return [3 /*break*/, 2];
+                                return [2 /*return*/, { $arch: "type", type: "null", }];
+                            case 2:
+                                if (!("boolean" === typeof json)) return [3 /*break*/, 3];
+                                return [2 /*return*/, { $arch: "type", type: "boolean", enum: [json,], }];
+                            case 3:
+                                if (!("number" === typeof json)) return [3 /*break*/, 4];
+                                if (isNaN(json) || (!isFinite(json))) {
+                                    return [2 /*return*/, { $arch: "type", type: "null", }];
+                                }
+                                else {
+                                    return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
+                                }
+                                return [3 /*break*/, 17];
+                            case 4:
+                                if (!("string" === typeof json)) return [3 /*break*/, 5];
+                                return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
+                            case 5:
+                                if (!Array.isArray(json)) return [3 /*break*/, 7];
+                                _h = { $arch: "type", type: "tuple" };
+                                return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
+                            case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
+                            case 7:
+                                if (!("object" === typeof json)) return [3 /*break*/, 17];
+                                if (!Jsonarch.isIntermediate(json)) return [3 /*break*/, 8];
+                                return [2 /*return*/, json.type];
+                            case 8:
+                                if (!Jsonarch.isLazy(json)) return [3 /*break*/, 12];
+                                if (!Jsonarch.isEvaluateEntry(Jsonarch.isJsonable)(entry)) return [3 /*break*/, 10];
+                                return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
+                            case 9: return [2 /*return*/, _j.sent()];
+                            case 10: throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading");
+                            case 11: return [3 /*break*/, 17];
+                            case 12:
+                                member = {};
+                                keys = Jsonarch.objectKeys(json);
+                                _c = [];
+                                for (_d in keys)
+                                    _c.push(_d);
+                                _e = 0;
+                                _j.label = 13;
+                            case 13:
+                                if (!(_e < _c.length)) return [3 /*break*/, 16];
+                                i = _c[_e];
+                                key = keys[i];
+                                _f = member;
+                                _g = key;
+                                return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
+                            case 14:
+                                _f[_g] = _j.sent();
+                                _j.label = 15;
+                            case 15:
+                                _e++;
+                                return [3 /*break*/, 13];
+                            case 16: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
+                            case 17: 
+                            // else
+                            // if ("function" === typeof json)
+                            // {
+                            //     return { $arch: "type", type: "function", };
+                            // }
+                            // else
+                            // {
+                            return [2 /*return*/, { $arch: "type", type: "never", }];
+                        }
+                    });
+                }); })];
         });
     }); };
     Jsonarch.evaluateValue = function (entry) { return Jsonarch.profile(entry, "evaluateValue", function () { return __awaiter(_this, void 0, void 0, function () {
@@ -2886,25 +2891,29 @@ var Jsonarch;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
+                    if (!Jsonarch.isIntermediate(entry.template)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Jsonarch.evaluate(__assign(__assign({}, entry), { template: entry.template.value }))];
+                case 1: return [2 /*return*/, _f.sent()];
+                case 2:
                     _c = [];
                     for (_d in evaluatorList)
                         _c.push(_d);
                     _e = 0;
-                    _f.label = 1;
-                case 1:
-                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    _f.label = 3;
+                case 3:
+                    if (!(_e < _c.length)) return [3 /*break*/, 6];
                     i = _c[_e];
                     return [4 /*yield*/, evaluatorList[i](entry)];
-                case 2:
+                case 4:
                     result = _f.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
-                    _f.label = 3;
-                case 3:
+                    _f.label = 5;
+                case 5:
                     _e++;
-                    return [3 /*break*/, 1];
-                case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    return [3 /*break*/, 3];
+                case 6: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
                     template: entry.template,
                 });
             }
@@ -3120,7 +3129,7 @@ var Jsonarch;
         }); });
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
-    Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.applyRootOriginal = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
         var handler, context, callStack, path, rootEvaluateEntry, output, _c, _d, _e, _f, profile_1, result, error_2, profile_2, result;
         return __generator(this, function (_g) {
             switch (_g.label) {
@@ -3196,6 +3205,88 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.applyRootNew = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
+        var handler, context, callStack, path, bootEvaluateEntry, intermediateTemplate, rootEvaluateEntry, output, _c, _d, _e, _f, profile_3, result, error_3, profile_4, result;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
+                case 0:
+                    handler = entry.handler;
+                    context = {
+                        template: entry.template,
+                        paremter: entry.parameter,
+                        cache: entry.cache,
+                        setting: entry.setting,
+                        profile: Jsonarch.makeProfile(),
+                    };
+                    callStack = [];
+                    path = { root: entry.template, refer: [] };
+                    bootEvaluateEntry = {
+                        context: context,
+                        template: template,
+                        callStack: callStack,
+                        path: path,
+                        // origin,
+                        parameter: parameter,
+                        cache: cache,
+                        setting: setting,
+                        handler: handler,
+                        originMap: (entry.parameter ?
+                            ({
+                                paremter: {
+                                    root: entry.parameter,
+                                    refer: "root",
+                                },
+                            }) :
+                            undefined),
+                    };
+                    return [4 /*yield*/, Jsonarch.makeIntermediate(bootEvaluateEntry, template, entry.template)];
+                case 1:
+                    intermediateTemplate = _g.sent();
+                    rootEvaluateEntry = __assign(__assign({}, bootEvaluateEntry), { template: intermediateTemplate });
+                    _g.label = 2;
+                case 2:
+                    _g.trys.push([2, 8, , 9]);
+                    _c = Jsonarch.decode;
+                    if (!("resolveLazy" === lazy)) return [3 /*break*/, 5];
+                    _e = Jsonarch.resolveLazy;
+                    _f = [rootEvaluateEntry];
+                    return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                case 3: return [4 /*yield*/, _e.apply(void 0, _f.concat([_g.sent()]))];
+                case 4:
+                    _d = _g.sent();
+                    return [3 /*break*/, 7];
+                case 5: return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                case 6:
+                    _d = _g.sent();
+                    _g.label = 7;
+                case 7:
+                    output = _c.apply(void 0, [_d]);
+                    profile_3 = Jsonarch.makeProfileReport(context.profile);
+                    result = {
+                        $arch: "result",
+                        output: output,
+                        profile: profile_3,
+                        cache: cache,
+                        setting: setting,
+                    };
+                    return [2 /*return*/, result];
+                case 8:
+                    error_3 = _g.sent();
+                    profile_4 = Jsonarch.makeProfileReport(context.profile);
+                    result = {
+                        $arch: "result",
+                        output: Jsonarch.parseErrorJson(error_3),
+                        profile: profile_4,
+                        cache: cache,
+                        setting: setting,
+                    };
+                    return [2 /*return*/, result];
+                case 9: return [2 /*return*/];
+            }
+        });
+    }); }); };
+    Jsonarch.applyRoot = Jsonarch.applyRootOriginal;
+    // export const applyRoot = applyRootNew;
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
         var _j, _k;

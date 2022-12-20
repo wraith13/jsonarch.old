@@ -824,6 +824,8 @@ export declare module Jsonarch {
     }
     export const apply: (entry: EvaluateEntry<Jsonable>, lazyable?: boolean) => Promise<Jsonable>;
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
+    export const applyRootOriginal: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
+    export const applyRootNew: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const encode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;

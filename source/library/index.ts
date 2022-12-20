@@ -2383,8 +2383,8 @@ export module Jsonarch
     export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType): ResultType =>
     {
         const parameter = parameterInfo.parameter;
-        const parameterType = typeOfJsonable(parameter);
-        const resultType = typeOfJsonable(result);
+        const parameterType = isIntermediate(parameter) ? parameter.type: typeOfJsonable(parameter);
+        const resultType = isIntermediate(result) ? result.type: typeOfJsonable(result);
         const type = parameterInfo.type;
         const compareTypeResult = compareType(type.return, resultType);
         if (isBaseOrEqual(compareTypeResult))
@@ -3760,85 +3760,88 @@ export module Jsonarch
     
         }
     );
-    export const typeOfResult = async (entry: ContextOrEntry, json: Jsonable | undefined): Promise<Type> =>
-    {
-        if (undefined === json)
+    export const typeOfResult = async (entry: ContextOrEntry, json: Jsonable | undefined): Promise<Type> => profile
+    (
+        entry, "typeOfResult", async () =>
         {
-            return { $arch: "type", type: "never", };
-        }
-        else
-        if (null === json)
-        {
-            return { $arch: "type", type: "null", };
-        }
-        else
-        if ("boolean" === typeof json)
-        {
-            return { $arch: "type", type: "boolean", enum: [ json, ], };
-        }
-        else
-        if ("number" === typeof json)
-        {
-            if (isNaN(json) || ( ! isFinite(json)))
+            if (undefined === json)
+            {
+                return { $arch: "type", type: "never", };
+            }
+            else
+            if (null === json)
             {
                 return { $arch: "type", type: "null", };
             }
             else
+            if ("boolean" === typeof json)
             {
-                return <NumberValueType>{ $arch: "type", type: "number", enum: [ json, ], };
-            }
-        }
-        else
-        if ("string" === typeof json)
-        {
-            return { $arch: "type", type: "string", enum: [ json, ], };
-        }
-        else
-        if (Array.isArray(json))
-        {
-            return { $arch: "type", type: "tuple", list: await Promise.all(json.map(i => typeOfResult(entry, i))), };
-        }
-        else
-        if ("object" === typeof json)
-        {
-            if (isIntermediate(json))
-            {
-                return json.type;
+                return { $arch: "type", type: "boolean", enum: [ json, ], };
             }
             else
-            if (isLazy(json))
+            if ("number" === typeof json)
             {
-                if (isEvaluateEntry(isJsonable)(entry))
+                if (isNaN(json) || ( ! isFinite(json)))
                 {
-                    return await evaluateLazyResultType(entry, json);
+                    return { $arch: "type", type: "null", };
                 }
                 else
                 {
-                    throw new ErrorJson(undefined, "never: Lazy in Loading");
+                    return <NumberValueType>{ $arch: "type", type: "number", enum: [ json, ], };
                 }
             }
             else
+            if ("string" === typeof json)
             {
-                const member: { [key:string]: Type } = { };
-                const keys = objectKeys(json);
-                for(const i in keys)
-                {
-                    const key = keys[i];
-                    member[key] = await typeOfResult(entry, <Jsonable>json[key]);
-                }
-                return { $arch: "type", type: "object", member, };
+                return { $arch: "type", type: "string", enum: [ json, ], };
             }
+            else
+            if (Array.isArray(json))
+            {
+                return { $arch: "type", type: "tuple", list: await Promise.all(json.map(i => typeOfResult(entry, i))), };
+            }
+            else
+            if ("object" === typeof json)
+            {
+                if (isIntermediate(json))
+                {
+                    return json.type;
+                }
+                else
+                if (isLazy(json))
+                {
+                    if (isEvaluateEntry(isJsonable)(entry))
+                    {
+                        return await evaluateLazyResultType(entry, json);
+                    }
+                    else
+                    {
+                        throw new ErrorJson(undefined, "never: Lazy in Loading");
+                    }
+                }
+                else
+                {
+                    const member: { [key:string]: Type } = { };
+                    const keys = objectKeys(json);
+                    for(const i in keys)
+                    {
+                        const key = keys[i];
+                        member[key] = await typeOfResult(entry, <Jsonable>json[key]);
+                    }
+                    return { $arch: "type", type: "object", member, };
+                }
+            }
+            // else
+            // if ("function" === typeof json)
+            // {
+            //     return { $arch: "type", type: "function", };
+            // }
+            // else
+            // {
+                return { $arch: "type", type: "never", };
+            // }
         }
-        // else
-        // if ("function" === typeof json)
-        // {
-        //     return { $arch: "type", type: "function", };
-        // }
-        // else
-        // {
-            return { $arch: "type", type: "never", };
-        // }
-    };
+    );
     export const evaluateValue = (entry: EvaluateEntry<Value>): Promise<Jsonable> => profile
     (
         entry, "evaluateValue", async () =>
@@ -3896,22 +3899,33 @@ export module Jsonarch
     (
         entry, "evaluate", async () =>
         {
-            for(const i in evaluatorList)
+            if (isIntermediate(entry.template))
             {
-                const result = await evaluatorList[i](entry);
-                if (undefined !== result)
-                {
-                    return result;
-                }
+                return await evaluate
+                ({
+                    ...entry,
+                    template: entry.template.value as AlphaJsonarch,
+                });
             }
-            throw new ErrorJson
-            (
-                entry, "Unknown Jsonarch Type",
+            else
+            {
+                for(const i in evaluatorList)
                 {
-                    template: entry.template,
+                    const result = await evaluatorList[i](entry);
+                    if (undefined !== result)
+                    {
+                        return result;
+                    }
                 }
-            );
-            // return entry.template;
+                throw new ErrorJson
+                (
+                    entry, "Unknown Jsonarch Type",
+                    {
+                        template: entry.template,
+                    }
+                );
+                // return entry.template;
+            }
         }
     );
     export const evaluateResultTypeIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) =>
@@ -4132,7 +4146,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRootOriginal = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -4206,6 +4220,88 @@ export module Jsonarch
             }
         }
     );
+    export const applyRootNew = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    (
+        entry, "applyRoot", async () =>
+        {
+            const handler = entry.handler;
+            const context =
+            {
+                template: entry.template,
+                paremter: entry.parameter,
+                cache: entry.cache,
+                setting: entry.setting,
+                profile: makeProfile(),
+            };
+            // const origin = entry.template;
+            const callStack: CallStackEntry[] = [];
+            const path: FullRefer = { root: entry.template, refer: [] };
+            const bootEvaluateEntry: EvaluateEntry<Jsonable> =
+            {
+                context,
+                template,
+                callStack,
+                path,
+                // origin,
+                parameter,
+                cache,
+                setting,
+                handler,
+                originMap: <OriginMap>
+                (
+                    entry.parameter ?
+                    ({
+                        paremter: <Origin>
+                        {
+                            root: entry.parameter,
+                            refer: "root",
+                        },
+                    }):
+                    undefined
+                ),
+            };
+            const intermediateTemplate = await makeIntermediate(bootEvaluateEntry, template, entry.template);
+            const rootEvaluateEntry =
+            {
+                ...bootEvaluateEntry,
+                template: intermediateTemplate,
+            };
+            try
+            {
+                const output = decode
+                (
+                    "resolveLazy" === lazy ?
+                        await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
+                        await apply(rootEvaluateEntry)
+                );
+                const profile = makeProfileReport(context.profile);
+                const result: Result =
+                {
+                    $arch: "result",
+                    output,
+                    profile,
+                    cache,
+                    setting,
+                };
+                return result;
+            }
+            catch(error: any)
+            {
+                const profile = makeProfileReport(context.profile);
+                const result: Result =
+                {
+                    $arch: "result",
+                    output: parseErrorJson(error),
+                    profile,
+                    cache,
+                    setting,
+                };
+                return result;
+            }
+        }
+    );
+    export const applyRoot = applyRootOriginal;
+    // export const applyRoot = applyRootNew;
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
