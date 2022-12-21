@@ -367,6 +367,22 @@ var Jsonarch;
         }
         return value;
     };
+    Jsonarch.getJsonableErrors = function (value, path) {
+        if (path === void 0) { path = "root"; }
+        var result = [];
+        if (Array.isArray(value)) {
+            value.forEach(function (i, ix) { return result.push.apply(result, Jsonarch.getJsonableErrors(i, "".concat(path, "/").concat(ix))); });
+        }
+        else if (null !== value && "object" === typeof value) {
+            Jsonarch.objectKeys(value).forEach(function (key) { return result.push.apply(result, Jsonarch.getJsonableErrors(value[key], "".concat(path, "/").concat(key))); });
+        }
+        else {
+            if (!["boolean", "number", "string"].includes(typeof value)) {
+                result.push(path);
+            }
+        }
+        return result;
+    };
     Jsonarch.isAny = function (_value) { return true; };
     Jsonarch.isJust = function (type) { return function (value) { return type === value; }; };
     Jsonarch.isUndefined = Jsonarch.isJust(undefined);
@@ -551,7 +567,7 @@ var Jsonarch;
     };
     Jsonarch.getSystemFileContext = function (id) { return ({ category: "system", id: id, }); };
     Jsonarch.jsonToFileContext = function (data, hash) {
-        return ({ category: "none", data: data, hash: hash, });
+        return Jsonarch.regulateJsonable({ category: "none", data: data, hash: hash, }, "shallow");
     };
     Jsonarch.pathToFileContext = function (contextOrEntry, path) {
         return (!System.isConsoleMode) || /^https?\:\/\//.test(path) ?
@@ -568,9 +584,9 @@ var Jsonarch;
         }
     };
     Jsonarch.commandLineArgumentToFileContext = function (argument) {
-        return /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), hash: Jsonarch.getHashFromPath(argument), } :
+        return Jsonarch.regulateJsonable(/^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, ""), hash: Jsonarch.getHashFromPath(argument), } :
             /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: Jsonarch.getHashFromPath(argument), } :
-                { category: "local", path: argument, hash: Jsonarch.getHashFromPath(argument), };
+                { category: "local", path: argument, hash: Jsonarch.getHashFromPath(argument), }, "shallow");
     };
     Jsonarch.isContext = Jsonarch.isObject({
         template: Jsonarch.isFileContext,
@@ -593,7 +609,7 @@ var Jsonarch;
             caller: Jsonarch.isFullRefer,
         })(value);
     };
-    Jsonarch.makeCallStack = function (callStack, next) { return __spreadArray(__spreadArray([], callStack, true), [next], false); };
+    Jsonarch.makeCallStack = function (callStack, next) { return __spreadArray(__spreadArray([], callStack, true), [next,], false); };
     Jsonarch.isReturnOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isJsonable, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
     };
@@ -2803,7 +2819,9 @@ var Jsonarch;
                                 if (!Jsonarch.isEvaluateEntry(Jsonarch.isJsonable)(entry)) return [3 /*break*/, 10];
                                 return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
                             case 9: return [2 /*return*/, _j.sent()];
-                            case 10: throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading");
+                            case 10:
+                                console.log(Jsonarch.getJsonableErrors(entry, "entry"));
+                                throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading", Jsonarch.toJsonable(entry));
                             case 11: return [3 /*break*/, 17];
                             case 12:
                                 member = {};

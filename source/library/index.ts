@@ -302,6 +302,27 @@ export module Jsonarch
         }
         return value;
     };
+    export const getJsonableErrors = (value: any, path: string = "root"): string[] =>
+    {
+        const result: string[] = [];
+        if (Array.isArray(value))
+        {
+            value.forEach((i, ix) => result.push(...getJsonableErrors(i, `${path}/${ix}`)));
+        }
+        else
+        if (null !== value && "object" === typeof value)
+        {
+            objectKeys(value).forEach(key => result.push(...getJsonableErrors(value[key], `${path}/${key}`)));
+        }
+        else
+        {
+            if ( ! ["boolean", "number", "string"].includes(typeof value))
+            {
+                result.push(path);
+            }
+        }
+        return result;
+    };
     export type IsType<Type> = (value: unknown) => value is Type;
     export const isAny = (_value: unknown): _value is any => true;
     export const isJust = <Type>(type: Type) => (value: unknown): value is Type => type === value;
@@ -645,7 +666,7 @@ export module Jsonarch
     };
     export const getSystemFileContext = (id: SystemFileType): SystemFileContext => ({ category: "system", id, });
     export const jsonToFileContext = <DataType extends Jsonable = Jsonable>(data: DataType, hash?: HashType): NoneFileContext<DataType> =>
-        ({ category: "none", data, hash, });
+        regulateJsonable({ category: "none", data, hash, }, "shallow");
     export const pathToFileContext = (contextOrEntry: ContextOrEntry, path: string): NetFileContext | LocalFileContext =>
         ( ! System.isConsoleMode) || /^https?\:\/\//.test(path) ?
             { category: "net", path: makeFullPath(contextOrEntry, path), }:
@@ -663,9 +684,13 @@ export module Jsonarch
         }
     };
     export const commandLineArgumentToFileContext = <DataType extends Jsonarch.Jsonable = Jsonarch.Jsonable>(argument: string): FileContext<DataType> =>
-        /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, hash: getHashFromPath(argument), }:
-        /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: getHashFromPath(argument), }:
-        { category: "local", path: argument, hash: getHashFromPath(argument), };
+        regulateJsonable
+        (
+            /^system\:/.test(argument) ? { category: "system", id: argument.replace(/^system\:/, "") as SystemFileType, hash: getHashFromPath(argument), }:
+            /^https?\:\/\//.test(argument) ? { category: "net", path: argument, hash: getHashFromPath(argument), }:
+            { category: "local", path: argument, hash: getHashFromPath(argument), },
+            "shallow"
+        );
     export interface Context
     {
         template: FileContext;
@@ -760,7 +785,7 @@ export module Jsonarch
             caller: isFullRefer,
         })
         (value);
-    export const makeCallStack = (callStack: CallStackEntry[], next: CallStackEntry) => [ ...callStack, next];
+    export const makeCallStack = (callStack: CallStackEntry[], next: CallStackEntry) => [ ...callStack, next, ];
     export interface ReturnOrigin extends JsonableObject
     {
         root: OriginRoot;
@@ -3816,7 +3841,8 @@ export module Jsonarch
                     }
                     else
                     {
-                        throw new ErrorJson(undefined, "never: Lazy in Loading");
+                        console.log(getJsonableErrors(entry, "entry"));
+                        throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
                     }
                 }
                 else

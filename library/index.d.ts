@@ -28,6 +28,7 @@ export declare module Jsonarch {
     export const objectValues: <T extends {}>(target: T) => T[keyof T][];
     export const regulateJsonable: <TargetType extends Jsonable>(value: TargetType, shallowOrDeep: "shallow" | "deep") => TargetType;
     export const toJsonable: (value: any, maxDepth?: number, currentDepth?: number) => Jsonable;
+    export const getJsonableErrors: (value: any, path?: string) => string[];
     export type IsType<Type> = (value: unknown) => value is Type;
     export const isAny: (_value: unknown) => _value is any;
     export const isJust: <Type_1>(type: Type_1) => (value: unknown) => value is Type_1;
