@@ -948,58 +948,49 @@ export module Jsonarch
         origin: Origin;
     }
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
-    export const makeResult = (intermediate: Intermediate, base: Origin): { result: Jsonable; originMap: OriginMap; } =>
+    export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
     {
         const originMap: OriginMap = { };
-        originMap[jsonStringify(base)] = intermediate.origin;
-        if (Array.isArray(intermediate.value))
+        if (isIntermediate(intermediate))
         {
-            const result: Jsonable[] = [ ];
-            for(const i in intermediate.value)
+            originMap[jsonStringify(base)] = intermediate.origin;
+        }
+        const value =getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value))
+        {
+            const output: Jsonable[] = [ ];
+            for(const i in value)
             {
                 const ix = parseInt(i);
-                const value = intermediate.value[ix];
-                if (isIntermediate(value))
-                {
-                    const r = makeResult(value, makeOrigin(base, ix));
-                    result.push(r.result);
-                    Object.assign(originMap, r.originMap);
-                }
-                else
-                {
-                    result.push(value);
-                    // originMap[jsonStringify(makeOrigin(base, ix))] = makeOrigin(intermediate.origin, ix);
-                }
+                const v = value[ix];
+                const r = makeOutput(v, makeOrigin(base, ix));
+                output.push(r.output);
+                Object.assign(originMap, r.originMap);
             }
-            return { result, originMap, };
+            return { output, originMap, };
         }
         else
-        if (null !== intermediate.value && "object" === typeof intermediate.value)
+        if (null !== value && "object" === typeof value)
         {
-            const result: JsonableObject = { };
-            const keys = objectKeys<JsonableObject>(intermediate.value);
+            const output: JsonableObject = { };
+            const keys = objectKeys<JsonableObject>(value);
             for(const i in keys)
             {
                 const key = keys[i];
-                const value = intermediate.value[key];
-                if (isIntermediate(value))
+                const v = value[key];
+                if (undefined !== v)
                 {
-                    const r = makeResult(value, makeOrigin(base, key));
-                    result[key] = r.result;
+                    const r = makeOutput(v, makeOrigin(base, key));
+                    output[key] = r.output;
                     Object.assign(originMap, r.originMap);
                 }
-                else
-                {
-                    result[key] = value;
-                    // originMap[jsonStringify(makeOrigin(base, key))] = makeOrigin(intermediate.origin, key);
-                }
             }
-            return { result, originMap, };
+            return { output, originMap, };
         }
         else
         {
-            const result = intermediate.value;
-            return { result, originMap, };
+            const output = value;
+            return { output, originMap, };
         }
     };
     // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
@@ -4234,6 +4225,7 @@ export module Jsonarch
             catch(error: any)
             {
                 const profile = makeProfileReport(context.profile);
+                console.log(jsonStringify(cache));
                 const result: Result =
                 {
                     $arch: "result",
@@ -4241,7 +4233,7 @@ export module Jsonarch
                     profile,
                     cache,
                     setting,
-                };
+                } as unknown as any;
                 return result;
             }
         }
@@ -4294,17 +4286,19 @@ export module Jsonarch
             };
             try
             {
-                const output = decode
+                const { output, originMap, } = makeOutput
                 (
                     "resolveLazy" === lazy ?
-                        await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
-                        await apply(rootEvaluateEntry)
+                    await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
+                    await apply(rootEvaluateEntry),
+                    entry.template
                 );
                 const profile = makeProfileReport(context.profile);
                 const result: Result =
                 {
                     $arch: "result",
-                    output,
+                    output: decode(output),
+                    originMap,
                     profile,
                     cache,
                     setting,
@@ -4326,8 +4320,8 @@ export module Jsonarch
             }
         }
     );
-    export const applyRoot = applyRootOriginal;
-    // export const applyRoot = applyRootNew;
+    // export const applyRoot = applyRootOriginal;
+    export const applyRoot = applyRootNew;
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
@@ -4352,7 +4346,11 @@ export module Jsonarch
             cache,
             bootSettingJson as Setting
         );
-        const setting: Setting = settingResult?.output as Setting ?? { "$arch": "setting", };
+        if (isError(settingResult.output))
+        {
+            return settingResult;
+        }
+        const setting: Setting = settingResult.output as Setting ?? { "$arch": "setting", };
         const parameterResult = entry.parameter ?
             await applyRoot
             (
@@ -4370,6 +4368,10 @@ export module Jsonarch
             ):
             undefined;
         const parameter = parameterResult?.output;
+        if (parameterResult && isError(parameterResult.output))
+        {
+            return parameterResult;
+        }
         const template = await load({ context: entry, cache, setting, handler, file: entry.template});
         return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
     };

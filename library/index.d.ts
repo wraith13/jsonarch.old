@@ -349,8 +349,8 @@ export declare module Jsonarch {
         origin: Origin;
     }
     export const isIntermediate: (template: unknown) => template is Intermediate;
-    export const makeResult: (intermediate: Intermediate, base: Origin) => {
-        result: Jsonable;
+    export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
+        output: Jsonable;
         originMap: OriginMap;
     };
     export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin) => Promise<Intermediate>;

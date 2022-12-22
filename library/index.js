@@ -714,47 +714,40 @@ var Jsonarch;
     }); };
     Jsonarch.hasLazy = Jsonarch.hasStructureObject(function (value) { return Jsonarch.isLazy(value); });
     Jsonarch.isIntermediate = Jsonarch.isJsonarch("intermediate");
-    Jsonarch.makeResult = function (intermediate, base) {
+    Jsonarch.makeOutput = function (intermediate, base) {
         var originMap = {};
-        originMap[Jsonarch.jsonStringify(base)] = intermediate.origin;
-        if (Array.isArray(intermediate.value)) {
-            var result = [];
-            for (var i in intermediate.value) {
-                var ix = parseInt(i);
-                var value = intermediate.value[ix];
-                if (Jsonarch.isIntermediate(value)) {
-                    var r = Jsonarch.makeResult(value, Jsonarch.makeOrigin(base, ix));
-                    result.push(r.result);
-                    Object.assign(originMap, r.originMap);
-                }
-                else {
-                    result.push(value);
-                    // originMap[jsonStringify(makeOrigin(base, ix))] = makeOrigin(intermediate.origin, ix);
-                }
-            }
-            return { result: result, originMap: originMap, };
+        if (Jsonarch.isIntermediate(intermediate)) {
+            originMap[Jsonarch.jsonStringify(base)] = intermediate.origin;
         }
-        else if (null !== intermediate.value && "object" === typeof intermediate.value) {
-            var result = {};
-            var keys = Jsonarch.objectKeys(intermediate.value);
+        var value = Jsonarch.getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value)) {
+            var output = [];
+            for (var i in value) {
+                var ix = parseInt(i);
+                var v = value[ix];
+                var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, ix));
+                output.push(r.output);
+                Object.assign(originMap, r.originMap);
+            }
+            return { output: output, originMap: originMap, };
+        }
+        else if (null !== value && "object" === typeof value) {
+            var output = {};
+            var keys = Jsonarch.objectKeys(value);
             for (var i in keys) {
                 var key = keys[i];
-                var value = intermediate.value[key];
-                if (Jsonarch.isIntermediate(value)) {
-                    var r = Jsonarch.makeResult(value, Jsonarch.makeOrigin(base, key));
-                    result[key] = r.result;
+                var v = value[key];
+                if (undefined !== v) {
+                    var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, key));
+                    output[key] = r.output;
                     Object.assign(originMap, r.originMap);
                 }
-                else {
-                    result[key] = value;
-                    // originMap[jsonStringify(makeOrigin(base, key))] = makeOrigin(intermediate.origin, key);
-                }
             }
-            return { result: result, originMap: originMap, };
+            return { output: output, originMap: originMap, };
         }
         else {
-            var result = intermediate.value;
-            return { result: result, originMap: originMap, };
+            var output = value;
+            return { output: output, originMap: originMap, };
         }
     };
     // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
@@ -3211,6 +3204,7 @@ var Jsonarch;
                 case 7:
                     error_2 = _g.sent();
                     profile_2 = Jsonarch.makeProfileReport(context.profile);
+                    console.log(Jsonarch.jsonStringify(cache));
                     result = {
                         $arch: "result",
                         output: Jsonarch.parseErrorJson(error_2),
@@ -3224,9 +3218,9 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.applyRootNew = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, bootEvaluateEntry, intermediateTemplate, rootEvaluateEntry, output, _c, _d, _e, _f, profile_3, result, error_3, profile_4, result;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        var handler, context, callStack, path, bootEvaluateEntry, intermediateTemplate, rootEvaluateEntry, _c, output, originMap, _d, _e, _f, _g, profile_3, result, error_3, profile_4, result;
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0:
                     handler = entry.handler;
                     context = {
@@ -3259,37 +3253,38 @@ var Jsonarch;
                     };
                     return [4 /*yield*/, Jsonarch.makeIntermediate(bootEvaluateEntry, template, entry.template)];
                 case 1:
-                    intermediateTemplate = _g.sent();
+                    intermediateTemplate = _h.sent();
                     rootEvaluateEntry = __assign(__assign({}, bootEvaluateEntry), { template: intermediateTemplate });
-                    _g.label = 2;
+                    _h.label = 2;
                 case 2:
-                    _g.trys.push([2, 8, , 9]);
-                    _c = Jsonarch.decode;
+                    _h.trys.push([2, 8, , 9]);
+                    _d = Jsonarch.makeOutput;
                     if (!("resolveLazy" === lazy)) return [3 /*break*/, 5];
-                    _e = Jsonarch.resolveLazy;
-                    _f = [rootEvaluateEntry];
+                    _f = Jsonarch.resolveLazy;
+                    _g = [rootEvaluateEntry];
                     return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
-                case 3: return [4 /*yield*/, _e.apply(void 0, _f.concat([_g.sent()]))];
+                case 3: return [4 /*yield*/, _f.apply(void 0, _g.concat([_h.sent()]))];
                 case 4:
-                    _d = _g.sent();
+                    _e = _h.sent();
                     return [3 /*break*/, 7];
                 case 5: return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
                 case 6:
-                    _d = _g.sent();
-                    _g.label = 7;
+                    _e = _h.sent();
+                    _h.label = 7;
                 case 7:
-                    output = _c.apply(void 0, [_d]);
+                    _c = _d.apply(void 0, [_e, entry.template]), output = _c.output, originMap = _c.originMap;
                     profile_3 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
-                        output: output,
+                        output: Jsonarch.decode(output),
+                        originMap: originMap,
                         profile: profile_3,
                         cache: cache,
                         setting: setting,
                     };
                     return [2 /*return*/, result];
                 case 8:
-                    error_3 = _g.sent();
+                    error_3 = _h.sent();
                     profile_4 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
@@ -3303,8 +3298,8 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.applyRoot = Jsonarch.applyRootOriginal;
-    // export const applyRoot = applyRootNew;
+    // export const applyRoot = applyRootOriginal;
+    Jsonarch.applyRoot = Jsonarch.applyRootNew;
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
         var _j, _k;
@@ -3338,7 +3333,10 @@ var Jsonarch;
                         boot_setting_json_1.default]))];
                 case 5:
                     settingResult = _l.sent();
-                    setting = (_k = settingResult === null || settingResult === void 0 ? void 0 : settingResult.output) !== null && _k !== void 0 ? _k : { "$arch": "setting", };
+                    if (Jsonarch.isError(settingResult.output)) {
+                        return [2 /*return*/, settingResult];
+                    }
+                    setting = (_k = settingResult.output) !== null && _k !== void 0 ? _k : { "$arch": "setting", };
                     if (!entry.parameter) return [3 /*break*/, 8];
                     _g = Jsonarch.applyRoot;
                     _h = [{
@@ -3361,6 +3359,9 @@ var Jsonarch;
                 case 9:
                     parameterResult = _f;
                     parameter = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output;
+                    if (parameterResult && Jsonarch.isError(parameterResult.output)) {
+                        return [2 /*return*/, parameterResult];
+                    }
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.template })];
                 case 10:
                     template = _l.sent();
