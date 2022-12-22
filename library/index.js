@@ -2903,7 +2903,7 @@ var Jsonarch;
             switch (_f.label) {
                 case 0:
                     if (!Jsonarch.isIntermediate(entry.template)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, Jsonarch.evaluate(__assign(__assign({}, entry), { template: entry.template.value }))];
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { template: entry.template.value }))];
                 case 1: return [2 /*return*/, _f.sent()];
                 case 2:
                     _c = [];
@@ -3204,7 +3204,6 @@ var Jsonarch;
                 case 7:
                     error_2 = _g.sent();
                     profile_2 = Jsonarch.makeProfileReport(context.profile);
-                    console.log(Jsonarch.jsonStringify(cache));
                     result = {
                         $arch: "result",
                         output: Jsonarch.parseErrorJson(error_2),
@@ -3298,8 +3297,8 @@ var Jsonarch;
             }
         });
     }); }); };
-    // export const applyRoot = applyRootOriginal;
-    Jsonarch.applyRoot = Jsonarch.applyRootNew;
+    Jsonarch.applyRoot = Jsonarch.applyRootOriginal;
+    // export const applyRoot = applyRootNew;
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
         var _j, _k;

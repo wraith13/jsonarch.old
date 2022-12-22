@@ -3918,7 +3918,7 @@ export module Jsonarch
         {
             if (isIntermediate(entry.template))
             {
-                return await evaluate
+                return await apply
                 ({
                     ...entry,
                     template: entry.template.value as AlphaJsonarch,
@@ -4225,7 +4225,6 @@ export module Jsonarch
             catch(error: any)
             {
                 const profile = makeProfileReport(context.profile);
-                console.log(jsonStringify(cache));
                 const result: Result =
                 {
                     $arch: "result",
@@ -4320,8 +4319,8 @@ export module Jsonarch
             }
         }
     );
-    // export const applyRoot = applyRootOriginal;
-    export const applyRoot = applyRootNew;
+    export const applyRoot = applyRootOriginal;
+    // export const applyRoot = applyRootNew;
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
