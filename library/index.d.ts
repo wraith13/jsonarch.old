@@ -368,6 +368,7 @@ export declare module Jsonarch {
         handler: Handler;
     }
     export const isEvaluateTargetEntry: (entry: EvaluateEntry<Jsonable>) => entry is EvaluateEntry<AlphaJsonarch>;
+    export const isLazyableEvaluateTargetEntry: (entry: EvaluateEntry<Jsonable>) => entry is EvaluateEntry<AlphaJsonarch>;
     export interface Result extends AlphaJsonarch {
         $arch: "result";
         output: Jsonable;

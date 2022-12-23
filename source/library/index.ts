@@ -1081,6 +1081,10 @@ export module Jsonarch
         [ "setting", "cache", ].includes(template.$arch);
     export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
         isAlphaJsonarch(entry.template) && ! isPureDataType(entry.template);
+    const isLazyableJsonarchType = (template: AlphaJsonarch) =>
+        [ "call", ].includes(template.$arch);
+    export const isLazyableEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
+        isAlphaJsonarch(entry.template) && ! isLazyableJsonarchType(entry.template);
     export interface Result extends AlphaJsonarch
     {
         $arch: "result";
@@ -4079,86 +4083,102 @@ export module Jsonarch
         {
             Limit.throwIfOverTheProcessTimeout(entry);
             Limit.throwIfOverTheNestDepth(entry);
-            if (null === entry.template || "object" !== typeof entry.template)
+            const template = entry.template;
+            if (null === template || "object" !== typeof template)
             {
-                return entry.template;
+                return template;
             }
             else
             if (isEvaluateTargetEntry(entry))
             {
-                return lazyable ?
-                    makeLazy(entry):
-                    // <Jsonable><unknown>(async () => await evaluate(entry)):
-                    // await evaluate(entry):
-                    await evaluate(entry);
+                return await profile
+                (
+                    entry, "apply.evaluate", async () =>
+                        lazyable && isLazyableEvaluateTargetEntry(entry) ?
+                            await profile(entry, "apply.makeLazy", async () => jsonParse(jsonStringify(makeLazy(entry)))):
+                            // <Jsonable><unknown>(async () => await evaluate(entry)):
+                            // await evaluate(entry):
+                            await evaluate(entry)
+                );
             }
             else
-            if (Array.isArray(entry.template))
+            if (Array.isArray(template))
             {
-                const maxArrayLength = Limit.getMaxArrayLength(entry);
-                if (maxArrayLength < entry.template.length)
-                {
-                    throw new ErrorJson
-                    (
-                        entry, "Too Long Array Length",
+                return await profile
+                (
+                    entry, "apply.array", async () =>
+                    {
+                        const maxArrayLength = Limit.getMaxArrayLength(entry);
+                        if (maxArrayLength < template.length)
                         {
-                            maxArrayLength,
-                            templateLength: entry.template.length,
+                            throw new ErrorJson
+                            (
+                                entry, "Too Long Array Length",
+                                {
+                                    maxArrayLength,
+                                    templateLength: template.length,
+                                }
+                            );
                         }
-                    );
-                }
-                const nextDepthEntry = Limit.incrementNestDepth(entry);
-                const result: Jsonable[] = [];
-                for(const i in entry.template)
-                {
-                    const ix = parseInt(i);
-                    result.push
-                    (
-                        await apply
-                        (
-                            {
-                                ...nextDepthEntry,
-                                path: makeFullRefer(entry.path, ix),
-                                template: entry.template[ix],
-                            },
-                            lazyable
-                        )
-                    );
-                }
-                return result;
+                        const nextDepthEntry = Limit.incrementNestDepth(entry);
+                        const result: Jsonable[] = [];
+                        for(const i in template)
+                        {
+                            const ix = parseInt(i);
+                            result.push
+                            (
+                                await apply
+                                (
+                                    {
+                                        ...nextDepthEntry,
+                                        path: makeFullRefer(entry.path, ix),
+                                        template: template[ix],
+                                    },
+                                    lazyable
+                                )
+                            );
+                        }
+                        return result;
+                    }
+                );
             }
             else
             {
-                const result: JsonableObject = { };
-                const template = entry.template;
-                const maxObjectMembers = Limit.getMaxObjectMembers(entry);
-                if (maxObjectMembers < objectKeys(template).length)
-                {
-                    throw new ErrorJson
-                    (
-                        entry, "Too Many Object Members",
+                return await profile
+                (
+                    entry, "apply.object", async () =>
+                    {
+                        const result: JsonableObject = { };
+                        const maxObjectMembers = Limit.getMaxObjectMembers(entry);
+                        if (maxObjectMembers < objectKeys(template).length)
                         {
-                            maxObjectMembers,
-                            templateMembers: objectKeys(template).length,
+                            throw new ErrorJson
+                            (
+                                entry, "Too Many Object Members",
+                                {
+                                    maxObjectMembers,
+                                    templateMembers: objectKeys(template).length,
+                                }
+                            );
                         }
-                    );
-                }
-                const nextDepthEntry = Limit.incrementNestDepth(entry);
-                const keys = objectKeys(template);
-                for(const i in keys)
-                {
-                    const key = keys[i];
-                    result[key] = await apply
-                    (
+                        const nextDepthEntry = Limit.incrementNestDepth(entry);
+                        const keys = objectKeys(template);
+                        for(const i in keys)
                         {
-                            ...nextDepthEntry,
-                            path: makeFullRefer(entry.path, key),
-                            template: template[key] as Jsonable,
-                        },
-                        lazyable
-                    );
-                }
-                return result;
+                            const key = keys[i];
+                            result[key] = await apply
+                            (
+                                {
+                                    ...nextDepthEntry,
+                                    path: makeFullRefer(entry.path, key),
+                                    template: template[key] as Jsonable,
+                                },
+                                lazyable
+                            );
+                        }
+                        return result;
+                    }
+                );
             }
         }
     );

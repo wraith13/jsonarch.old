@@ -856,6 +856,12 @@ var Jsonarch;
     Jsonarch.isEvaluateTargetEntry = function (entry) {
         return Jsonarch.isAlphaJsonarch(entry.template) && !isPureDataType(entry.template);
     };
+    var isLazyableJsonarchType = function (template) {
+        return ["call",].includes(template.$arch);
+    };
+    Jsonarch.isLazyableEvaluateTargetEntry = function (entry) {
+        return Jsonarch.isAlphaJsonarch(entry.template) && !isLazyableJsonarchType(entry.template);
+    };
     Jsonarch.isResult = Jsonarch.isJsonarch("result");
     Jsonarch.isError = Jsonarch.isJsonarch("error");
     // export const getTicks = () => new Date().getTime();
@@ -3052,89 +3058,121 @@ var Jsonarch;
     Jsonarch.apply = function (entry, lazyable) {
         if (lazyable === void 0) { lazyable = false; }
         return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-            var _c, maxArrayLength, nextDepthEntry, result, _d, _e, _f, i, ix, _g, _h, result, template, maxObjectMembers, nextDepthEntry, keys, _j, _k, _l, i, key, _m, _o;
-            return __generator(this, function (_p) {
-                switch (_p.label) {
+            var template;
+            var _this = this;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         Limit.throwIfOverTheProcessTimeout(entry);
                         Limit.throwIfOverTheNestDepth(entry);
-                        if (!(null === entry.template || "object" !== typeof entry.template)) return [3 /*break*/, 1];
-                        return [2 /*return*/, entry.template];
-                    case 1:
-                        if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 5];
-                        if (!lazyable) return [3 /*break*/, 2];
-                        _c = Jsonarch.makeLazy(entry);
-                        return [3 /*break*/, 4];
-                    case 2: 
-                    // <Jsonable><unknown>(async () => await evaluate(entry)):
-                    // await evaluate(entry):
-                    return [4 /*yield*/, Jsonarch.evaluate(entry)];
-                    case 3:
-                        // <Jsonable><unknown>(async () => await evaluate(entry)):
-                        // await evaluate(entry):
-                        _c = _p.sent();
-                        _p.label = 4;
-                    case 4: return [2 /*return*/, _c];
-                    case 5:
-                        if (!Array.isArray(entry.template)) return [3 /*break*/, 10];
-                        maxArrayLength = Limit.getMaxArrayLength(entry);
-                        if (maxArrayLength < entry.template.length) {
-                            throw new Jsonarch.ErrorJson(entry, "Too Long Array Length", {
-                                maxArrayLength: maxArrayLength,
-                                templateLength: entry.template.length,
-                            });
-                        }
-                        nextDepthEntry = Limit.incrementNestDepth(entry);
-                        result = [];
-                        _d = [];
-                        for (_e in entry.template)
-                            _d.push(_e);
-                        _f = 0;
-                        _p.label = 6;
-                    case 6:
-                        if (!(_f < _d.length)) return [3 /*break*/, 9];
-                        i = _d[_f];
-                        ix = parseInt(i);
-                        _h = (_g = result).push;
-                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, ix), template: entry.template[ix] }), lazyable)];
-                    case 7:
-                        _h.apply(_g, [_p.sent()]);
-                        _p.label = 8;
-                    case 8:
-                        _f++;
-                        return [3 /*break*/, 6];
-                    case 9: return [2 /*return*/, result];
-                    case 10:
-                        result = {};
                         template = entry.template;
-                        maxObjectMembers = Limit.getMaxObjectMembers(entry);
-                        if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
-                            throw new Jsonarch.ErrorJson(entry, "Too Many Object Members", {
-                                maxObjectMembers: maxObjectMembers,
-                                templateMembers: Jsonarch.objectKeys(template).length,
+                        if (!(null === template || "object" !== typeof template)) return [3 /*break*/, 1];
+                        return [2 /*return*/, template];
+                    case 1:
+                        if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 3];
+                        return [4 /*yield*/, Jsonarch.profile(entry, "apply.evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
+                                var _c;
+                                var _this = this;
+                                return __generator(this, function (_d) {
+                                    switch (_d.label) {
+                                        case 0:
+                                            if (!(lazyable && Jsonarch.isLazyableEvaluateTargetEntry(entry))) return [3 /*break*/, 2];
+                                            return [4 /*yield*/, Jsonarch.profile(entry, "apply.makeLazy", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+                                                    return [2 /*return*/, Jsonarch.jsonParse(Jsonarch.jsonStringify(Jsonarch.makeLazy(entry)))];
+                                                }); }); })];
+                                        case 1:
+                                            _c = _d.sent();
+                                            return [3 /*break*/, 4];
+                                        case 2: 
+                                        // <Jsonable><unknown>(async () => await evaluate(entry)):
+                                        // await evaluate(entry):
+                                        return [4 /*yield*/, Jsonarch.evaluate(entry)];
+                                        case 3:
+                                            // <Jsonable><unknown>(async () => await evaluate(entry)):
+                                            // await evaluate(entry):
+                                            _c = _d.sent();
+                                            _d.label = 4;
+                                        case 4: return [2 /*return*/, _c];
+                                    }
+                                });
+                            }); })];
+                    case 2: return [2 /*return*/, _c.sent()];
+                    case 3:
+                        if (!Array.isArray(template)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, Jsonarch.profile(entry, "apply.array", function () { return __awaiter(_this, void 0, void 0, function () {
+                                var maxArrayLength, nextDepthEntry, result, _c, _d, _e, i, ix, _f, _g;
+                                return __generator(this, function (_h) {
+                                    switch (_h.label) {
+                                        case 0:
+                                            maxArrayLength = Limit.getMaxArrayLength(entry);
+                                            if (maxArrayLength < template.length) {
+                                                throw new Jsonarch.ErrorJson(entry, "Too Long Array Length", {
+                                                    maxArrayLength: maxArrayLength,
+                                                    templateLength: template.length,
+                                                });
+                                            }
+                                            nextDepthEntry = Limit.incrementNestDepth(entry);
+                                            result = [];
+                                            _c = [];
+                                            for (_d in template)
+                                                _c.push(_d);
+                                            _e = 0;
+                                            _h.label = 1;
+                                        case 1:
+                                            if (!(_e < _c.length)) return [3 /*break*/, 4];
+                                            i = _c[_e];
+                                            ix = parseInt(i);
+                                            _g = (_f = result).push;
+                                            return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, ix), template: template[ix] }), lazyable)];
+                                        case 2:
+                                            _g.apply(_f, [_h.sent()]);
+                                            _h.label = 3;
+                                        case 3:
+                                            _e++;
+                                            return [3 /*break*/, 1];
+                                        case 4: return [2 /*return*/, result];
+                                    }
+                                });
+                            }); })];
+                    case 4: return [2 /*return*/, _c.sent()];
+                    case 5: return [4 /*yield*/, Jsonarch.profile(entry, "apply.object", function () { return __awaiter(_this, void 0, void 0, function () {
+                            var result, maxObjectMembers, nextDepthEntry, keys, _c, _d, _e, i, key, _f, _g;
+                            return __generator(this, function (_h) {
+                                switch (_h.label) {
+                                    case 0:
+                                        result = {};
+                                        maxObjectMembers = Limit.getMaxObjectMembers(entry);
+                                        if (maxObjectMembers < Jsonarch.objectKeys(template).length) {
+                                            throw new Jsonarch.ErrorJson(entry, "Too Many Object Members", {
+                                                maxObjectMembers: maxObjectMembers,
+                                                templateMembers: Jsonarch.objectKeys(template).length,
+                                            });
+                                        }
+                                        nextDepthEntry = Limit.incrementNestDepth(entry);
+                                        keys = Jsonarch.objectKeys(template);
+                                        _c = [];
+                                        for (_d in keys)
+                                            _c.push(_d);
+                                        _e = 0;
+                                        _h.label = 1;
+                                    case 1:
+                                        if (!(_e < _c.length)) return [3 /*break*/, 4];
+                                        i = _c[_e];
+                                        key = keys[i];
+                                        _f = result;
+                                        _g = key;
+                                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, key), template: template[key] }), lazyable)];
+                                    case 2:
+                                        _f[_g] = _h.sent();
+                                        _h.label = 3;
+                                    case 3:
+                                        _e++;
+                                        return [3 /*break*/, 1];
+                                    case 4: return [2 /*return*/, result];
+                                }
                             });
-                        }
-                        nextDepthEntry = Limit.incrementNestDepth(entry);
-                        keys = Jsonarch.objectKeys(template);
-                        _j = [];
-                        for (_k in keys)
-                            _j.push(_k);
-                        _l = 0;
-                        _p.label = 11;
-                    case 11:
-                        if (!(_l < _j.length)) return [3 /*break*/, 14];
-                        i = _j[_l];
-                        key = keys[i];
-                        _m = result;
-                        _o = key;
-                        return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, nextDepthEntry), { path: Jsonarch.makeFullRefer(entry.path, key), template: template[key] }), lazyable)];
-                    case 12:
-                        _m[_o] = _p.sent();
-                        _p.label = 13;
-                    case 13:
-                        _l++;
-                        return [3 /*break*/, 11];
-                    case 14: return [2 /*return*/, result];
+                        }); })];
+                    case 6: return [2 /*return*/, _c.sent()];
                 }
             });
         }); });
