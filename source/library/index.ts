@@ -1002,53 +1002,60 @@ export module Jsonarch
     // });
     export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin): Promise<Intermediate> =>
     {
-        let value = target;
-        if (Array.isArray(value))
+        if (isIntermediate(target))
         {
-            const result: Jsonable[] = [ ];
-            for(const i in value)
-            {
-                const ix = parseInt(i);
-                const v = value[ix];
-                if (isIntermediate(v))
-                {
-                    result.push(v);
-                }
-                else
-                {
-                    result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
-                }
-            }
-            value = result;
+            return target;
         }
         else
-        if (null !== value && "object" === typeof value)
         {
-            const result: JsonableObject = { };
-            const keys = objectKeys<JsonableObject>(value);
-            for(const i in keys)
+            let value = target;
+            if (Array.isArray(value))
             {
-                const key = keys[i];
-                const v = value[key];
-                if (isIntermediate(v))
+                const result: Jsonable[] = [ ];
+                for(const i in value)
                 {
-                    result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
+                    const ix = parseInt(i);
+                    const v = value[ix];
+                    if (isIntermediate(v))
+                    {
+                        result.push(v);
+                    }
+                    else
+                    {
+                        result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
+                    }
                 }
-                else
-                {
-                    result[key] = v;
-                }
+                value = result;
             }
-            value = result;
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const result: JsonableObject = { };
+                const keys = objectKeys<JsonableObject>(value);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    const v = value[key];
+                    if (isIntermediate(v))
+                    {
+                        result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
+                    }
+                    else
+                    {
+                        result[key] = v;
+                    }
+                }
+                value = result;
+            }
+            const result: Intermediate =
+            {
+                $arch: "intermediate",
+                type: await typeOfResult(entry, value),
+                value,
+                origin,
+            };
+            return result;
         }
-        const result: Intermediate =
-        {
-            $arch: "intermediate",
-            type: await typeOfResult(entry, value),
-            value,
-            origin,
-        };
-        return result;
     };
     export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
         isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
@@ -4086,12 +4093,13 @@ export module Jsonarch
             const template = entry.template;
             if (null === template || "object" !== typeof template)
             {
-                return template;
+                const result = template;
+                return await makeIntermediate(entry, result, entry.path);
             }
             else
             if (isEvaluateTargetEntry(entry))
             {
-                return await profile
+                const result = await profile
                 (
                     entry, "apply.evaluate", async () =>
                         lazyable && isLazyableEvaluateTargetEntry(entry) ?
@@ -4100,6 +4108,7 @@ export module Jsonarch
                             // await evaluate(entry):
                             await evaluate(entry)
                 );
+                return await makeIntermediate(entry, result, entry.path);
             }
             else
             if (Array.isArray(template))
@@ -4138,7 +4147,7 @@ export module Jsonarch
                                 )
                             );
                         }
-                        return result;
+                        return await makeIntermediate(entry, result, entry.path);
                     }
                 );
             }
@@ -4176,7 +4185,7 @@ export module Jsonarch
                                 lazyable
                             );
                         }
-                        return result;
+                        return await makeIntermediate(entry, result, entry.path);
                     }
                 );
             }
