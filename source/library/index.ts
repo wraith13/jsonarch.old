@@ -1658,9 +1658,16 @@ export module Jsonarch
         else
         if ("object" === typeof json)
         {
-            const member: { [key:string]: Type } = { };
-            objectKeys(json).forEach(i => member[i] = typeOfJsonable(json[i]));
-            return { $arch: "type", type: "object", member, };
+            if (isIntermediate(json))
+            {
+                return json.type;
+            }
+            else
+            {
+                const member: { [key:string]: Type } = { };
+                objectKeys(json).forEach(i => member[i] = typeOfJsonable(json[i]));
+                return { $arch: "type", type: "object", member, };
+            }
         }
         // else
         // if ("function" === typeof json)
@@ -4348,8 +4355,8 @@ export module Jsonarch
             }
         }
     );
-    export const applyRoot = applyRootOriginal;
-    // export const applyRoot = applyRootNew;
+    // export const applyRoot = applyRootOriginal;
+    export const applyRoot = applyRootNew;
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;

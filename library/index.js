@@ -1223,9 +1223,14 @@ var Jsonarch;
             return { $arch: "type", type: "tuple", list: json.map(function (i) { return Jsonarch.typeOfJsonable(i); }), };
         }
         else if ("object" === typeof json) {
-            var member_1 = {};
-            Jsonarch.objectKeys(json).forEach(function (i) { return member_1[i] = Jsonarch.typeOfJsonable(json[i]); });
-            return { $arch: "type", type: "object", member: member_1, };
+            if (Jsonarch.isIntermediate(json)) {
+                return json.type;
+            }
+            else {
+                var member_1 = {};
+                Jsonarch.objectKeys(json).forEach(function (i) { return member_1[i] = Jsonarch.typeOfJsonable(json[i]); });
+                return { $arch: "type", type: "object", member: member_1, };
+            }
         }
         // else
         // if ("function" === typeof json)
@@ -3345,8 +3350,8 @@ var Jsonarch;
             }
         });
     }); }); };
-    Jsonarch.applyRoot = Jsonarch.applyRootOriginal;
-    // export const applyRoot = applyRootNew;
+    // export const applyRoot = applyRootOriginal;
+    Jsonarch.applyRoot = Jsonarch.applyRootNew;
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
         var _j, _k;
