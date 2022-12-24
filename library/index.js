@@ -685,14 +685,15 @@ var Jsonarch;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0: return [4 /*yield*/, Jsonarch.structureObjectAsync(function (value) { return __awaiter(_this, void 0, void 0, function () {
-                                        var _c, _d, _e;
+                                        var solid, _c, _d, _e;
                                         return __generator(this, function (_f) {
                                             switch (_f.label) {
                                                 case 0:
-                                                    if (!Jsonarch.isLazy(value)) return [3 /*break*/, 3];
+                                                    solid = Jsonarch.getValueFromIntermediateOrValue(value);
+                                                    if (!Jsonarch.isLazy(solid)) return [3 /*break*/, 3];
                                                     _d = Jsonarch.resolveLazy;
                                                     _e = [entry];
-                                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, value)];
+                                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, solid)];
                                                 case 1: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent()]))];
                                                 case 2:
                                                     _c = _f.sent();
@@ -750,6 +751,21 @@ var Jsonarch;
             return { output: output, originMap: originMap, };
         }
     };
+    Jsonarch.makeSolid = function (intermediate) {
+        var value = Jsonarch.getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value)) {
+            return value.map(function (i) { return Jsonarch.makeSolid(i); });
+        }
+        else if (null !== value && "object" === typeof value) {
+            var output_1 = {};
+            var keys = Jsonarch.objectKeys(value);
+            keys.forEach(function (key) { return output_1[key] = Jsonarch.makeSolid(value[key]); });
+            return output_1;
+        }
+        else {
+            return value;
+        }
+    };
     // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
     // ({
     //     $arch: "intermediate",
@@ -767,7 +783,7 @@ var Jsonarch;
                     return [2 /*return*/, target];
                 case 1:
                     value = target;
-                    if (!Array.isArray(value)) return [3 /*break*/, 7];
+                    if (!Array.isArray(value)) return [3 /*break*/, 6];
                     result_5 = [];
                     _c = [];
                     for (_d in value)
@@ -775,61 +791,53 @@ var Jsonarch;
                     _e = 0;
                     _p.label = 2;
                 case 2:
-                    if (!(_e < _c.length)) return [3 /*break*/, 6];
+                    if (!(_e < _c.length)) return [3 /*break*/, 5];
                     i = _c[_e];
                     ix = parseInt(i);
                     v = value[ix];
-                    if (!Jsonarch.isIntermediate(v)) return [3 /*break*/, 3];
-                    result_5.push(v);
-                    return [3 /*break*/, 5];
-                case 3:
                     _g = (_f = result_5).push;
                     return [4 /*yield*/, Jsonarch.makeIntermediate(entry, v, Jsonarch.makeOrigin(origin, ix))];
-                case 4:
+                case 3:
                     _g.apply(_f, [_p.sent()]);
-                    _p.label = 5;
-                case 5:
+                    _p.label = 4;
+                case 4:
                     _e++;
                     return [3 /*break*/, 2];
-                case 6:
+                case 5:
                     value = result_5;
-                    return [3 /*break*/, 13];
-                case 7:
-                    if (!(null !== value && "object" === typeof value)) return [3 /*break*/, 13];
+                    return [3 /*break*/, 11];
+                case 6:
+                    if (!(null !== value && "object" === typeof value)) return [3 /*break*/, 11];
                     result_6 = {};
                     keys = Jsonarch.objectKeys(value);
                     _h = [];
                     for (_j in keys)
                         _h.push(_j);
                     _k = 0;
-                    _p.label = 8;
-                case 8:
-                    if (!(_k < _h.length)) return [3 /*break*/, 12];
+                    _p.label = 7;
+                case 7:
+                    if (!(_k < _h.length)) return [3 /*break*/, 10];
                     i = _h[_k];
                     key = keys[i];
                     v = value[key];
-                    if (!Jsonarch.isIntermediate(v)) return [3 /*break*/, 10];
                     _l = result_6;
                     _m = key;
                     return [4 /*yield*/, Jsonarch.makeIntermediate(entry, v, Jsonarch.makeOrigin(origin, key))];
-                case 9:
+                case 8:
                     _l[_m] = _p.sent();
-                    return [3 /*break*/, 11];
+                    _p.label = 9;
+                case 9:
+                    _k++;
+                    return [3 /*break*/, 7];
                 case 10:
-                    result_6[key] = v;
+                    value = result_6;
                     _p.label = 11;
                 case 11:
-                    _k++;
-                    return [3 /*break*/, 8];
-                case 12:
-                    value = result_6;
-                    _p.label = 13;
-                case 13:
                     _o = {
                         $arch: "intermediate"
                     };
                     return [4 /*yield*/, Jsonarch.typeOfResult(entry, value)];
-                case 14:
+                case 12:
                     result = (_o.type = _p.sent(),
                         _o.value = value,
                         _o.origin = origin,
@@ -1712,32 +1720,33 @@ var Jsonarch;
         var _this = this;
         return __generator(this, function (_c) {
             return [2 /*return*/, Jsonarch.profile(entry, "getTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-                    var template, useCache, liquid, _c, cacheKey, result, parameterType_1, _d, types, type;
-                    var _e, _f, _g, _h;
-                    return __generator(this, function (_j) {
-                        switch (_j.label) {
+                    var template, useCache, liquid, _c, _d, cacheKey, result, parameterType_1, _e, types, type;
+                    var _f, _g, _h, _j;
+                    return __generator(this, function (_k) {
+                        switch (_k.label) {
                             case 0:
-                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template }), entry.template.refer, {
+                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }), entry.template.refer, {
                                     template: entry.path,
                                 }
                                 // entry.originMap
                                 );
                                 if (!Jsonarch.isTemplateData(template)) return [3 /*break*/, 9];
                                 if (!template.type) return [3 /*break*/, 7];
-                                useCache = (_g = (_f = entry.template.cache) !== null && _f !== void 0 ? _f : template.cache) !== null && _g !== void 0 ? _g : false;
+                                useCache = (_h = (_g = entry.template.cache) !== null && _g !== void 0 ? _g : template.cache) !== null && _h !== void 0 ? _h : false;
                                 if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 2];
+                                _d = Jsonarch.makeSolid;
                                 return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
                             case 1:
-                                _c = _j.sent();
+                                _c = _d.apply(void 0, [_k.sent()]);
                                 return [3 /*break*/, 3];
                             case 2:
                                 _c = parameter;
-                                _j.label = 3;
+                                _k.label = 3;
                             case 3:
                                 liquid = _c;
                                 cacheKey = useCache ? Jsonarch.makeCallCacheKey(entry.template.refer, liquid) : undefined;
                                 if (undefined !== cacheKey) {
-                                    result = (_h = entry.cache.call) === null || _h === void 0 ? void 0 : _h[cacheKey];
+                                    result = (_j = entry.cache.call) === null || _j === void 0 ? void 0 : _j[cacheKey];
                                     if (undefined !== result) {
                                         return [2 /*return*/, { template: template, parameter: liquid, cacheKey: cacheKey, result: result, }];
                                     }
@@ -1745,13 +1754,13 @@ var Jsonarch;
                                 if (!Jsonarch.hasLazy(liquid)) return [3 /*break*/, 5];
                                 return [4 /*yield*/, Jsonarch.typeOfResult(entry, liquid)];
                             case 4:
-                                _d = _j.sent();
+                                _e = _k.sent();
                                 return [3 /*break*/, 6];
                             case 5:
-                                _d = Jsonarch.typeOfJsonable(liquid);
-                                _j.label = 6;
+                                _e = Jsonarch.typeOfJsonable(liquid);
+                                _k.label = 6;
                             case 6:
-                                parameterType_1 = _d;
+                                parameterType_1 = _e;
                                 types = Array.isArray(template.type) ? template.type : [template.type];
                                 type = types.find(function (t) { return Jsonarch.isBaseOrEqual(Jsonarch.compareType(t.parameter, parameterType_1)); });
                                 if (type) {
@@ -3382,7 +3391,8 @@ var Jsonarch;
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
                 case 4: return [4 /*yield*/, _d.apply(void 0, _e.concat([_l.sent(), null,
                         cache,
-                        boot_setting_json_1.default]))];
+                        boot_setting_json_1.default,
+                        "resolveLazy"]))];
                 case 5:
                     settingResult = _l.sent();
                     if (Jsonarch.isError(settingResult.output)) {

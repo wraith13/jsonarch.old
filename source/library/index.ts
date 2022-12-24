@@ -933,9 +933,13 @@ export module Jsonarch
     (
         entry, "resolveLazy", async () => <Jsonable> await structureObjectAsync
         (
-            async (value: Jsonable) => isLazy(value) ?
-                await resolveLazy(entry, await evaluateLazy(entry, value)):
-                undefined
+            async (value: Jsonable) =>
+            {
+                const solid = getValueFromIntermediateOrValue(value);
+                return isLazy(solid) ?
+                    await resolveLazy(entry, await evaluateLazy(entry, solid)):
+                    undefined;
+            }
         )
         (lazy)
     );
@@ -955,7 +959,7 @@ export module Jsonarch
         {
             originMap[jsonStringify(base)] = intermediate.origin;
         }
-        const value =getValueFromIntermediateOrValue(intermediate);
+        const value = getValueFromIntermediateOrValue(intermediate);
         if (Array.isArray(value))
         {
             const output: Jsonable[] = [ ];
@@ -993,6 +997,26 @@ export module Jsonarch
             return { output, originMap, };
         }
     };
+    export const makeSolid = (intermediate: Intermediate | Jsonable): Jsonable =>
+    {
+        const value = getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value))
+        {
+            return value.map(i => makeSolid(i));
+        }
+        else
+        if (null !== value && "object" === typeof value)
+        {
+            const output: JsonableObject = { };
+            const keys = objectKeys(value);
+            keys.forEach(key => output[key] = makeSolid(value[key] as Intermediate | Jsonable));
+            return output;
+        }
+        else
+        {
+            return value;
+        }
+    };
     // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
     // ({
     //     $arch: "intermediate",
@@ -1016,14 +1040,7 @@ export module Jsonarch
                 {
                     const ix = parseInt(i);
                     const v = value[ix];
-                    if (isIntermediate(v))
-                    {
-                        result.push(v);
-                    }
-                    else
-                    {
-                        result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
-                    }
+                    result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
                 }
                 value = result;
             }
@@ -1035,15 +1052,8 @@ export module Jsonarch
                 for(const i in keys)
                 {
                     const key = keys[i];
-                    const v = value[key];
-                    if (isIntermediate(v))
-                    {
-                        result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
-                    }
-                    else
-                    {
-                        result[key] = v;
-                    }
+                    const v = value[key] as Jsonable;
+                    result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
                 }
                 value = result;
             }
@@ -2354,7 +2364,7 @@ export module Jsonarch
                 {
                     const useCache = entry.template.cache ?? template.cache ?? false;
                     const liquid = "system" === systemOrTemplate || useCache ?
-                        await resolveLazy(entry, parameter ?? null):
+                        makeSolid(await resolveLazy(entry, parameter ?? null)):
                         parameter;
                     const cacheKey = useCache ? makeCallCacheKey(entry.template.refer, liquid): undefined;
                     if (undefined !== cacheKey)
@@ -4379,7 +4389,8 @@ export module Jsonarch
             await load({ context: entry, cache, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
             null,
             cache,
-            bootSettingJson as Setting
+            bootSettingJson as Setting,
+            "resolveLazy"
         );
         if (isError(settingResult.output))
         {

@@ -353,6 +353,7 @@ export declare module Jsonarch {
         output: Jsonable;
         originMap: OriginMap;
     };
+    export const makeSolid: (intermediate: Intermediate | Jsonable) => Jsonable;
     export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin) => Promise<Intermediate>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     interface ErrorStatus extends JsonableObject {
