@@ -855,7 +855,7 @@ export module Jsonarch
             template: Template;
             path: FullRefer;
         };
-        template: TemplateType;
+        template: IntermediateTarget<TemplateType>;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -1386,6 +1386,7 @@ export module Jsonarch
         return: Jsonable;
     }
     export const isStaticData = isJsonarch<StaticTemplate>("static");
+    export const isIntermediateStaticData = isIntermediateJsonarch<StaticTemplate>("static");
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
         profile(entry, "evaluateStatic", async () => encode(entry.template.return));
     export const evaluateStaticResultType = (entry: EvaluateEntry<StaticTemplate>): Promise<Type> =>
@@ -1396,6 +1397,7 @@ export module Jsonarch
         path: string;
     }
     export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
+    export const isIntermediateIncludeStaticJsonData = isIntermediateJsonarch<IncludeStaticJsonTemplate>("include-static-json");
     export const evaluateIncludeStaticJson = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
     (
         entry, "evaluateIncludeStaticJson", async () =>
@@ -1642,6 +1644,7 @@ export module Jsonarch
         parameter?: Jsonable;
     }
     export const isCallData = isJsonarch<Call>("call");
+    export const isIntermediateCallData = isIntermediateJsonarch<Call>("call");
     export interface Value extends AlphaJsonarch
     {
         $arch: "value";
@@ -1649,6 +1652,7 @@ export module Jsonarch
         refer: Refer;
     }
     export const isValueData = isJsonarch<Value>("value");
+    export const isIntermediateValueData = isIntermediateJsonarch<Value>("value");
     export const typeOfJsonable = (json: Jsonable | undefined): Type =>
     {
         if (undefined === json)
@@ -1739,6 +1743,7 @@ export module Jsonarch
         catch?: Case[];
     }
     export const isTemplateData = isJsonarch<Template>("template");
+    export const isIntermediateTemplateData = isIntermediateJsonarch<Template>("template");
     export interface Match extends AlphaJsonarch
     {
         $arch: "match";
@@ -1756,6 +1761,7 @@ export module Jsonarch
         cases: Case[];
     }
     export const isMatchData = isJsonarch<Match>("match");
+    export const isIntermediateMatchData = isIntermediateJsonarch<Match>("match");
     export interface Case extends JsonableObject
     {
         case?: CasePattern;
@@ -1820,6 +1826,7 @@ export module Jsonarch
         loop: AlphaJsonarch;
     }
     export const isLoopData = isJsonarch<Loop>("loop");
+    export const isIntermediateLoopData = isIntermediateJsonarch<Loop>("loop");
     export interface LoopFalseResult extends JsonableObject
     {
         continue: false;
@@ -3949,92 +3956,74 @@ export module Jsonarch
             return await typeOfResult(entry, result);
         }
     );
-    export const evaluateIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
+    export const evaluateIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) =>
         async (entry: EvaluateEntry<AlphaJsonarch>): Promise<Jsonable | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
     const evaluatorList: ((entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>)[] =
     [
-        evaluateIfMatch(isStaticData, evaluateStatic),
-        evaluateIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJson),
-        evaluateIfMatch(isTemplateData, evaluateTemplate),
-        evaluateIfMatch(isMatchData, evaluateMatch),
-        evaluateIfMatch(isLoopData, evaluateLoop),
-        evaluateIfMatch(isCallData, evaluateCall),
-        evaluateIfMatch(isValueData, evaluateValue),
+        evaluateIfMatch(isIntermediateStaticData, evaluateStatic),
+        evaluateIfMatch(isIntermediateIncludeStaticJsonData, evaluateIncludeStaticJson),
+        evaluateIfMatch(isIntermediateTemplateData, evaluateTemplate),
+        evaluateIfMatch(isIntermediateMatchData, evaluateMatch),
+        evaluateIfMatch(isIntermediateLoopData, evaluateLoop),
+        evaluateIfMatch(isIntermediateCallData, evaluateCall),
+        evaluateIfMatch(isIntermediateValueData, evaluateValue),
     ];
     export const evaluate = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Jsonable> => profile
     (
         entry, "evaluate", async () =>
         {
-            if (isIntermediate(entry.template))
+            for(const i in evaluatorList)
             {
-                return await apply
-                ({
-                    ...entry,
-                    template: entry.template.value as AlphaJsonarch,
-                });
-            }
-            else
-            {
-                for(const i in evaluatorList)
+                const result = await evaluatorList[i](entry);
+                if (undefined !== result)
                 {
-                    const result = await evaluatorList[i](entry);
-                    if (undefined !== result)
-                    {
-                        return result;
-                    }
+                    return result;
                 }
-                throw new ErrorJson
-                (
-                    entry, "Unknown Jsonarch Type",
-                    {
-                        template: entry.template,
-                    }
-                );
-                // return entry.template;
             }
+            throw new ErrorJson
+            (
+                entry, "Unknown Jsonarch Type",
+                {
+                    template: entry.template,
+                }
+            );
+            // return entry.template;
         }
     );
-    export const evaluateResultTypeIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is TargetType), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) =>
+    export const evaluateResultTypeIfMatch = <TargetType extends AlphaJsonarch>(isMatch: ((entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>), evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) =>
         async (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type | undefined> =>
             isMatch(entry.template) ? evaluateTarget(<EvaluateEntry<TargetType>>entry): undefined;
     const evaluatorResultTypeList: ((entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>)[] =
     [
-        evaluateResultTypeIfMatch(isStaticData, evaluateStaticResultType),
-        evaluateResultTypeIfMatch(isIncludeStaticJsonData, evaluateIncludeStaticJsonResultType),
-        evaluateResultTypeIfMatch(isTemplateData, evaluateTemplateResultType),
-        evaluateResultTypeIfMatch(isMatchData, evaluateMatchResultType),
-        evaluateResultTypeIfMatch(isLoopData, evaluateLoopResultType),
-        evaluateResultTypeIfMatch(isCallData, evaluateCallResultType),
-        evaluateResultTypeIfMatch(isValueData, evaluateValueResultType),
+        evaluateResultTypeIfMatch(isIntermediateStaticData, evaluateStaticResultType),
+        evaluateResultTypeIfMatch(isIntermediateIncludeStaticJsonData, evaluateIncludeStaticJsonResultType),
+        evaluateResultTypeIfMatch(isIntermediateTemplateData, evaluateTemplateResultType),
+        evaluateResultTypeIfMatch(isIntermediateMatchData, evaluateMatchResultType),
+        evaluateResultTypeIfMatch(isIntermediateLoopData, evaluateLoopResultType),
+        evaluateResultTypeIfMatch(isIntermediateCallData, evaluateCallResultType),
+        evaluateResultTypeIfMatch(isIntermediateValueData, evaluateValueResultType),
     ];
     export const evaluateType = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type> => profile
     (
         entry, "evaluateResultType", async () =>
         {
-            if (isIntermediate(entry.template))
+            for(const i in evaluatorResultTypeList)
             {
-                return entry.template.type;
-            }
-            else
-            {
-                for(const i in evaluatorResultTypeList)
+                const result = await evaluatorResultTypeList[i](entry);
+                if (undefined !== result)
                 {
-                    const result = await evaluatorResultTypeList[i](entry);
-                    if (undefined !== result)
-                    {
-                        return result;
-                    }
+                    return result;
                 }
-                throw new ErrorJson
-                (
-                    entry, "Unknown Jsonarch Type",
-                    {
-                        template: entry.template,
-                    }
-                );
-                // return entry.template;
             }
+            throw new ErrorJson
+            (
+                entry, "Unknown Jsonarch Type",
+                {
+                    template: entry.template,
+                }
+            );
+            // return entry.template;
         }
     );
     export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <AlphaJsonarch>turnRefer<JsonableValue>
