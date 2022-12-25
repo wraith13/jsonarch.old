@@ -967,6 +967,13 @@ export module Jsonarch
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value)[key]));
+    export const isIntermediateJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
+        (template: unknown): template is IntermediateTarget<Type> =>
+            isIntermediate(template) &&
+            null !== template.value &&
+            "object" === typeof template.value &&
+            "$arch" in template.value &&
+            type === getValueFromIntermediateOrValue(template.value.$arch);
     export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
     {
         const originMap: OriginMap = { };

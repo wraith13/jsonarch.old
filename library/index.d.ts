@@ -359,6 +359,7 @@ export declare module Jsonarch {
     } : TargetType;
     export const isIntermediate: (template: unknown) => template is Intermediate;
     export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
+    export const isIntermediateJsonarch: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
     export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
         output: Jsonable;
         originMap: OriginMap;

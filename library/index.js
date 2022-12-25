@@ -720,6 +720,15 @@ var Jsonarch;
                 Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value[key]); });
         };
     };
+    Jsonarch.isIntermediateJsonarch = function (type) {
+        return function (template) {
+            return Jsonarch.isIntermediate(template) &&
+                null !== template.value &&
+                "object" === typeof template.value &&
+                "$arch" in template.value &&
+                type === Jsonarch.getValueFromIntermediateOrValue(template.value.$arch);
+        };
+    };
     Jsonarch.makeOutput = function (intermediate, base) {
         var originMap = {};
         if (Jsonarch.isIntermediate(intermediate)) {
