@@ -852,7 +852,7 @@ export module Jsonarch
         context: Context;
         this?:
         {
-            template: Template;
+            template: IntermediateTarget<Template>;
             path: FullRefer;
         };
         template: IntermediateTarget<TemplateType>;
@@ -866,7 +866,7 @@ export module Jsonarch
         setting: Setting;
         handler: Handler;
     }
-    export const isEvaluateEntry = <TemplateType extends Jsonable>(isTemplateType: (template: unknown) => template is TemplateType) =>
+    export const isEvaluateEntry = <TemplateType extends Jsonable>(isTemplateType: (template: unknown) => template is IntermediateTarget<TemplateType>) =>
         isObject<EvaluateEntry<TemplateType>>
         ({
             context: isContext,
@@ -1019,12 +1019,12 @@ export module Jsonarch
             return { output, originMap, };
         }
     };
-    export const makeSolid = (intermediate: Intermediate | Jsonable): Jsonable =>
+    export const makeSolid = <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType> | Jsonable): TargetType =>
     {
         const value = getValueFromIntermediateOrValue(intermediate);
         if (Array.isArray(value))
         {
-            return value.map(i => makeSolid(i));
+            return value.map(i => makeSolid(i)) as TargetType;
         }
         else
         if (null !== value && "object" === typeof value)
@@ -1032,11 +1032,11 @@ export module Jsonarch
             const output: JsonableObject = { };
             const keys = objectKeys(value);
             keys.forEach(key => output[key] = makeSolid(value[key] as Intermediate | Jsonable));
-            return output;
+            return output as TargetType;
         }
         else
         {
-            return value;
+            return value as TargetType;
         }
     };
     // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
@@ -1406,7 +1406,7 @@ export module Jsonarch
             await loadFile
             ({
                 ...entry,
-                file: pathToFileContext(entry, entry.template.path)
+                file: pathToFileContext(entry, entry.template.value.path.value)
             })
         )
     );
@@ -1419,7 +1419,7 @@ export module Jsonarch
             await loadFile
             ({
                 ...entry,
-                file: pathToFileContext(entry, entry.template.path)
+                file: pathToFileContext(entry, entry.template.value.path.value)
             })
         )
     );
@@ -1875,16 +1875,16 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                entry.template.default?.parameter,
+                entry.template.value.default?.value?.parameter,
                 entry.parameter,
-                entry.template.override?.parameter
+                entry.template.value.override?.value?.parameter
             );
             const this_ =
             {
                 template: entry.template,
                 path: entry.path,
             };
-            if (entry.template.catch)
+            if (entry.template.value.catch?.value)
             {
                 try
                 {
@@ -1893,7 +1893,7 @@ export module Jsonarch
                         ...entry,
                         this: this_,
                         path: makeFullRefer(entry.path, "return"),
-                        template: entry.template.return,
+                        template: entry.template.value.return,
                         parameter,
                     });
                 }
@@ -1906,7 +1906,7 @@ export module Jsonarch
                             ...entry,
                             this: this_,
                             path: makeFullRefer(entry.path, "catch"),
-                            template: entry.template.catch,
+                            template: entry.template.value.catch as IntermediateTarget<Case[]>,
                             parameter: error,
                         });
                         if (undefined !== result)
@@ -1924,7 +1924,7 @@ export module Jsonarch
                     ...entry,
                     this: this_,
                     path: makeFullRefer(entry.path, "return"),
-                    template: entry.template.return,
+                    template: entry.template.value.return,
                     parameter,
                 });
             }
@@ -1936,9 +1936,9 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                entry.template.default?.parameter,
+                entry.template.value.default?.value?.parameter,
                 entry.parameter,
-                entry.template.override?.parameter
+                entry.template.value.override?.value?.parameter
             );
             const parameterType = await typeOfResult(entry, <Jsonable>parameter);
             const type = entry.template.type;
@@ -1964,12 +1964,12 @@ export module Jsonarch
             const parameter = applyDefault
             (
                 entry.template.default,
-                undefined !== entry.template.parameter ?
+                undefined !== entry.template.value.parameter ?
                     await apply
                     ({
                         ...entry,
                         path: makeFullRefer(entry.path, "parameter"),
-                        template: entry.template.parameter,
+                        template: entry.template.value.parameter,
                     }):
                     entry.parameter
             );
@@ -1977,14 +1977,14 @@ export module Jsonarch
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "cases"),
-                template: entry.template.cases,
+                template: entry.template.value.cases,
                 parameter,
             });
             if (undefined !== result)
             {
                 return result;
             }
-            return entry.template.default.return;
+            return entry.template.value.default.value.return;
         }
     );
     export const evaluateMatchResultType = (entry: EvaluateEntry<Match>): Promise<Type> => profile
@@ -1994,12 +1994,12 @@ export module Jsonarch
             const parameter = applyDefault
             (
                 entry.template.default,
-                undefined !== entry.template.parameter ?
+                undefined !== entry.template.value.parameter ?
                     await lazyableApply
                     ({
                         ...entry,
                         path: makeFullRefer(entry.path, "parameter"),
-                        template: entry.template.parameter,
+                        template: entry.template.value.parameter,
                     }):
                     entry.parameter
             );
@@ -2007,7 +2007,7 @@ export module Jsonarch
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "cases"),
-                template: entry.template.cases,
+                template: entry.template.value.cases,
                 parameter,
             });
             const result: OrCompositeType =
@@ -2024,7 +2024,7 @@ export module Jsonarch
                             ...entry,
                             parameter,
                         },
-                        entry.template.default.return
+                        entry.template.value.default.value.return
                     ),
                 ]
             };
@@ -2052,7 +2052,7 @@ export module Jsonarch
             const entryParameter = entry.parameter;
             if (undefined !== entryParameter)
             {
-                return entry.template.list.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
+                return entry.template.value.list.value.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
             }
             else
             {
@@ -2084,7 +2084,7 @@ export module Jsonarch
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "if"),
-                template: entry.template.if,
+                template: entry.template.value.if,
             });
             if ("boolean" !== typeof result)
             {
@@ -2108,13 +2108,13 @@ export module Jsonarch
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "parameter"),
-                template: entry.template.parameter,
+                template: entry.template.value.parameter,
             });
             const result = await evaluateCasePattern
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "ifCase"),
-                template: entry.template.ifCase,
+                template: entry.template.value.ifCase,
                 parameter,
             });
             if ("boolean" !== typeof result)
@@ -2140,7 +2140,7 @@ export module Jsonarch
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "not"),
-                template: entry.template.not,
+                template: entry.template.value.not,
             });
             if ("boolean" !== typeof result)
             {
@@ -2148,7 +2148,7 @@ export module Jsonarch
                 (
                     entry, "Unmatch not result type",
                     {
-                        template: entry.template.not,
+                        template: entry.template.value.not,
                         result,
                     }
                 );
@@ -2161,9 +2161,9 @@ export module Jsonarch
         entry, "evaluateOrCasePattern", async () =>
         {
             const basePath = makeFullRefer(entry.path, "or");
-            for(let i in entry.template.or)
+            for(let i in entry.template.value.or.value)
             {
-                const template = entry.template.or[i];
+                const template = entry.template.value.or.value[i];
                 const result = await evaluateCasePattern
                 ({
                     ...entry,
@@ -2194,9 +2194,9 @@ export module Jsonarch
         entry, "evaluateAndCasePattern", async () =>
         {
             const basePath = makeFullRefer(entry.path, "and");
-            for(let i in entry.template.and)
+            for(let i in entry.template.value.and.value)
             {
-                const template = entry.template.and[i];
+                const template = entry.template.value.and.value[i];
                 const result = await evaluateCasePattern
                 ({
                     ...entry,
@@ -2264,15 +2264,15 @@ export module Jsonarch
             for(const i in entry.template)
             {
                 const ix = parseInt(i);
-                const case_ = entry.template[ix];
+                const case_ = entry.template.value[ix];
                 const path = makeFullRefer(entry.path, ix);
-                if (undefined === case_.case || await evaluateCasePattern({ ...entry, path: makeFullRefer(path, "case"), template: case_.case, }))
+                if (undefined === case_.value.case || await evaluateCasePattern({ ...entry, path: makeFullRefer(path, "case"), template: case_.value.case as IntermediateTarget<CasePattern>, }))
                 {
                     return await apply
                     ({
                         ...entry,
                         path: makeFullRefer(path, "return"),
-                        template: case_.return,
+                        template: case_.value.return,
                     });
                 }
             }
@@ -2282,7 +2282,7 @@ export module Jsonarch
     export const evaluateCasesType = (entry: EvaluateEntry<Case[]>): Promise<Type[]> => profile
     (
         entry, "evaluateCasesType", async () =>
-            await Promise.all(entry.template.map(i => typeOfResult(entry, i.return)))
+            await Promise.all(entry.template.value.map(i => typeOfResult(entry, i.return)))
     );
     export const evaluateLoop = (entry: EvaluateEntry<Loop>): Promise<Jsonable> => profile
     (
@@ -2297,7 +2297,7 @@ export module Jsonarch
                 ({
                     ...entry,
                     path: makeFullRefer(entry.path, "loop"),
-                    template: entry.template.loop,
+                    template: entry.template.value.loop,
                     scope,
                 }) as LoopResult;
                 if ( ! isLoopResultData(current))
@@ -2345,13 +2345,13 @@ export module Jsonarch
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
-        undefined === entry.template.parameter ?
+        undefined === entry.template.value.parameter ?
             undefined:
             await lazyableApply
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "parameter"),
-                template: entry.template.parameter,
+                template: entry.template.value.parameter,
             });
     export interface CallTemplateRegular extends JsonableObject
     {
@@ -2374,6 +2374,7 @@ export module Jsonarch
     (
         entry, "getTemplate", async () =>
         {
+            const refer = makeSolid(entry.template.value.refer);
             const template = turnRefer<JsonableValue | Function>
             (
                 entry,
@@ -2381,7 +2382,7 @@ export module Jsonarch
                     ...librarygJson,
                     this: entry.this?.template,
                 },
-                entry.template.refer,
+                refer,
                 {
                     template: entry.path,
                 }
@@ -2395,7 +2396,7 @@ export module Jsonarch
                     const liquid = "system" === systemOrTemplate || useCache ?
                         makeSolid(await resolveLazy(entry, parameter ?? null)):
                         parameter;
-                    const cacheKey = useCache ? makeCallCacheKey(entry.template.refer, liquid): undefined;
+                    const cacheKey = useCache ? makeCallCacheKey(refer, liquid): undefined;
                     if (undefined !== cacheKey)
                     {
                         const result = entry.cache.call?.[cacheKey];
@@ -3597,7 +3598,7 @@ export module Jsonarch
                 scope: entry.scope,
                 parameter: entry.parameter,
             },
-            entry.template.refer,
+            makeSolid(entry.template.value.refer),
             {
                 template: entry.path,
             }
@@ -3615,12 +3616,12 @@ export module Jsonarch
                 entry.this?.path,
                 {
                     root: entry.context.template,
-                    refer: entry.template.refer,
+                    refer: makeSolid(entry.template.value.refer),
                 }
             );
             const nextDepthEntry =
             {
-                ...Limit.resetNestDepth(entry, entry.template.refer.length),
+                ...Limit.resetNestDepth(entry, entry.template.value.refer.value.length),
                 callStack: makeCallStack
                 (
                     entry.callStack,
@@ -3647,7 +3648,7 @@ export module Jsonarch
                     this: entry.this?.template,
                     template: entry.cache.template,
                 },
-                entry.template.refer,
+                makeSolid(entry.template.value.refer),
                 {
                     template: entry.path,
                 }
@@ -3667,7 +3668,7 @@ export module Jsonarch
                         const result = await profile
                         (
                             nextDepthEntry,
-                            `library.${entry.template.refer.join(".")}`,
+                            `library.${entry.template.value.refer.value.join(".")}`,
                             async () => await target(nextDepthEntry, parameterInfo.parameter)
                         );
                         if (undefined === result)
@@ -3688,7 +3689,7 @@ export module Jsonarch
                 );
             }
             else
-            if (isTemplateData(target))
+            if (isIntermediateTemplateData(target))
             {
                 return await profile
                 (
@@ -3740,12 +3741,12 @@ export module Jsonarch
                 entry.this?.path,
                 {
                     root: entry.context.template,
-                    refer: entry.template.refer,
+                    refer: makeSolid(entry.template.value.refer),
                 }
             );
             const nextDepthEntry =
             {
-                ...Limit.resetNestDepth(entry, entry.template.refer.length),
+                ...Limit.resetNestDepth(entry, entry.template.value.refer.value.length),
                 callStack: makeCallStack
                 (
                     entry.callStack,
@@ -3772,7 +3773,7 @@ export module Jsonarch
                     this: entry.this?.template,
                     template: entry.cache.template,
                 },
-                entry.template.refer,
+                makeSolid(entry.template.value.refer),
                 {
                     template: entry.path,
                 }
@@ -4026,7 +4027,7 @@ export module Jsonarch
             // return entry.template;
         }
     );
-    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <AlphaJsonarch>turnRefer<JsonableValue>
+    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <IntermediateTarget<AlphaJsonarch>>turnRefer<JsonableValue>
     (
         entry,
         <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
