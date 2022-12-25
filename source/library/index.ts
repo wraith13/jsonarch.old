@@ -15,7 +15,7 @@ export module Jsonarch
     }
     export interface StructureObject<Element>
     {
-        [key: string]: undefined | Structure<Element>;
+        [key: string]: Structure<Element>;
     }
     export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
     export const structure = <Element, ResultType>(processor: (value: Element, key?: number | string) => ResultType) =>
@@ -188,7 +188,7 @@ export module Jsonarch
         };
         return self;
     };
-    export type JsonableValue = null | boolean | number | string;
+    export type JsonableValue = undefined | null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
@@ -935,9 +935,8 @@ export module Jsonarch
         (
             async (value: Jsonable) =>
             {
-                const solid = getValueFromIntermediateOrValue(value);
-                return isLazy(solid) ?
-                    await resolveLazy(entry, await evaluateLazy(entry, solid)):
+                return isLazy(value) ?
+                    await resolveLazy(entry, await evaluateLazy(entry, value)):
                     undefined;
             }
         )
@@ -951,7 +950,23 @@ export module Jsonarch
         value: Jsonable | Intermediate[] | { [key: string]: Intermediate; };
         origin: Origin;
     }
+    export interface IntermediateTarget<TargetType extends Jsonable> extends Intermediate
+    {
+        $arch: "intermediate";
+        type: Type;
+        value: IntermediateTargetNest<TargetType>;
+        origin: Origin;
+    }
+    export type IntermediateTargetNest<TargetType extends Jsonable> =
+        TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[]:
+        TargetType extends JsonableObject ? { [key in keyof TargetType]: IntermediateTarget<TargetType[key]>; }:
+        TargetType;
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
+    export const isIntermediateTarget =
+        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]> }>) =>
+        (value: unknown): value is IntermediateTarget<TargetType> =>
+            isIntermediate(value) &&
+            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value)[key]));
     export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
     {
         const originMap: OriginMap = { };
@@ -3990,22 +4005,29 @@ export module Jsonarch
     (
         entry, "evaluateResultType", async () =>
         {
-            for(const i in evaluatorResultTypeList)
+            if (isIntermediate(entry.template))
             {
-                const result = await evaluatorResultTypeList[i](entry);
-                if (undefined !== result)
-                {
-                    return result;
-                }
+                return entry.template.type;
             }
-            throw new ErrorJson
-            (
-                entry, "Unknown Jsonarch Type",
+            else
+            {
+                for(const i in evaluatorResultTypeList)
                 {
-                    template: entry.template,
+                    const result = await evaluatorResultTypeList[i](entry);
+                    if (undefined !== result)
+                    {
+                        return result;
+                    }
                 }
-            );
-            // return entry.template;
+                throw new ErrorJson
+                (
+                    entry, "Unknown Jsonarch Type",
+                    {
+                        template: entry.template,
+                    }
+                );
+                // return entry.template;
+            }
         }
     );
     export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <AlphaJsonarch>turnRefer<JsonableValue>

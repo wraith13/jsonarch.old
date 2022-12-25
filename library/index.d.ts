@@ -3,7 +3,7 @@ export declare module Jsonarch {
     export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
     export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult: DefaultType): (parameter: ParameterType | undefined) => ReturnType | DefaultType;
     export interface StructureObject<Element> {
-        [key: string]: undefined | Structure<Element>;
+        [key: string]: Structure<Element>;
     }
     export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
     export const structure: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => ResultType) => (value: Structure<Element_1>, key?: number | string) => Structure<ResultType>;
@@ -12,7 +12,7 @@ export declare module Jsonarch {
     export const structureObject: <Element_1, ResultType>(processor: (value: StructureObject<Element_1>, key?: number | string) => ResultType | undefined) => (value: Structure<Element_1>, key?: number | string) => Structure<Element_1 | ResultType>;
     export const structureObjectAsync: <Element_1, ResultType>(processor: (value: StructureObject<Element_1>, key?: number | string) => Promise<ResultType | undefined>) => (value: Structure<Element_1>, key?: number | string) => Promise<Structure<Element_1 | ResultType>>;
     export const hasStructureObject: <Element_1>(processor: (value: StructureObject<Element_1>, key?: number | string) => boolean) => (value: Structure<Element_1>, key?: number | string) => boolean;
-    export type JsonableValue = null | boolean | number | string;
+    export type JsonableValue = undefined | null | boolean | number | string;
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
     export type JsonablePartial<Target> = {
@@ -80,7 +80,7 @@ export declare module Jsonarch {
     export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>): IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH>;
     export function isTypeOr<TypeA, TypeB, TypeC, TypeD, TypeE, TypeF, TypeG, TypeH, TypeI>(isA: IsType<TypeA>, isB: IsType<TypeB>, isC: IsType<TypeC>, isD: IsType<TypeD>, isE: IsType<TypeE>, isF: IsType<TypeF>, isG: IsType<TypeG>, isH: IsType<TypeH>, isI: IsType<TypeI>): IsType<TypeA | TypeB | TypeC | TypeD | TypeE | TypeF | TypeG | TypeH | TypeI>;
     export type LazyValue<T extends Structure<JsonableValue | undefined | Function>> = T | (() => T);
-    export const getLazyValue: <T extends Structure<Function | JsonableValue | undefined>>(lazy: LazyValue<T>) => T;
+    export const getLazyValue: <T extends Structure<Function | JsonableValue>>(lazy: LazyValue<T>) => T;
     export const getTemporaryDummy: "en" | "ja";
     export const packageJson: {
         name: string;
@@ -339,7 +339,7 @@ export declare module Jsonarch {
     export const makeLazy: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => Lazy;
     export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<Jsonable>;
-    export const hasLazy: (value: Structure<Function | JsonableValue | undefined>, key?: number | string) => boolean;
+    export const hasLazy: (value: Structure<Function | JsonableValue>, key?: number | string) => boolean;
     export interface Intermediate extends AlphaJsonarch {
         $arch: "intermediate";
         type: Type;
@@ -348,7 +348,17 @@ export declare module Jsonarch {
         };
         origin: Origin;
     }
+    export interface IntermediateTarget<TargetType extends Jsonable> extends Intermediate {
+        $arch: "intermediate";
+        type: Type;
+        value: IntermediateTargetNest<TargetType>;
+        origin: Origin;
+    }
+    export type IntermediateTargetNest<TargetType extends Jsonable> = TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[] : TargetType extends JsonableObject ? {
+        [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
+    } : TargetType;
     export const isIntermediate: (template: unknown) => template is Intermediate;
+    export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
     export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
         output: Jsonable;
         originMap: OriginMap;
@@ -691,7 +701,7 @@ export declare module Jsonarch {
     export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
-    export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable | undefined>;
+    export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export interface CallTemplateRegular extends JsonableObject {
         template: Template;
         type: CallTypeInterface;

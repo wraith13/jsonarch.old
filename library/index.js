@@ -685,15 +685,14 @@ var Jsonarch;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0: return [4 /*yield*/, Jsonarch.structureObjectAsync(function (value) { return __awaiter(_this, void 0, void 0, function () {
-                                        var solid, _c, _d, _e;
+                                        var _c, _d, _e;
                                         return __generator(this, function (_f) {
                                             switch (_f.label) {
                                                 case 0:
-                                                    solid = Jsonarch.getValueFromIntermediateOrValue(value);
-                                                    if (!Jsonarch.isLazy(solid)) return [3 /*break*/, 3];
+                                                    if (!Jsonarch.isLazy(value)) return [3 /*break*/, 3];
                                                     _d = Jsonarch.resolveLazy;
                                                     _e = [entry];
-                                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, solid)];
+                                                    return [4 /*yield*/, Jsonarch.evaluateLazy(entry, value)];
                                                 case 1: return [4 /*yield*/, _d.apply(void 0, _e.concat([_f.sent()]))];
                                                 case 2:
                                                     _c = _f.sent();
@@ -715,6 +714,12 @@ var Jsonarch;
     }); };
     Jsonarch.hasLazy = Jsonarch.hasStructureObject(function (value) { return Jsonarch.isLazy(value); });
     Jsonarch.isIntermediate = Jsonarch.isJsonarch("intermediate");
+    Jsonarch.isIntermediateTarget = function (isMember) {
+        return function (value) {
+            return Jsonarch.isIntermediate(value) &&
+                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value[key]); });
+        };
+    };
     Jsonarch.makeOutput = function (intermediate, base) {
         var originMap = {};
         if (Jsonarch.isIntermediate(intermediate)) {
@@ -2972,25 +2977,28 @@ var Jsonarch;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
+                    if (!Jsonarch.isIntermediate(entry.template)) return [3 /*break*/, 1];
+                    return [2 /*return*/, entry.template.type];
+                case 1:
                     _c = [];
                     for (_d in evaluatorResultTypeList)
                         _c.push(_d);
                     _e = 0;
-                    _f.label = 1;
-                case 1:
-                    if (!(_e < _c.length)) return [3 /*break*/, 4];
+                    _f.label = 2;
+                case 2:
+                    if (!(_e < _c.length)) return [3 /*break*/, 5];
                     i = _c[_e];
                     return [4 /*yield*/, evaluatorResultTypeList[i](entry)];
-                case 2:
+                case 3:
                     result = _f.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
-                    _f.label = 3;
-                case 3:
+                    _f.label = 4;
+                case 4:
                     _e++;
-                    return [3 /*break*/, 1];
-                case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    return [3 /*break*/, 2];
+                case 5: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
                     template: entry.template,
                 });
             }
