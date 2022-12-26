@@ -4127,10 +4127,12 @@ export module Jsonarch
             Limit.throwIfOverTheProcessTimeout(entry);
             Limit.throwIfOverTheNestDepth(entry);
             const template = entry.template;
-            if (null === template || "object" !== typeof template)
+            const value = template.value;
+            if (null === value || "object" !== typeof value)
             {
-                const result = template;
-                return await makeIntermediate(entry, result, entry.path);
+                // const result = template;
+                // return await makeIntermediate(entry, result, entry.path);
+                return template;
             }
             else
             if (isEvaluateTargetEntry(entry))
@@ -4147,27 +4149,27 @@ export module Jsonarch
                 return await makeIntermediate(entry, result, entry.path);
             }
             else
-            if (Array.isArray(template))
+            if (Array.isArray(value))
             {
                 return await profile
                 (
                     entry, "apply.array", async () =>
                     {
                         const maxArrayLength = Limit.getMaxArrayLength(entry);
-                        if (maxArrayLength < template.length)
+                        if (maxArrayLength < value.length)
                         {
                             throw new ErrorJson
                             (
                                 entry, "Too Long Array Length",
                                 {
                                     maxArrayLength,
-                                    templateLength: template.length,
+                                    templateLength: value.length,
                                 }
                             );
                         }
                         const nextDepthEntry = Limit.incrementNestDepth(entry);
                         const result: Jsonable[] = [];
-                        for(const i in template)
+                        for(const i in value)
                         {
                             const ix = parseInt(i);
                             result.push
@@ -4177,7 +4179,7 @@ export module Jsonarch
                                     {
                                         ...nextDepthEntry,
                                         path: makeFullRefer(entry.path, ix),
-                                        template: template[ix],
+                                        template: value[ix],
                                     },
                                     lazyable
                                 )
@@ -4195,19 +4197,19 @@ export module Jsonarch
                     {
                         const result: JsonableObject = { };
                         const maxObjectMembers = Limit.getMaxObjectMembers(entry);
-                        if (maxObjectMembers < objectKeys(template).length)
+                        if (maxObjectMembers < objectKeys(value).length)
                         {
                             throw new ErrorJson
                             (
                                 entry, "Too Many Object Members",
                                 {
                                     maxObjectMembers,
-                                    templateMembers: objectKeys(template).length,
+                                    templateMembers: objectKeys(value).length,
                                 }
                             );
                         }
                         const nextDepthEntry = Limit.incrementNestDepth(entry);
-                        const keys = objectKeys(template);
+                        const keys = objectKeys(value);
                         for(const i in keys)
                         {
                             const key = keys[i];
@@ -4216,7 +4218,7 @@ export module Jsonarch
                                 {
                                     ...nextDepthEntry,
                                     path: makeFullRefer(entry.path, key),
-                                    template: template[key] as Jsonable,
+                                    template: value[key],
                                 },
                                 lazyable
                             );
@@ -4228,7 +4230,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRootOriginal = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRootOriginal = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -4302,7 +4304,7 @@ export module Jsonarch
             }
         }
     );
-    export const applyRootNew = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRootNew = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
