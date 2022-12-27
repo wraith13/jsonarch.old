@@ -3884,7 +3884,7 @@ export module Jsonarch
                 else
                 if (isLazy(json))
                 {
-                    if (isEvaluateEntry(isJsonable)(entry))
+                    if (isEvaluateEntry(isAny)(entry))
                     {
                         return await evaluateLazyResultType(entry, json);
                     }
