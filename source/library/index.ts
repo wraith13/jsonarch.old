@@ -870,7 +870,7 @@ export module Jsonarch
         isObject<EvaluateEntry<TemplateType>>
         ({
             context: isContext,
-            this: isUndefinedOr(isObject({ template: isTemplateData, path: isFullRefer, })),
+            this: isUndefinedOr(isObject({ template: isIntermediateJsonarch<Template>("template"), path: isFullRefer, })),
             template: isTemplateType,
             parameter: isUndefinedOr(isJsonable),
             callStack: isArray(isCallStackEntry),
@@ -4230,81 +4230,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRootOriginal = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
-    (
-        entry, "applyRoot", async () =>
-        {
-            const handler = entry.handler;
-            const context =
-            {
-                template: entry.template,
-                paremter: entry.parameter,
-                cache: entry.cache,
-                setting: entry.setting,
-                profile: makeProfile(),
-            };
-            // const origin = entry.template;
-            const callStack: CallStackEntry[] = [];
-            const path: FullRefer = { root: entry.template, refer: [] };
-            const rootEvaluateEntry: EvaluateEntry<Jsonable> =
-            {
-                context,
-                template,
-                callStack,
-                path,
-                // origin,
-                parameter,
-                cache,
-                setting,
-                handler,
-                originMap: <OriginMap>
-                (
-                    entry.parameter ?
-                    ({
-                        paremter: <Origin>
-                        {
-                            root: entry.parameter,
-                            refer: "root",
-                        },
-                    }):
-                    undefined
-                ),
-            };
-            try
-            {
-                const output = decode
-                (
-                    "resolveLazy" === lazy ?
-                        await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
-                        await apply(rootEvaluateEntry)
-                );
-                const profile = makeProfileReport(context.profile);
-                const result: Result =
-                {
-                    $arch: "result",
-                    output,
-                    profile,
-                    cache,
-                    setting,
-                };
-                return result;
-            }
-            catch(error: any)
-            {
-                const profile = makeProfileReport(context.profile);
-                const result: Result =
-                {
-                    $arch: "result",
-                    output: parseErrorJson(error),
-                    profile,
-                    cache,
-                    setting,
-                } as unknown as any;
-                return result;
-            }
-        }
-    );
-    export const applyRootNew = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -4355,8 +4281,8 @@ export module Jsonarch
                 const { output, originMap, } = makeOutput
                 (
                     "resolveLazy" === lazy ?
-                    await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
-                    await apply(rootEvaluateEntry),
+                        await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
+                        await apply(rootEvaluateEntry),
                     entry.template
                 );
                 const profile = makeProfileReport(context.profile);
@@ -4386,8 +4312,6 @@ export module Jsonarch
             }
         }
     );
-    // export const applyRoot = applyRootOriginal;
-    export const applyRoot = applyRootNew;
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
