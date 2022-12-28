@@ -952,10 +952,7 @@ export module Jsonarch
     }
     export interface IntermediateTarget<TargetType extends Jsonable> extends Intermediate
     {
-        $arch: "intermediate";
-        type: Type;
         value: IntermediateTargetNest<TargetType>;
-        origin: Origin;
     }
     export type IntermediateTargetNest<TargetType extends Jsonable> =
         TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[]:
@@ -967,13 +964,16 @@ export module Jsonarch
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value)[key]));
+    export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
+        isIntermediate(template) &&
+        null !== template.value &&
+        "object" === typeof template.value &&
+        "$arch" in template.value ?
+            getValueFromIntermediateOrValue(template.value.$arch) as JsonarchType:
+            undefined;
     export const isIntermediateJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
         (template: unknown): template is IntermediateTarget<Type> =>
-            isIntermediate(template) &&
-            null !== template.value &&
-            "object" === typeof template.value &&
-            "$arch" in template.value &&
-            type === getValueFromIntermediateOrValue(template.value.$arch);
+            type === getIntermediateJsonarchType(template);
     export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
     {
         const originMap: OriginMap = { };
@@ -1159,14 +1159,20 @@ export module Jsonarch
     {
         handler: Handler;
     }
-    const isPureDataType = (template: AlphaJsonarch) =>
-        [ "setting", "cache", ].includes(template.$arch);
+    const isPureDataType = (type: JsonarchType) =>
+        [ "setting", "cache", ].includes(type);
     export const isEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
-        isAlphaJsonarch(entry.template) && ! isPureDataType(entry.template);
-    const isLazyableJsonarchType = (template: AlphaJsonarch) =>
-        [ "call", ].includes(template.$arch);
+    {
+        const type = getIntermediateJsonarchType(entry.template);
+        return undefined !== type && ! isPureDataType(type);
+    };
+    const isLazyableJsonarchType = (type: JsonarchType) =>
+        [ "call", ].includes(type);
     export const isLazyableEvaluateTargetEntry = (entry: EvaluateEntry<Jsonable>): entry is EvaluateEntry<AlphaJsonarch> =>
-        isAlphaJsonarch(entry.template) && ! isLazyableJsonarchType(entry.template);
+    {
+        const type = getIntermediateJsonarchType(entry.template);
+        return undefined !== type && isLazyableJsonarchType(type);
+    };
     export interface Result extends AlphaJsonarch
     {
         $arch: "result";
@@ -1883,6 +1889,23 @@ export module Jsonarch
     export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
     export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
+    export type JsonarchType =
+    (
+        Cache |
+        Setting |
+        Lazy |
+        Intermediate |
+        Result |
+        JsonarchError<Jsonable> |
+        StaticTemplate |
+        IncludeStaticJsonTemplate |
+        AlphaType |
+        Call |
+        Value |
+        Template |
+        Match |
+        Loop
+    )["$arch"];
     export const applyDefault = <DataType extends Jsonable>(...defaults: (DataType | undefined)[]): DataType | undefined =>
     {
         let result: DataType | undefined;
@@ -2304,7 +2327,7 @@ export module Jsonarch
     (
         entry, "evaluateCases", async () =>
         {
-            for(const i in entry.template)
+            for(const i in entry.template.value)
             {
                 const ix = parseInt(i);
                 const case_ = entry.template.value[ix];
@@ -4105,6 +4128,7 @@ export module Jsonarch
             (
                 entry, "Unknown Jsonarch Type",
                 {
+                    location: "evaluate",
                     template: entry.template,
                 }
             );
@@ -4124,7 +4148,7 @@ export module Jsonarch
         evaluateResultTypeIfMatch(isIntermediateCallData, evaluateCallResultType),
         evaluateResultTypeIfMatch(isIntermediateValueData, evaluateValueResultType),
     ];
-    export const evaluateType = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type> => profile
+    export const evaluateResultType = (entry: EvaluateEntry<AlphaJsonarch>): Promise<Type> => profile
     (
         entry, "evaluateResultType", async () =>
         {
@@ -4140,6 +4164,7 @@ export module Jsonarch
             (
                 entry, "Unknown Jsonarch Type",
                 {
+                    location: "evaluateResultType",
                     template: entry.template,
                 }
             );
@@ -4155,7 +4180,7 @@ export module Jsonarch
     export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
         await apply(restoreFromLazy(entry, lazy));
     export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
-        await evaluateType(restoreFromLazy(entry, lazy));
+        await evaluateResultType(restoreFromLazy(entry, lazy));
     export module Limit
     {
         export const getProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>

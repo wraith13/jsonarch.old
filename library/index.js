@@ -720,13 +720,17 @@ var Jsonarch;
                 Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value[key]); });
         };
     };
+    Jsonarch.getIntermediateJsonarchType = function (template) {
+        return Jsonarch.isIntermediate(template) &&
+            null !== template.value &&
+            "object" === typeof template.value &&
+            "$arch" in template.value ?
+            Jsonarch.getValueFromIntermediateOrValue(template.value.$arch) :
+            undefined;
+    };
     Jsonarch.isIntermediateJsonarch = function (type) {
         return function (template) {
-            return Jsonarch.isIntermediate(template) &&
-                null !== template.value &&
-                "object" === typeof template.value &&
-                "$arch" in template.value &&
-                type === Jsonarch.getValueFromIntermediateOrValue(template.value.$arch);
+            return type === Jsonarch.getIntermediateJsonarchType(template);
         };
     };
     Jsonarch.makeOutput = function (intermediate, base) {
@@ -948,17 +952,19 @@ var Jsonarch;
             scope: entry.scope,
         });
     };
-    var isPureDataType = function (template) {
-        return ["setting", "cache",].includes(template.$arch);
+    var isPureDataType = function (type) {
+        return ["setting", "cache",].includes(type);
     };
     Jsonarch.isEvaluateTargetEntry = function (entry) {
-        return Jsonarch.isAlphaJsonarch(entry.template) && !isPureDataType(entry.template);
+        var type = Jsonarch.getIntermediateJsonarchType(entry.template);
+        return undefined !== type && !isPureDataType(type);
     };
-    var isLazyableJsonarchType = function (template) {
-        return ["call",].includes(template.$arch);
+    var isLazyableJsonarchType = function (type) {
+        return ["call",].includes(type);
     };
     Jsonarch.isLazyableEvaluateTargetEntry = function (entry) {
-        return Jsonarch.isAlphaJsonarch(entry.template) && !isLazyableJsonarchType(entry.template);
+        var type = Jsonarch.getIntermediateJsonarchType(entry.template);
+        return undefined !== type && isLazyableJsonarchType(type);
     };
     Jsonarch.isResult = Jsonarch.isJsonarch("result");
     Jsonarch.isError = Jsonarch.isJsonarch("error");
@@ -1713,7 +1719,7 @@ var Jsonarch;
             switch (_g.label) {
                 case 0:
                     _c = [];
-                    for (_d in entry.template)
+                    for (_d in entry.template.value)
                         _c.push(_d);
                     _e = 0;
                     _g.label = 1;
@@ -3117,6 +3123,7 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    location: "evaluate",
                     template: entry.template,
                 });
             }
@@ -3136,7 +3143,7 @@ var Jsonarch;
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateCallData, Jsonarch.evaluateCallResultType),
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateValueData, Jsonarch.evaluateValueResultType),
     ];
-    Jsonarch.evaluateType = function (entry) { return Jsonarch.profile(entry, "evaluateResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.evaluateResultType = function (entry) { return Jsonarch.profile(entry, "evaluateResultType", function () { return __awaiter(_this, void 0, void 0, function () {
         var _c, _d, _e, i, result;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -3160,6 +3167,7 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
+                    location: "evaluateResultType",
                     template: entry.template,
                 });
             }
@@ -3177,7 +3185,7 @@ var Jsonarch;
     }); }); };
     Jsonarch.evaluateLazyResultType = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
         switch (_c.label) {
-            case 0: return [4 /*yield*/, Jsonarch.evaluateType(Jsonarch.restoreFromLazy(entry, lazy))];
+            case 0: return [4 /*yield*/, Jsonarch.evaluateResultType(Jsonarch.restoreFromLazy(entry, lazy))];
             case 1: return [2 /*return*/, _c.sent()];
         }
     }); }); };

@@ -349,16 +349,14 @@ export declare module Jsonarch {
         origin: Origin;
     }
     export interface IntermediateTarget<TargetType extends Jsonable> extends Intermediate {
-        $arch: "intermediate";
-        type: Type;
         value: IntermediateTargetNest<TargetType>;
-        origin: Origin;
     }
     export type IntermediateTargetNest<TargetType extends Jsonable> = TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[] : TargetType extends JsonableObject ? {
         [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
     } : TargetType;
     export const isIntermediate: (template: unknown) => template is Intermediate;
     export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
+    export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;
     export const isIntermediateJsonarch: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
     export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
         output: Jsonable;
@@ -691,6 +689,7 @@ export declare module Jsonarch {
     export const isLoopFalseResultData: (value: unknown) => value is LoopFalseResult;
     export const isLoopRegularResultData: (value: unknown) => value is LoopRegularResult;
     export const isLoopResultData: IsType<LoopFalseResult | LoopRegularResult>;
+    export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Match | Loop)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
@@ -829,7 +828,7 @@ export declare module Jsonarch {
     export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
     export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
-    export const evaluateType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
+    export const evaluateResultType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
     export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => IntermediateTarget<AlphaJsonarch>;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
     export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Type>;
