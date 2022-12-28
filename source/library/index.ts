@@ -910,11 +910,11 @@ export module Jsonarch
     ({
         context: entry.context,
         ...lazy,
-        this: <{ template: Template; path: FullRefer; }>
+        this: <{ template: IntermediateTarget<Template>; path: FullRefer; }>
             (
                 undefined !== lazy.thisPath ?
                 {
-                    template:<Jsonable>turnRefer<JsonableValue>
+                    template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
                     (
                         entry,
                         <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.thisPath.root.path],
