@@ -1046,7 +1046,50 @@ export module Jsonarch
     //     value,
     //     origin,
     // });
-    export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin): Promise<Intermediate> =>
+    export const makeInputIntermediate = async (entry: ContextOrEntry, target: Jsonable, origin: Origin): Promise<IntermediateTarget<Jsonable>> =>
+    {
+        if (isIntermediate(target))
+        {
+            return target as IntermediateTarget<Jsonable>;
+        }
+        else
+        {
+            let value = target;
+            if (Array.isArray(value))
+            {
+                const result: Jsonable[] = [ ];
+                for(const i in value)
+                {
+                    const ix = parseInt(i);
+                    const v = value[ix];
+                    result.push(await makeInputIntermediate(entry, v, makeOrigin(origin, ix)));
+                }
+                value = result;
+            }
+            else
+            if (null !== value && "object" === typeof value)
+            {
+                const result: JsonableObject = { };
+                const keys = objectKeys<JsonableObject>(value);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    const v = value[key] as Jsonable;
+                    result[key] = await makeInputIntermediate(entry, v, makeOrigin(origin, key));
+                }
+                value = result;
+            }
+            const result: IntermediateTarget<Jsonable> =
+            {
+                $arch: "intermediate",
+                type: await typeOfInput(entry, value),
+                value: value as IntermediateTargetNest<Jsonable>,
+                origin,
+            };
+            return result;
+        }
+    };
+    export const makeOutputIntermediate = async (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin): Promise<Intermediate> =>
     {
         if (isIntermediate(target))
         {
@@ -1062,7 +1105,7 @@ export module Jsonarch
                 {
                     const ix = parseInt(i);
                     const v = value[ix];
-                    result.push(await makeIntermediate(entry, v, makeOrigin(origin, ix)));
+                    result.push(await makeOutputIntermediate(entry, v, makeOrigin(origin, ix)));
                 }
                 value = result;
             }
@@ -1075,7 +1118,7 @@ export module Jsonarch
                 {
                     const key = keys[i];
                     const v = value[key] as Jsonable;
-                    result[key] = await makeIntermediate(entry, v, makeOrigin(origin, key));
+                    result[key] = await makeOutputIntermediate(entry, v, makeOrigin(origin, key));
                 }
                 value = result;
             }
@@ -3834,6 +3877,82 @@ export module Jsonarch
     
         }
     );
+    export const typeOfInput = async (entry: ContextOrEntry, json: Jsonable | undefined): Promise<Type> => profile
+    (
+        entry, "typeOfInput", async () =>
+        {
+            if (undefined === json)
+            {
+                return { $arch: "type", type: "never", };
+            }
+            else
+            if (null === json)
+            {
+                return { $arch: "type", type: "null", };
+            }
+            else
+            if ("boolean" === typeof json)
+            {
+                return { $arch: "type", type: "boolean", enum: [ json, ], };
+            }
+            else
+            if ("number" === typeof json)
+            {
+                if (isNaN(json) || ( ! isFinite(json)))
+                {
+                    return { $arch: "type", type: "null", };
+                }
+                else
+                {
+                    return <NumberValueType>{ $arch: "type", type: "number", enum: [ json, ], };
+                }
+            }
+            else
+            if ("string" === typeof json)
+            {
+                return { $arch: "type", type: "string", enum: [ json, ], };
+            }
+            else
+            if (Array.isArray(json))
+            {
+                return { $arch: "type", type: "tuple", list: await Promise.all(json.map(i => typeOfInput(entry, i))), };
+            }
+            else
+            if ("object" === typeof json)
+            {
+                if (isIntermediate(json))
+                {
+                    return json.type;
+                }
+                else
+                if (isLazy(json))
+                {
+                    console.log(getJsonableErrors(entry, "entry"));
+                    throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
+                }
+                else
+                {
+                    const member: { [key:string]: Type } = { };
+                    const keys = objectKeys(json);
+                    for(const i in keys)
+                    {
+                        const key = keys[i];
+                        member[key] = await typeOfInput(entry, <Jsonable>json[key]);
+                    }
+                    return { $arch: "type", type: "object", member, };
+                }
+            }
+            // else
+            // if ("function" === typeof json)
+            // {
+            //     return { $arch: "type", type: "function", };
+            // }
+            // else
+            // {
+                return { $arch: "type", type: "never", };
+            // }
+        }
+    );
     export const typeOfResult = async (entry: ContextOrEntry, json: Jsonable | undefined): Promise<Type> => profile
     (
         entry, "typeOfResult", async () =>
@@ -4146,7 +4265,7 @@ export module Jsonarch
                             // await evaluate(entry):
                             await evaluate(entry)
                 );
-                return await makeIntermediate(entry, result, entry.path);
+                return await makeOutputIntermediate(entry, result, entry.path);
             }
             else
             if (Array.isArray(value))
@@ -4185,7 +4304,7 @@ export module Jsonarch
                                 )
                             );
                         }
-                        return await makeIntermediate(entry, result, entry.path);
+                        return await makeOutputIntermediate(entry, result, entry.path);
                     }
                 );
             }
@@ -4223,7 +4342,7 @@ export module Jsonarch
                                 lazyable
                             );
                         }
-                        return await makeIntermediate(entry, result, entry.path);
+                        return await makeOutputIntermediate(entry, result, entry.path);
                     }
                 );
             }
@@ -4246,10 +4365,11 @@ export module Jsonarch
             // const origin = entry.template;
             const callStack: CallStackEntry[] = [];
             const path: FullRefer = { root: entry.template, refer: [] };
-            const bootEvaluateEntry: EvaluateEntry<Jsonable> =
+            const intermediateTemplate = await makeInputIntermediate(context, template, entry.template);
+            const rootEvaluateEntry: EvaluateEntry<Jsonable> =
             {
                 context,
-                template,
+                template: intermediateTemplate,
                 callStack,
                 path,
                 // origin,
@@ -4269,12 +4389,6 @@ export module Jsonarch
                     }):
                     undefined
                 ),
-            };
-            const intermediateTemplate = await makeIntermediate(bootEvaluateEntry, template, entry.template);
-            const rootEvaluateEntry =
-            {
-                ...bootEvaluateEntry,
-                template: intermediateTemplate,
             };
             try
             {

@@ -312,10 +312,10 @@ export declare module Jsonarch {
     interface EvaluateEntry<TemplateType extends Jsonable> {
         context: Context;
         this?: {
-            template: Template;
+            template: IntermediateTarget<Template>;
             path: FullRefer;
         };
-        template: TemplateType;
+        template: IntermediateTarget<TemplateType>;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
@@ -325,7 +325,7 @@ export declare module Jsonarch {
         setting: Setting;
         handler: Handler;
     }
-    export const isEvaluateEntry: <TemplateType_1 extends Jsonable>(isTemplateType: (template: unknown) => template is TemplateType_1) => (value: unknown) => value is EvaluateEntry<TemplateType_1>;
+    export const isEvaluateEntry: <TemplateType_1 extends Jsonable>(isTemplateType: (template: unknown) => template is IntermediateTarget<TemplateType_1>) => (value: unknown) => value is EvaluateEntry<TemplateType_1>;
     interface Lazy extends AlphaJsonarch {
         $arch: "lazy";
         thisPath?: FullRefer;
@@ -364,8 +364,9 @@ export declare module Jsonarch {
         output: Jsonable;
         originMap: OriginMap;
     };
-    export const makeSolid: (intermediate: Intermediate | Jsonable) => Jsonable;
-    export const makeIntermediate: (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin) => Promise<Intermediate>;
+    export const makeSolid: <TargetType extends Jsonable>(intermediate: Jsonable | IntermediateTarget<TargetType>) => TargetType;
+    export const makeInputIntermediate: (entry: ContextOrEntry, target: Jsonable, origin: Origin) => Promise<IntermediateTarget<Jsonable>>;
+    export const makeOutputIntermediate: (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin) => Promise<Intermediate>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
@@ -419,6 +420,7 @@ export declare module Jsonarch {
         return: Jsonable;
     }
     export const isStaticData: (template: unknown) => template is StaticTemplate;
+    export const isIntermediateStaticData: (template: unknown) => template is IntermediateTarget<StaticTemplate>;
     export const evaluateStatic: (entry: EvaluateEntry<StaticTemplate>) => Promise<Jsonable>;
     export const evaluateStaticResultType: (entry: EvaluateEntry<StaticTemplate>) => Promise<Type>;
     export interface IncludeStaticJsonTemplate extends AlphaJsonarch {
@@ -426,6 +428,7 @@ export declare module Jsonarch {
         path: string;
     }
     export const isIncludeStaticJsonData: (template: unknown) => template is IncludeStaticJsonTemplate;
+    export const isIntermediateIncludeStaticJsonData: (template: unknown) => template is IntermediateTarget<IncludeStaticJsonTemplate>;
     export const evaluateIncludeStaticJson: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Jsonable>;
     export const evaluateIncludeStaticJsonResultType: (entry: EvaluateEntry<IncludeStaticJsonTemplate>) => Promise<Type>;
     type ReferKeyElement = string;
@@ -580,12 +583,14 @@ export declare module Jsonarch {
         parameter?: Jsonable;
     }
     export const isCallData: (template: unknown) => template is Call;
+    export const isIntermediateCallData: (template: unknown) => template is IntermediateTarget<Call>;
     export interface Value extends AlphaJsonarch {
         $arch: "value";
         type?: Type;
         refer: Refer;
     }
     export const isValueData: (template: unknown) => template is Value;
+    export const isIntermediateValueData: (template: unknown) => template is IntermediateTarget<Value>;
     export const typeOfJsonable: (json: Jsonable | undefined) => Type;
     export interface CallTypeInterface extends JsonableObject {
         parameter: Type;
@@ -614,6 +619,7 @@ export declare module Jsonarch {
         catch?: Case[];
     }
     export const isTemplateData: (template: unknown) => template is Template;
+    export const isIntermediateTemplateData: (template: unknown) => template is IntermediateTarget<Template>;
     export interface Match extends AlphaJsonarch {
         $arch: "match";
         type?: {
@@ -628,6 +634,7 @@ export declare module Jsonarch {
         cases: Case[];
     }
     export const isMatchData: (template: unknown) => template is Match;
+    export const isIntermediateMatchData: (template: unknown) => template is IntermediateTarget<Match>;
     export interface Case extends JsonableObject {
         case?: CasePattern;
         return: Jsonable;
@@ -672,6 +679,7 @@ export declare module Jsonarch {
         loop: AlphaJsonarch;
     }
     export const isLoopData: (template: unknown) => template is Loop;
+    export const isIntermediateLoopData: (template: unknown) => template is IntermediateTarget<Loop>;
     export interface LoopFalseResult extends JsonableObject {
         continue: false;
     }
@@ -814,14 +822,15 @@ export declare module Jsonarch {
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
+    export const typeOfInput: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;
     export const typeOfResult: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;
     export const evaluateValue: (entry: EvaluateEntry<Value>) => Promise<Jsonable>;
     export const evaluateValueResultType: (entry: EvaluateEntry<Value>) => Promise<Type>;
-    export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
+    export const evaluateIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Jsonable>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable | undefined>;
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
-    export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is TargetType, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
+    export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
     export const evaluateType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
-    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => AlphaJsonarch;
+    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => IntermediateTarget<AlphaJsonarch>;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Jsonable>;
     export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Type>;
     export module Limit {
@@ -838,8 +847,6 @@ export declare module Jsonarch {
     }
     export const apply: (entry: EvaluateEntry<Jsonable>, lazyable?: boolean) => Promise<Jsonable>;
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<Jsonable>;
-    export const applyRootOriginal: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
-    export const applyRootNew: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const encode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;
