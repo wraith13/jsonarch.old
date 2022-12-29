@@ -369,7 +369,13 @@ export declare module Jsonarch {
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;
-        callStack: CallStackEntry[];
+        callStack: {
+            template: CallStackEntry[];
+            system: {
+                scope: string;
+                template: Jsonable;
+            }[];
+        };
         path: FullRefer;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;

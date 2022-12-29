@@ -1139,7 +1139,15 @@ export module Jsonarch
         this?: FullRefer;
         // template: TemplateType;
         parameter: Jsonable | undefined;
-        callStack: CallStackEntry[];
+        callStack:
+        {
+            template: CallStackEntry[];
+            system:
+            {
+                scope: string;
+                template: Jsonable;
+            }[];
+        };
         path: FullRefer;
         originMap?: OriginMap;
         scope?: JsonableObject | undefined;
@@ -1151,7 +1159,11 @@ export module Jsonarch
         path: entry.path,
         // template: entry.template,
         parameter: entry.parameter,
-        callStack: entry.callStack,
+        callStack:
+        {
+            template: entry.callStack,
+            system: entry.context.profile.stack.map(i => ({ scope: i.scope, template: jsonParse(i.template), }))
+        },
         orignMap: entry.originMap,
         scope: entry.scope,
     });
@@ -4128,7 +4140,6 @@ export module Jsonarch
             (
                 entry, "Unknown Jsonarch Type",
                 {
-                    location: "evaluate",
                     template: entry.template,
                 }
             );
@@ -4164,7 +4175,6 @@ export module Jsonarch
             (
                 entry, "Unknown Jsonarch Type",
                 {
-                    location: "evaluateResultType",
                     template: entry.template,
                 }
             );

@@ -947,7 +947,10 @@ var Jsonarch;
             path: entry.path,
             // template: entry.template,
             parameter: entry.parameter,
-            callStack: entry.callStack,
+            callStack: {
+                template: entry.callStack,
+                system: entry.context.profile.stack.map(function (i) { return ({ scope: i.scope, template: Jsonarch.jsonParse(i.template), }); })
+            },
             orignMap: entry.originMap,
             scope: entry.scope,
         });
@@ -3123,7 +3126,6 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
-                    location: "evaluate",
                     template: entry.template,
                 });
             }
@@ -3167,7 +3169,6 @@ var Jsonarch;
                     _e++;
                     return [3 /*break*/, 1];
                 case 4: throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch Type", {
-                    location: "evaluateResultType",
                     template: entry.template,
                 });
             }
