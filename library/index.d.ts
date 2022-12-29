@@ -692,9 +692,9 @@ export declare module Jsonarch {
         return: Jsonable;
     }
     export type LoopResult = LoopFalseResult | LoopRegularResult;
-    export const isLoopFalseResultData: (value: unknown) => value is LoopFalseResult;
-    export const isLoopRegularResultData: (value: unknown) => value is LoopRegularResult;
-    export const isLoopResultData: IsType<LoopFalseResult | LoopRegularResult>;
+    export const isIntermediateLoopFalseResultData: (value: unknown) => value is IntermediateTarget<LoopFalseResult>;
+    export const isIntermediateLoopRegularResultData: (value: unknown) => value is IntermediateTarget<LoopRegularResult>;
+    export const isIntermediateLoopResultData: IsType<IntermediateTarget<LoopFalseResult> | IntermediateTarget<LoopRegularResult>>;
     export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Match | Loop)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;

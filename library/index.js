@@ -717,7 +717,7 @@ var Jsonarch;
     Jsonarch.isIntermediateTarget = function (isMember) {
         return function (value) {
             return Jsonarch.isIntermediate(value) &&
-                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value[key]); });
+                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](Jsonarch.getValueFromIntermediateOrValue(value.value[key])); });
         };
     };
     Jsonarch.getIntermediateJsonarchType = function (template) {
@@ -949,7 +949,7 @@ var Jsonarch;
             parameter: entry.parameter,
             callStack: {
                 template: entry.callStack,
-                system: entry.context.profile.stack.map(function (i) { return ({ scope: i.scope, template: Jsonarch.jsonParse(i.template), }); })
+                system: entry.context.profile.stack.map(function (i) { return ({ scope: i.scope, template: Jsonarch.jsonParse(i.template), }); }),
             },
             orignMap: entry.originMap,
             scope: entry.scope,
@@ -1368,9 +1368,12 @@ var Jsonarch;
     Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isIfCaseCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
     Jsonarch.isIntermediateLoopData = Jsonarch.isIntermediateJsonarch("loop");
-    Jsonarch.isLoopFalseResultData = Jsonarch.isObject({ continue: Jsonarch.isJustValue(false), });
-    Jsonarch.isLoopRegularResultData = Jsonarch.isObject({ continue: Jsonarch.isUndefinedOr(Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
-    Jsonarch.isLoopResultData = isTypeOr(Jsonarch.isLoopFalseResultData, Jsonarch.isLoopRegularResultData);
+    // export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
+    // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
+    // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
+    Jsonarch.isIntermediateLoopFalseResultData = Jsonarch.isIntermediateTarget({ continue: Jsonarch.isJustValue(false), });
+    Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTarget({ continue: Jsonarch.isUndefinedOr(Jsonarch.isBoolean), return: Jsonarch.isJsonable, });
+    Jsonarch.isIntermediateLoopResultData = isTypeOr(Jsonarch.isIntermediateLoopFalseResultData, Jsonarch.isIntermediateLoopRegularResultData);
     Jsonarch.applyDefault = function () {
         var defaults = [];
         for (var _c = 0; _c < arguments.length; _c++) {
@@ -1757,28 +1760,28 @@ var Jsonarch;
     }); }); }); };
     Jsonarch.evaluateLoop = function (entry) { return Jsonarch.profile(entry, "evaluateLoop", function () { return __awaiter(_this, void 0, void 0, function () {
         var result, index, scope, current;
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     result = [];
                     index = 0;
-                    _d.label = 1;
+                    _e.label = 1;
                 case 1:
                     if (!true) return [3 /*break*/, 3];
                     scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
                     return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "loop"), template: entry.template.value.loop, scope: scope }))];
                 case 2:
-                    current = _d.sent();
-                    if (!Jsonarch.isLoopResultData(current)) {
+                    current = _e.sent();
+                    if (!Jsonarch.isIntermediateLoopResultData(current)) {
                         throw new Jsonarch.ErrorJson(entry, "Unknown Lopp Result", {
                             result: current,
                         });
                     }
-                    if (true !== ((_c = current.continue) !== null && _c !== void 0 ? _c : true) || undefined === current.return) {
+                    if (true !== ((_d = (_c = current.value.continue) === null || _c === void 0 ? void 0 : _c.value) !== null && _d !== void 0 ? _d : true) || undefined === current.value.return.value) {
                         return [3 /*break*/, 3];
                     }
-                    result.push(current.return);
+                    result.push(current.value.return);
                     ++index;
                     return [3 /*break*/, 1];
                 case 3: return [2 /*return*/, result];

@@ -963,7 +963,7 @@ export module Jsonarch
         <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]> }>) =>
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
-            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value)[key]));
+            objectKeys(isMember).every(key => isMember[key](getValueFromIntermediateOrValue((<{ [key:string]: unknown }>value.value)[key])));
     export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
         isIntermediate(template) &&
         null !== template.value &&
@@ -1162,7 +1162,7 @@ export module Jsonarch
         callStack:
         {
             template: entry.callStack,
-            system: entry.context.profile.stack.map(i => ({ scope: i.scope, template: jsonParse(i.template), }))
+            system: entry.context.profile.stack.map(i => ({ scope: i.scope, template: jsonParse(i.template), })),
         },
         orignMap: entry.originMap,
         scope: entry.scope,
@@ -1898,9 +1898,12 @@ export module Jsonarch
         return: Jsonable;
     }
     export type LoopResult = LoopFalseResult | LoopRegularResult;
-    export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
-    export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
-    export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
+    // export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
+    // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
+    // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
+    export const isIntermediateLoopFalseResultData = isIntermediateTarget<LoopFalseResult>({ continue: isJustValue<false>(false), });
+    export const isIntermediateLoopRegularResultData = isIntermediateTarget<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
+    export const isIntermediateLoopResultData = isTypeOr<IntermediateTarget<LoopFalseResult>, IntermediateTarget<LoopRegularResult>>(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
     export type JsonarchType =
     (
         Cache |
@@ -2377,8 +2380,8 @@ export module Jsonarch
                     path: makeFullRefer(entry.path, "loop"),
                     template: entry.template.value.loop,
                     scope,
-                }) as LoopResult;
-                if ( ! isLoopResultData(current))
+                }) as IntermediateTarget<LoopResult>;
+                if ( ! isIntermediateLoopResultData(current))
                 {
                     throw new ErrorJson
                     (
@@ -2388,11 +2391,11 @@ export module Jsonarch
                         }
                     );
                 }
-                if (true !== (current.continue ?? true) || undefined === current.return)
+                if (true !== (current.value.continue?.value ?? true) || undefined === current.value.return.value)
                 {
                     break;
                 }
-                result.push(current.return);
+                result.push(current.value.return);
                 ++index;
             }
             return result;
