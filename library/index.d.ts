@@ -717,13 +717,13 @@ export declare module Jsonarch {
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
     export interface CallTemplateRegular extends JsonableObject {
-        template: Template;
+        template: IntermediateTarget<Template>;
         type: CallTypeInterface;
         parameter: Jsonable;
         cacheKey?: string;
     }
     export interface CallTemplateCache extends JsonableObject {
-        template: Template;
+        template: IntermediateTarget<Template>;
         parameter: Jsonable;
         cacheKey: string;
         result: Jsonable;

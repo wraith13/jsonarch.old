@@ -2436,19 +2436,19 @@ export module Jsonarch
             });
     export interface CallTemplateRegular extends JsonableObject
     {
-        template: Template;
+        template: IntermediateTarget<Template>;
         type: CallTypeInterface;
         parameter: Jsonable;
         cacheKey?: string;
     }
     export interface CallTemplateCache extends JsonableObject
     {
-        template: Template;
+        template: IntermediateTarget<Template>;
         parameter: Jsonable;
         cacheKey: string;
         result: Jsonable;
     }
-    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isTemplateData, parameter: isJsonable, cacheKey: isString, result: isJsonable, });
+    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isJsonable, cacheKey: isString, result: isJsonable, });
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
     export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable): Promise<CallTemplate> => profile
@@ -2469,9 +2469,9 @@ export module Jsonarch
                 }
                 // entry.originMap
             );
-            if (isTemplateData(template))
+            if (isIntermediateTemplateData(template))
             {
-                if (template.type)
+                if (template.value.type)
                 {
                     const useCache = entry.template.cache ?? template.cache ?? false;
                     const liquid = "system" === systemOrTemplate || useCache ?
@@ -2501,7 +2501,7 @@ export module Jsonarch
                         (
                             entry, "Unmatch parameter type",
                             {
-                                refer: entry.template.refer,
+                                refer,
                                 type:
                                 {
                                     template: template.type,
@@ -2518,7 +2518,7 @@ export module Jsonarch
                     (
                         entry, "Not found type define",
                         {
-                            refer: entry.template.refer,
+                            refer,
                         }
                     );
                 }
@@ -2529,7 +2529,7 @@ export module Jsonarch
                 (
                     entry, "Not found template",
                     {
-                        refer: entry.template.refer,
+                        refer,
                     }
                 );
             }

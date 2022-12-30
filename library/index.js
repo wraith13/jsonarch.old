@@ -1820,7 +1820,7 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.isCallTemplateCache = Jsonarch.isObject({ template: Jsonarch.isTemplateData, parameter: Jsonarch.isJsonable, cacheKey: Jsonarch.isString, result: Jsonarch.isJsonable, });
+    Jsonarch.isCallTemplateCache = Jsonarch.isObject({ template: Jsonarch.isIntermediateTemplateData, parameter: Jsonarch.isJsonable, cacheKey: Jsonarch.isString, result: Jsonarch.isJsonable, });
     Jsonarch.makeCallCacheKey = function (template, parameter) { return Jsonarch.jsonStringify({ template: template, parameter: parameter, }); };
     Jsonarch.getTemplate = function (entry, systemOrTemplate, parameter) { return __awaiter(_this, void 0, void 0, function () {
         var _this = this;
@@ -1837,8 +1837,8 @@ var Jsonarch;
                                 }
                                 // entry.originMap
                                 );
-                                if (!Jsonarch.isTemplateData(template)) return [3 /*break*/, 9];
-                                if (!template.type) return [3 /*break*/, 7];
+                                if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 9];
+                                if (!template.value.type) return [3 /*break*/, 7];
                                 useCache = (_h = (_g = entry.template.cache) !== null && _g !== void 0 ? _g : template.cache) !== null && _h !== void 0 ? _h : false;
                                 if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 2];
                                 _d = Jsonarch.makeSolid;
@@ -1875,7 +1875,7 @@ var Jsonarch;
                                 }
                                 else {
                                     throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
-                                        refer: entry.template.refer,
+                                        refer: refer,
                                         type: {
                                             template: template.type,
                                             parameter: parameterType_1,
@@ -1885,11 +1885,11 @@ var Jsonarch;
                                 }
                                 return [3 /*break*/, 8];
                             case 7: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
-                                refer: entry.template.refer,
+                                refer: refer,
                             });
                             case 8: return [3 /*break*/, 10];
                             case 9: throw new Jsonarch.ErrorJson(entry, "Not found template", {
-                                refer: entry.template.refer,
+                                refer: refer,
                             });
                             case 10: return [2 /*return*/];
                         }
