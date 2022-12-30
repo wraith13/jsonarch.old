@@ -929,9 +929,9 @@ export module Jsonarch
         setting: entry.setting,
         handler: entry.handler,
     });
-    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<Jsonable> => await profile
+    export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<IntermediateTarget<Jsonable>> => await profile
     (
-        entry, "resolveLazy", async () => <Jsonable> await structureObjectAsync
+        entry, "resolveLazy", async () => <IntermediateTarget<Jsonable>> await structureObjectAsync
         (
             async (value: Jsonable) =>
             {
@@ -943,16 +943,13 @@ export module Jsonarch
         (lazy)
     );
     export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
-    export interface Intermediate extends AlphaJsonarch
+    export type Intermediate = IntermediateTarget<Jsonable>;
+    export interface IntermediateTarget<TargetType extends Jsonable> extends AlphaJsonarch
     {
         $arch: "intermediate";
         type: Type;
-        value: Jsonable | Intermediate[] | { [key: string]: Intermediate; };
-        origin: Origin;
-    }
-    export interface IntermediateTarget<TargetType extends Jsonable> extends Intermediate
-    {
         value: IntermediateTargetNest<TargetType>;
+        origin: Origin;
     }
     export type IntermediateTargetNest<TargetType extends Jsonable> =
         TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[]:
@@ -1019,7 +1016,7 @@ export module Jsonarch
             return { output, originMap, };
         }
     };
-    export const makeSolid = <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType> | Jsonable): TargetType =>
+    export const makeSolid = <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>): TargetType =>
     {
         const value = getValueFromIntermediateOrValue(intermediate);
         if (Array.isArray(value))
@@ -1031,7 +1028,7 @@ export module Jsonarch
         {
             const output: JsonableObject = { };
             const keys = objectKeys(value);
-            keys.forEach(key => output[key] = makeSolid(value[key] as Intermediate | Jsonable));
+            keys.forEach(key => output[key] = makeSolid(value[key] as IntermediateTarget<Jsonable>));
             return output as TargetType;
         }
         else
@@ -2473,7 +2470,7 @@ export module Jsonarch
             {
                 if (template.value.type)
                 {
-                    const useCache = entry.template.cache ?? template.cache ?? false;
+                    const useCache = entry.template.value.cache?.value ?? template.value.cache?.value ?? false;
                     const liquid = "system" === systemOrTemplate || useCache ?
                         makeSolid(await resolveLazy(entry, parameter ?? null)):
                         parameter;
@@ -2489,7 +2486,7 @@ export module Jsonarch
                     const parameterType = hasLazy(liquid) ?
                         await typeOfResult(entry, liquid):
                         typeOfJsonable(liquid);
-                    const types = Array.isArray(template.type) ? template.type: [template.type];
+                    const types = makeSolid(Array.isArray(template.value.type) ? template.value.type: [template.value.type]);
                     const type = types.find(t => isBaseOrEqual(compareType(t.parameter, parameterType)));
                     if (type)
                     {
@@ -4277,7 +4274,7 @@ export module Jsonarch
         export const incrementNestDepth = <Entry extends EvaluateEntry<Jsonable>>(entry: Entry): Entry =>
             resetNestDepth(entry, (entry.context.nestDepth ?? 0) +1);
     }
-    export const apply = (entry: EvaluateEntry<Jsonable>, lazyable: boolean = false): Promise<Jsonable> => profile
+    export const apply = (entry: EvaluateEntry<Jsonable>, lazyable: boolean = false): Promise<IntermediateTarget<Jsonable>> => profile
     (
         entry, "apply", async () =>
         {
