@@ -445,7 +445,7 @@ export module Jsonarch
     export const settingSchema = "https://raw.githubusercontent.com/wraith13/jsonarch/master/json-schema/setting-json-schema.json#";
     export interface AlphaJsonarch extends JsonableObject
     {
-        $arch: string;
+        $arch: JsonarchType;
     }
     export const isJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
         ((template: unknown): template is Type =>
@@ -870,7 +870,7 @@ export module Jsonarch
         isObject<EvaluateEntry<TemplateType>>
         ({
             context: isContext,
-            this: isUndefinedOr(isObject({ template: isIntermediateJsonarch<Template>("template"), path: isFullRefer, })),
+            this: isUndefinedOr(isObject({ template: isIntermediateJsonarchTarget<Template>("template"), path: isFullRefer, })),
             template: isTemplateType,
             parameter: isUndefinedOr(isJsonable),
             callStack: isArray(isCallStackEntry),
@@ -961,14 +961,14 @@ export module Jsonarch
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key](getValueFromIntermediateOrValue((<{ [key:string]: unknown }>value.value)[key])));
-    export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
+    export const isIntermediateJsonarch = (template: unknown): template is IntermediateTarget<AlphaJsonarch> =>
         isIntermediate(template) &&
         null !== template.value &&
         "object" === typeof template.value &&
-        "$arch" in template.value ?
-            getValueFromIntermediateOrValue(template.value.$arch) as JsonarchType:
-            undefined;
-    export const isIntermediateJsonarch = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
+        "$arch" in template.value && "string" === typeof template.value.$arch.value;
+    export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
+        isIntermediateJsonarch(template) ? template.value.$arch.value: undefined;
+    export const isIntermediateJsonarchTarget = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
         (template: unknown): template is IntermediateTarget<Type> =>
             type === getIntermediateJsonarchType(template);
     export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
@@ -1086,47 +1086,48 @@ export module Jsonarch
             return result;
         }
     };
-    export const makeOutputIntermediate = async (entry: EvaluateEntry<Jsonable>, target: Jsonable, origin: Origin): Promise<Intermediate> =>
+    export const makeOutputIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType, origin: Origin): Promise<IntermediateTarget<TargetType>> =>
     {
         if (isIntermediate(target))
         {
-            return target;
+            // return target;
+            throw new ErrorJson(entry, "never", { target, origin, });
         }
         else
         {
-            let value: IntermediateTargetNest<Jsonable>;
-            if (Array.isArray(value))
+            let value: IntermediateTargetNest<TargetType>;
+            if (Array.isArray(target))
             {
                 const result: Intermediate[] = [ ];
-                for(const i in value)
+                for(const i in target)
                 {
                     const ix = parseInt(i);
-                    const v = value[ix];
+                    const v = target[ix];
                     result.push(await makeOutputIntermediate(entry, v, makeOrigin(origin, ix)));
                 }
-                value = result;
+                value = <IntermediateTargetNest<TargetType>>result;
             }
             else
-            if (null !== value && "object" === typeof value)
+            if (null !== target && "object" === typeof target)
             {
                 const result: IntermediateTargetNest<Jsonable> = { };
-                const keys = objectKeys<JsonableObject>(value);
+                const keys = objectKeys<JsonableObject>(target);
                 for(const i in keys)
                 {
                     const key = keys[i];
-                    const v = value[key] as Jsonable;
+                    const v = target[key] as Jsonable;
                     result[key] = await makeOutputIntermediate(entry, v, makeOrigin(origin, key));
                 }
-                value = result;
+                value = <IntermediateTargetNest<TargetType>>result;
             }
             else
             {
-                value = <JsonableValue>target;
+                value = <IntermediateTargetNest<TargetType>>target;
             }
-            const result: Intermediate =
+            const result: IntermediateTarget<TargetType> =
             {
                 $arch: "intermediate",
-                type: await typeOfResult(entry, value),
+                type: await typeOfResult(entry, target),
                 value,
                 origin,
             };
@@ -1448,7 +1449,7 @@ export module Jsonarch
         return: Jsonable;
     }
     export const isStaticData = isJsonarch<StaticTemplate>("static");
-    export const isIntermediateStaticData = isIntermediateJsonarch<StaticTemplate>("static");
+    export const isIntermediateStaticData = isIntermediateJsonarchTarget<StaticTemplate>("static");
     export const evaluateStatic = (entry: EvaluateEntry<StaticTemplate>): Promise<Jsonable> =>
         profile(entry, "evaluateStatic", async () => encode(entry.template.return));
     export const evaluateStaticResultType = (entry: EvaluateEntry<StaticTemplate>): Promise<Type> =>
@@ -1459,7 +1460,7 @@ export module Jsonarch
         path: string;
     }
     export const isIncludeStaticJsonData = isJsonarch<IncludeStaticJsonTemplate>("include-static-json");
-    export const isIntermediateIncludeStaticJsonData = isIntermediateJsonarch<IncludeStaticJsonTemplate>("include-static-json");
+    export const isIntermediateIncludeStaticJsonData = isIntermediateJsonarchTarget<IncludeStaticJsonTemplate>("include-static-json");
     export const evaluateIncludeStaticJson = (entry: EvaluateEntry<IncludeStaticJsonTemplate>): Promise<Jsonable> => profile
     (
         entry, "evaluateIncludeStaticJson", async () =>
@@ -1706,7 +1707,7 @@ export module Jsonarch
         parameter?: Jsonable;
     }
     export const isCallData = isJsonarch<Call>("call");
-    export const isIntermediateCallData = isIntermediateJsonarch<Call>("call");
+    export const isIntermediateCallData = isIntermediateJsonarchTarget<Call>("call");
     export interface Value extends AlphaJsonarch
     {
         $arch: "value";
@@ -1714,7 +1715,7 @@ export module Jsonarch
         refer: Refer;
     }
     export const isValueData = isJsonarch<Value>("value");
-    export const isIntermediateValueData = isIntermediateJsonarch<Value>("value");
+    export const isIntermediateValueData = isIntermediateJsonarchTarget<Value>("value");
     export const typeOfJsonable = (json: Jsonable | undefined): Type =>
     {
         if (undefined === json)
@@ -1805,7 +1806,7 @@ export module Jsonarch
         catch?: Case[];
     }
     export const isTemplateData = isJsonarch<Template>("template");
-    export const isIntermediateTemplateData = isIntermediateJsonarch<Template>("template");
+    export const isIntermediateTemplateData = isIntermediateJsonarchTarget<Template>("template");
     export interface Match extends AlphaJsonarch
     {
         $arch: "match";
@@ -1823,7 +1824,7 @@ export module Jsonarch
         cases: Case[];
     }
     export const isMatchData = isJsonarch<Match>("match");
-    export const isIntermediateMatchData = isIntermediateJsonarch<Match>("match");
+    export const isIntermediateMatchData = isIntermediateJsonarchTarget<Match>("match");
     export interface Case extends JsonableObject
     {
         case?: CasePattern;
@@ -1888,7 +1889,7 @@ export module Jsonarch
         loop: AlphaJsonarch;
     }
     export const isLoopData = isJsonarch<Loop>("loop");
-    export const isIntermediateLoopData = isIntermediateJsonarch<Loop>("loop");
+    export const isIntermediateLoopData = isIntermediateJsonarchTarget<Loop>("loop");
     export interface LoopFalseResult extends JsonableObject
     {
         continue: false;
