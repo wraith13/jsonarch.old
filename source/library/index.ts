@@ -1094,10 +1094,10 @@ export module Jsonarch
         }
         else
         {
-            let value = target;
+            let value: IntermediateTargetNest<Jsonable>;
             if (Array.isArray(value))
             {
-                const result: Jsonable[] = [ ];
+                const result: Intermediate[] = [ ];
                 for(const i in value)
                 {
                     const ix = parseInt(i);
@@ -1109,7 +1109,7 @@ export module Jsonarch
             else
             if (null !== value && "object" === typeof value)
             {
-                const result: JsonableObject = { };
+                const result: IntermediateTargetNest<Jsonable> = { };
                 const keys = objectKeys<JsonableObject>(value);
                 for(const i in keys)
                 {
@@ -1118,6 +1118,10 @@ export module Jsonarch
                     result[key] = await makeOutputIntermediate(entry, v, makeOrigin(origin, key));
                 }
                 value = result;
+            }
+            else
+            {
+                value = <JsonableValue>target;
             }
             const result: Intermediate =
             {
