@@ -2491,7 +2491,8 @@ export module Jsonarch
                     const parameterType = hasLazy(liquid) ?
                         await typeOfResult(entry, liquid):
                         typeOfJsonable(liquid);
-                    const types = makeSolid(Array.isArray(template.value.type) ? template.value.type: [template.value.type]);
+                    const types0 = makeSolid(template.value.type);
+                    const types = undefined === types0 ? []: Array.isArray(types0) ? types0: [types0];
                     const type = types.find(t => isBaseOrEqual(compareType(t.parameter, parameterType)));
                     if (type)
                     {
