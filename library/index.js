@@ -866,80 +866,84 @@ var Jsonarch;
         });
     }); };
     Jsonarch.makeOutputIntermediate = function (entry, target, origin) { return __awaiter(_this, void 0, void 0, function () {
-        var value, result_7, _c, _d, _e, i, ix, v, _f, _g, result_8, keys, _h, _j, _k, i, key, v, _l, _m, result;
-        var _o;
-        return __generator(this, function (_p) {
-            switch (_p.label) {
-                case 0:
-                    if (!Jsonarch.isIntermediate(target)) return [3 /*break*/, 1];
-                    // return target;
-                    throw new Jsonarch.ErrorJson(entry, "never", { target: target, origin: origin, });
-                case 1:
-                    value = void 0;
-                    if (!Array.isArray(target)) return [3 /*break*/, 6];
-                    result_7 = [];
-                    _c = [];
-                    for (_d in target)
-                        _c.push(_d);
-                    _e = 0;
-                    _p.label = 2;
-                case 2:
-                    if (!(_e < _c.length)) return [3 /*break*/, 5];
-                    i = _c[_e];
-                    ix = parseInt(i);
-                    v = target[ix];
-                    _g = (_f = result_7).push;
-                    return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, v, Jsonarch.makeOrigin(origin, ix))];
-                case 3:
-                    _g.apply(_f, [_p.sent()]);
-                    _p.label = 4;
-                case 4:
-                    _e++;
-                    return [3 /*break*/, 2];
-                case 5:
-                    value = result_7;
-                    return [3 /*break*/, 12];
-                case 6:
-                    if (!(null !== target && "object" === typeof target)) return [3 /*break*/, 11];
-                    result_8 = {};
-                    keys = Jsonarch.objectKeys(target);
-                    _h = [];
-                    for (_j in keys)
-                        _h.push(_j);
-                    _k = 0;
-                    _p.label = 7;
-                case 7:
-                    if (!(_k < _h.length)) return [3 /*break*/, 10];
-                    i = _h[_k];
-                    key = keys[i];
-                    v = target[key];
-                    _l = result_8;
-                    _m = key;
-                    return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, v, Jsonarch.makeOrigin(origin, key))];
-                case 8:
-                    _l[_m] = _p.sent();
-                    _p.label = 9;
-                case 9:
-                    _k++;
-                    return [3 /*break*/, 7];
-                case 10:
-                    value = result_8;
-                    return [3 /*break*/, 12];
-                case 11:
-                    value = target;
-                    _p.label = 12;
-                case 12:
-                    _o = {
-                        $arch: "intermediate"
-                    };
-                    return [4 /*yield*/, Jsonarch.typeOfResult(entry, target)];
-                case 13:
-                    result = (_o.type = _p.sent(),
-                        _o.value = value,
-                        _o.origin = origin,
-                        _o);
-                    return [2 /*return*/, result];
-            }
+        var _this = this;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.profile(entry, "makeOutputIntermediate", function () { return __awaiter(_this, void 0, void 0, function () {
+                    var value, result_7, _c, _d, _e, i, ix, v, _f, _g, result_8, keys, _h, _j, _k, i, key, v, _l, _m, result;
+                    var _o;
+                    return __generator(this, function (_p) {
+                        switch (_p.label) {
+                            case 0:
+                                if (!Jsonarch.isIntermediate(target)) return [3 /*break*/, 1];
+                                return [2 /*return*/, target];
+                            case 1:
+                                value = void 0;
+                                if (!Array.isArray(target)) return [3 /*break*/, 6];
+                                result_7 = [];
+                                _c = [];
+                                for (_d in target)
+                                    _c.push(_d);
+                                _e = 0;
+                                _p.label = 2;
+                            case 2:
+                                if (!(_e < _c.length)) return [3 /*break*/, 5];
+                                i = _c[_e];
+                                ix = parseInt(i);
+                                v = target[ix];
+                                _g = (_f = result_7).push;
+                                return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, v, Jsonarch.makeOrigin(origin, ix))];
+                            case 3:
+                                _g.apply(_f, [_p.sent()]);
+                                _p.label = 4;
+                            case 4:
+                                _e++;
+                                return [3 /*break*/, 2];
+                            case 5:
+                                value = result_7;
+                                return [3 /*break*/, 12];
+                            case 6:
+                                if (!(null !== target && "object" === typeof target)) return [3 /*break*/, 11];
+                                result_8 = {};
+                                keys = Jsonarch.objectKeys(target);
+                                _h = [];
+                                for (_j in keys)
+                                    _h.push(_j);
+                                _k = 0;
+                                _p.label = 7;
+                            case 7:
+                                if (!(_k < _h.length)) return [3 /*break*/, 10];
+                                i = _h[_k];
+                                key = keys[i];
+                                v = target[key];
+                                _l = result_8;
+                                _m = key;
+                                return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, v, Jsonarch.makeOrigin(origin, key))];
+                            case 8:
+                                _l[_m] = _p.sent();
+                                _p.label = 9;
+                            case 9:
+                                _k++;
+                                return [3 /*break*/, 7];
+                            case 10:
+                                value = result_8;
+                                return [3 /*break*/, 12];
+                            case 11:
+                                value = target;
+                                _p.label = 12;
+                            case 12:
+                                _o = {
+                                    $arch: "intermediate"
+                                };
+                                return [4 /*yield*/, Jsonarch.typeOfResult(entry, target)];
+                            case 13:
+                                result = (_o.type = _p.sent(),
+                                    _o.value = value,
+                                    _o.origin = origin,
+                                    _o);
+                                return [2 /*return*/, result];
+                        }
+                    });
+                }); })];
         });
     }); };
     Jsonarch.getValueFromIntermediateOrValue = function (intermediateOrValue) {
@@ -1312,7 +1316,10 @@ var Jsonarch;
     Jsonarch.isValueData = Jsonarch.isJsonarch("value");
     Jsonarch.isIntermediateValueData = Jsonarch.isIntermediateJsonarchTarget("value");
     Jsonarch.typeOfJsonable = function (json) {
-        if (undefined === json) {
+        if (Jsonarch.isIntermediate(json)) {
+            return json.type;
+        }
+        else if (undefined === json) {
             return { $arch: "type", type: "never", };
         }
         else if (null === json) {
@@ -1883,7 +1890,7 @@ var Jsonarch;
                                     throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
                                         refer: refer,
                                         type: {
-                                            template: template.type,
+                                            template: template.value.type,
                                             parameter: parameterType_1,
                                         },
                                         parameter: parameter,

@@ -361,7 +361,7 @@ export declare module Jsonarch {
     };
     export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
     export const makeInputIntermediate: (entry: ContextOrEntry, target: Jsonable, origin: Origin) => Promise<IntermediateTarget<Jsonable>>;
-    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
