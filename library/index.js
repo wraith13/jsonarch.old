@@ -513,7 +513,7 @@ var Jsonarch;
         };
         return result;
     };
-    Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json"]);
+    Jsonarch.isSystemFileType = isEnum(["boot-setting.json", "default-setting.json", "library.json"]);
     Jsonarch.isSystemFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("system"), id: Jsonarch.isSystemFileType, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
     Jsonarch.isNoneFileContext = Jsonarch.isObject({ category: Jsonarch.isJust("none"), data: Jsonarch.isJsonable, hash: Jsonarch.isUndefinedOr(Jsonarch.isString), });
     Jsonarch.isNoneFileContextStrict = function (isType) {
@@ -801,11 +801,11 @@ var Jsonarch;
                     if (!Jsonarch.isIntermediate(target)) return [3 /*break*/, 1];
                     return [2 /*return*/, target];
                 case 1:
-                    value = target;
-                    if (!Array.isArray(value)) return [3 /*break*/, 6];
+                    value = void 0;
+                    if (!Array.isArray(target)) return [3 /*break*/, 6];
                     result_5 = [];
                     _c = [];
-                    for (_d in value)
+                    for (_d in target)
                         _c.push(_d);
                     _e = 0;
                     _p.label = 2;
@@ -813,7 +813,7 @@ var Jsonarch;
                     if (!(_e < _c.length)) return [3 /*break*/, 5];
                     i = _c[_e];
                     ix = parseInt(i);
-                    v = value[ix];
+                    v = target[ix];
                     _g = (_f = result_5).push;
                     return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, v, Jsonarch.makeOrigin(origin, ix))];
                 case 3:
@@ -824,11 +824,11 @@ var Jsonarch;
                     return [3 /*break*/, 2];
                 case 5:
                     value = result_5;
-                    return [3 /*break*/, 11];
+                    return [3 /*break*/, 12];
                 case 6:
-                    if (!(null !== value && "object" === typeof value)) return [3 /*break*/, 11];
+                    if (!(null !== target && "object" === typeof target)) return [3 /*break*/, 11];
                     result_6 = {};
-                    keys = Jsonarch.objectKeys(value);
+                    keys = Jsonarch.objectKeys(target);
                     _h = [];
                     for (_j in keys)
                         _h.push(_j);
@@ -838,7 +838,7 @@ var Jsonarch;
                     if (!(_k < _h.length)) return [3 /*break*/, 10];
                     i = _h[_k];
                     key = keys[i];
-                    v = value[key];
+                    v = target[key];
                     _l = result_6;
                     _m = key;
                     return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, v, Jsonarch.makeOrigin(origin, key))];
@@ -850,13 +850,16 @@ var Jsonarch;
                     return [3 /*break*/, 7];
                 case 10:
                     value = result_6;
-                    _p.label = 11;
+                    return [3 /*break*/, 12];
                 case 11:
+                    value = target;
+                    _p.label = 12;
+                case 12:
                     _o = {
                         $arch: "intermediate"
                     };
                     return [4 /*yield*/, Jsonarch.typeOfInput(entry, value)];
-                case 12:
+                case 13:
                     result = (_o.type = _p.sent(),
                         _o.value = value,
                         _o.origin = origin,
@@ -1844,24 +1847,30 @@ var Jsonarch;
                         switch (_m.label) {
                             case 0:
                                 refer = Jsonarch.makeSolid(entry.template.value.refer);
-                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, library_json_1.default), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }), refer, {
+                                if (!!Jsonarch.intermediateLibrarygJson) return [3 /*break*/, 2];
+                                return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, library_json_1.default, Jsonarch.getSystemFileContext("library.json"))];
+                            case 1:
+                                Jsonarch.intermediateLibrarygJson = _m.sent();
+                                _m.label = 2;
+                            case 2:
+                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }), refer, {
                                     template: entry.path,
                                 }
                                 // entry.originMap
                                 );
-                                if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 9];
-                                if (!template.value.type) return [3 /*break*/, 7];
+                                if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 11];
+                                if (!template.value.type) return [3 /*break*/, 9];
                                 useCache = (_k = (_h = (_g = entry.template.value.cache) === null || _g === void 0 ? void 0 : _g.value) !== null && _h !== void 0 ? _h : (_j = template.value.cache) === null || _j === void 0 ? void 0 : _j.value) !== null && _k !== void 0 ? _k : false;
-                                if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 2];
+                                if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 4];
                                 _d = Jsonarch.makeSolid;
                                 return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
-                            case 1:
-                                _c = _d.apply(void 0, [_m.sent()]);
-                                return [3 /*break*/, 3];
-                            case 2:
-                                _c = parameter;
-                                _m.label = 3;
                             case 3:
+                                _c = _d.apply(void 0, [_m.sent()]);
+                                return [3 /*break*/, 5];
+                            case 4:
+                                _c = parameter;
+                                _m.label = 5;
+                            case 5:
                                 liquid = _c;
                                 cacheKey = useCache ? Jsonarch.makeCallCacheKey(refer, liquid) : undefined;
                                 if (undefined !== cacheKey) {
@@ -1870,15 +1879,15 @@ var Jsonarch;
                                         return [2 /*return*/, { template: template, parameter: liquid, cacheKey: cacheKey, result: result, }];
                                     }
                                 }
-                                if (!Jsonarch.hasLazy(liquid)) return [3 /*break*/, 5];
+                                if (!Jsonarch.hasLazy(liquid)) return [3 /*break*/, 7];
                                 return [4 /*yield*/, Jsonarch.typeOfResult(entry, liquid)];
-                            case 4:
-                                _e = _m.sent();
-                                return [3 /*break*/, 6];
-                            case 5:
-                                _e = Jsonarch.typeOfJsonable(liquid);
-                                _m.label = 6;
                             case 6:
+                                _e = _m.sent();
+                                return [3 /*break*/, 8];
+                            case 7:
+                                _e = Jsonarch.typeOfJsonable(liquid);
+                                _m.label = 8;
+                            case 8:
                                 parameterType_1 = _e;
                                 types0 = Jsonarch.makeSolid(template.value.type);
                                 types = undefined === types0 ? [] : Array.isArray(types0) ? types0 : [types0];
@@ -1896,15 +1905,15 @@ var Jsonarch;
                                         parameter: parameter,
                                     });
                                 }
-                                return [3 /*break*/, 8];
-                            case 7: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                                return [3 /*break*/, 10];
+                            case 9: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                                 refer: refer,
                             });
-                            case 8: return [3 /*break*/, 10];
-                            case 9: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                            case 10: return [3 /*break*/, 12];
+                            case 11: throw new Jsonarch.ErrorJson(entry, "Not found template", {
                                 refer: refer,
                             });
-                            case 10: return [2 /*return*/];
+                            case 12: return [2 /*return*/];
                         }
                     });
                 }); })];

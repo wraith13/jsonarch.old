@@ -1,3 +1,4 @@
+import librarygJson from "./library.json";
 export * as Locale from "./locale";
 export declare module Jsonarch {
     export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
@@ -148,8 +149,8 @@ export declare module Jsonarch {
             scope: string;
         }[];
     };
-    export type SystemFileType = "boot-setting.json" | "default-setting.json";
-    export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json">;
+    export type SystemFileType = "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json" | "library.json">;
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject {
         category: "system";
@@ -360,7 +361,7 @@ export declare module Jsonarch {
         originMap: OriginMap;
     };
     export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
-    export const makeInputIntermediate: (entry: ContextOrEntry, target: Jsonable, origin: Origin) => Promise<IntermediateTarget<Jsonable>>;
+    export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     interface ErrorStatus extends JsonableObject {
@@ -728,6 +729,7 @@ export declare module Jsonarch {
     export const isCallTemplateCache: (value: unknown) => value is CallTemplateCache;
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey: (template: Refer, parameter: Jsonable) => string;
+    export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
     export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable) => Promise<CallTemplate>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;

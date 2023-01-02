@@ -571,8 +571,8 @@ export module Jsonarch
         };
         return result;
     };
-    export type SystemFileType = "boot-setting.json" | "default-setting.json";
-    export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json">(["boot-setting.json", "default-setting.json"]);
+    export type SystemFileType = "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json", "library.json">(["boot-setting.json", "default-setting.json", "library.json"]);
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject
     {
@@ -1043,44 +1043,48 @@ export module Jsonarch
     //     value,
     //     origin,
     // });
-    export const makeInputIntermediate = async (entry: ContextOrEntry, target: Jsonable, origin: Origin): Promise<IntermediateTarget<Jsonable>> =>
+    export const makeInputIntermediate = async <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin): Promise<IntermediateTarget<TargetType>> =>
     {
         if (isIntermediate(target))
         {
-            return target as IntermediateTarget<Jsonable>;
+            return target as IntermediateTarget<TargetType>;
         }
         else
         {
-            let value = target;
-            if (Array.isArray(value))
+            let value: IntermediateTargetNest<TargetType>;
+            if (Array.isArray(target))
             {
-                const result: Jsonable[] = [ ];
-                for(const i in value)
+                const result: Intermediate[] = [ ];
+                for(const i in target)
                 {
                     const ix = parseInt(i);
-                    const v = value[ix];
+                    const v = target[ix];
                     result.push(await makeInputIntermediate(entry, v, makeOrigin(origin, ix)));
                 }
-                value = result;
+                value = <IntermediateTargetNest<TargetType>>result;
             }
             else
-            if (null !== value && "object" === typeof value)
+            if (null !== target && "object" === typeof target)
             {
-                const result: JsonableObject = { };
-                const keys = objectKeys<JsonableObject>(value);
+                const result: IntermediateTargetNest<Jsonable> = { };
+                const keys = objectKeys<JsonableObject>(target);
                 for(const i in keys)
                 {
                     const key = keys[i];
-                    const v = value[key] as Jsonable;
+                    const v = target[key] as Jsonable;
                     result[key] = await makeInputIntermediate(entry, v, makeOrigin(origin, key));
                 }
-                value = result;
+                value = <IntermediateTargetNest<TargetType>>result;
             }
-            const result: IntermediateTarget<Jsonable> =
+            else
+            {
+                value = <IntermediateTargetNest<TargetType>>target;
+            }
+            const result: IntermediateTarget<TargetType> =
             {
                 $arch: "intermediate",
                 type: await typeOfInput(entry, value),
-                value: value as IntermediateTargetNest<Jsonable>,
+                value: value as IntermediateTargetNest<TargetType>,
                 origin,
             };
             return result;
@@ -2461,16 +2465,21 @@ export module Jsonarch
     export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isJsonable, cacheKey: isString, result: isJsonable, });
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
+    export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
     export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable): Promise<CallTemplate> => profile
     (
         entry, "getTemplate", async () =>
         {
             const refer = makeSolid(entry.template.value.refer);
+            if ( ! intermediateLibrarygJson)
+            {
+                intermediateLibrarygJson = await makeInputIntermediate(entry, librarygJson, getSystemFileContext("library.json"));
+            }
             const template = turnRefer<JsonableValue | Function>
             (
                 entry,
                 {
-                    ...librarygJson,
+                    ...intermediateLibrarygJson,
                     this: entry.this?.template,
                 },
                 refer,
