@@ -1853,7 +1853,7 @@ var Jsonarch;
                                 Jsonarch.intermediateLibrarygJson = _m.sent();
                                 _m.label = 2;
                             case 2:
-                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }), refer, {
+                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }) }), refer, {
                                     template: entry.path,
                                 }
                                 // entry.originMap

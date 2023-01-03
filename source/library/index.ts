@@ -2480,7 +2480,11 @@ export module Jsonarch
                 entry,
                 {
                     ...intermediateLibrarygJson,
-                    this: entry.this?.template,
+                    value:
+                    {
+                        ...intermediateLibrarygJson.value,
+                        this: entry.this?.template,
+                    }
                 },
                 refer,
                 {
