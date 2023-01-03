@@ -884,6 +884,7 @@ export module Jsonarch
     interface Lazy extends AlphaJsonarch
     {
         $arch: "lazy";
+        type: Type;
         thisPath?: FullRefer;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
@@ -893,10 +894,11 @@ export module Jsonarch
         scope?: JsonableObject | undefined;
     }
     export const isLazy = isJsonarch<Lazy>("lazy");
-    export const makeLazy = <TemplateType extends Jsonable>(entry: EvaluateEntry<TemplateType>): Lazy => regulateJsonable
+    export const makeLazy = async <TemplateType extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType>): Promise<Lazy> => regulateJsonable<Lazy>
     (
         {
             $arch: "lazy",
+            type: await evaluateResultType(entry),
             thisPath: entry.this?.path,
             parameter: entry.parameter,
             callStack: entry.callStack,
@@ -4065,15 +4067,16 @@ export module Jsonarch
                 else
                 if (isLazy(json))
                 {
-                    if (isEvaluateEntry(isAny)(entry))
-                    {
-                        return await evaluateLazyResultType(entry, json);
-                    }
-                    else
-                    {
-                        console.log(getJsonableErrors(entry, "entry"));
-                        throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
-                    }
+                    // if (isEvaluateEntry(isAny)(entry))
+                    // {
+                    //     return await evaluateLazyResultType(entry, json);
+                    // }
+                    // else
+                    // {
+                    //     console.log(getJsonableErrors(entry, "entry"));
+                    //     throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
+                    // }
+                    return json.type;
                 }
                 else
                 {
@@ -4322,7 +4325,7 @@ export module Jsonarch
                 (
                     entry, "apply.evaluate", async () =>
                         lazyable && isLazyableEvaluateTargetEntry(entry) ?
-                            await profile(entry, "apply.makeLazy", async () => jsonParse(jsonStringify(makeLazy(entry)))):
+                            await profile(entry, "apply.makeLazy", async () => jsonParse(jsonStringify(await makeLazy(entry)))):
                             // <Jsonable><unknown>(async () => await evaluate(entry)):
                             // await evaluate(entry):
                             await evaluate(entry)

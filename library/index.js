@@ -655,18 +655,29 @@ var Jsonarch;
         });
     };
     Jsonarch.isLazy = Jsonarch.isJsonarch("lazy");
-    Jsonarch.makeLazy = function (entry) {
+    Jsonarch.makeLazy = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
-        return Jsonarch.regulateJsonable({
-            $arch: "lazy",
-            thisPath: (_c = entry.this) === null || _c === void 0 ? void 0 : _c.path,
-            parameter: entry.parameter,
-            callStack: entry.callStack,
-            path: entry.path,
-            originMap: entry.originMap,
-            scope: entry.scope,
-        }, "shallow");
-    };
+        var _d;
+        var _e;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    _c = Jsonarch.regulateJsonable;
+                    _d = {
+                        $arch: "lazy"
+                    };
+                    return [4 /*yield*/, Jsonarch.evaluateResultType(entry)];
+                case 1: return [2 /*return*/, _c.apply(void 0, [(_d.type = _f.sent(),
+                            _d.thisPath = (_e = entry.this) === null || _e === void 0 ? void 0 : _e.path,
+                            _d.parameter = entry.parameter,
+                            _d.callStack = entry.callStack,
+                            _d.path = entry.path,
+                            _d.originMap = entry.originMap,
+                            _d.scope = entry.scope,
+                            _d), "shallow"])];
+            }
+        });
+    }); };
     Jsonarch.restoreFromLazy = function (entry, lazy) {
         var _c;
         return (__assign(__assign({ context: entry.context }, lazy), { this: (undefined !== lazy.thisPath ?
@@ -3024,7 +3035,7 @@ var Jsonarch;
                                 else {
                                     return [2 /*return*/, { $arch: "type", type: "number", enum: [json,], }];
                                 }
-                                return [3 /*break*/, 17];
+                                return [3 /*break*/, 14];
                             case 4:
                                 if (!("string" === typeof json)) return [3 /*break*/, 5];
                                 return [2 /*return*/, { $arch: "type", type: "string", enum: [json,], }];
@@ -3034,41 +3045,44 @@ var Jsonarch;
                                 return [4 /*yield*/, Promise.all(json.map(function (i) { return Jsonarch.typeOfResult(entry, i); }))];
                             case 6: return [2 /*return*/, (_h.list = _j.sent(), _h)];
                             case 7:
-                                if (!("object" === typeof json)) return [3 /*break*/, 17];
+                                if (!("object" === typeof json)) return [3 /*break*/, 14];
                                 if (!Jsonarch.isIntermediate(json)) return [3 /*break*/, 8];
                                 return [2 /*return*/, json.type];
                             case 8:
-                                if (!Jsonarch.isLazy(json)) return [3 /*break*/, 12];
-                                if (!Jsonarch.isEvaluateEntry(Jsonarch.isAny)(entry)) return [3 /*break*/, 10];
-                                return [4 /*yield*/, Jsonarch.evaluateLazyResultType(entry, json)];
-                            case 9: return [2 /*return*/, _j.sent()];
-                            case 10:
-                                console.log(Jsonarch.getJsonableErrors(entry, "entry"));
-                                throw new Jsonarch.ErrorJson(undefined, "never: Lazy in Loading", Jsonarch.toJsonable(entry));
-                            case 11: return [3 /*break*/, 17];
-                            case 12:
+                                if (!Jsonarch.isLazy(json)) return [3 /*break*/, 9];
+                                // if (isEvaluateEntry(isAny)(entry))
+                                // {
+                                //     return await evaluateLazyResultType(entry, json);
+                                // }
+                                // else
+                                // {
+                                //     console.log(getJsonableErrors(entry, "entry"));
+                                //     throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
+                                // }
+                                return [2 /*return*/, json.type];
+                            case 9:
                                 member = {};
                                 keys = Jsonarch.objectKeys(json);
                                 _c = [];
                                 for (_d in keys)
                                     _c.push(_d);
                                 _e = 0;
-                                _j.label = 13;
-                            case 13:
-                                if (!(_e < _c.length)) return [3 /*break*/, 16];
+                                _j.label = 10;
+                            case 10:
+                                if (!(_e < _c.length)) return [3 /*break*/, 13];
                                 i = _c[_e];
                                 key = keys[i];
                                 _f = member;
                                 _g = key;
                                 return [4 /*yield*/, Jsonarch.typeOfResult(entry, json[key])];
-                            case 14:
+                            case 11:
                                 _f[_g] = _j.sent();
-                                _j.label = 15;
-                            case 15:
+                                _j.label = 12;
+                            case 12:
                                 _e++;
-                                return [3 /*break*/, 13];
-                            case 16: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
-                            case 17: 
+                                return [3 /*break*/, 10];
+                            case 13: return [2 /*return*/, { $arch: "type", type: "object", member: member, }];
+                            case 14: 
                             // else
                             // if ("function" === typeof json)
                             // {
@@ -3300,8 +3314,14 @@ var Jsonarch;
                                     switch (_d.label) {
                                         case 0:
                                             if (!(lazyable && Jsonarch.isLazyableEvaluateTargetEntry(entry))) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, Jsonarch.profile(entry, "apply.makeLazy", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
-                                                    return [2 /*return*/, Jsonarch.jsonParse(Jsonarch.jsonStringify(Jsonarch.makeLazy(entry)))];
+                                            return [4 /*yield*/, Jsonarch.profile(entry, "apply.makeLazy", function () { return __awaiter(_this, void 0, void 0, function () { var _c, _d; return __generator(this, function (_e) {
+                                                    switch (_e.label) {
+                                                        case 0:
+                                                            _c = Jsonarch.jsonParse;
+                                                            _d = Jsonarch.jsonStringify;
+                                                            return [4 /*yield*/, Jsonarch.makeLazy(entry)];
+                                                        case 1: return [2 /*return*/, _c.apply(void 0, [_d.apply(void 0, [_e.sent()])])];
+                                                    }
                                                 }); }); })];
                                         case 1:
                                             _c = _d.sent();

@@ -329,6 +329,7 @@ export declare module Jsonarch {
     export const isEvaluateEntry: <TemplateType_1 extends Jsonable>(isTemplateType: (template: unknown) => template is IntermediateTarget<TemplateType_1>) => (value: unknown) => value is EvaluateEntry<TemplateType_1>;
     interface Lazy extends AlphaJsonarch {
         $arch: "lazy";
+        type: Type;
         thisPath?: FullRefer;
         parameter: Jsonable | undefined;
         callStack: CallStackEntry[];
@@ -337,7 +338,7 @@ export declare module Jsonarch {
         scope?: JsonableObject | undefined;
     }
     export const isLazy: (template: unknown) => template is Lazy;
-    export const makeLazy: <TemplateType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_1>) => Lazy;
+    export const makeLazy: <TemplateType_1 extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType_1>) => Promise<Lazy>;
     export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<IntermediateTarget<Jsonable>>;
     export const hasLazy: (value: Structure<Function | JsonableValue>, key?: number | string) => boolean;
