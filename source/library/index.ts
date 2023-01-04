@@ -3886,6 +3886,49 @@ export module Jsonarch
                 }
                 // entry.originMap
             );
+            if (isIntermediateTemplateData(functionTemplate))
+            {
+                const type = undefinedable(makeSolid)(functionTemplate.value.type);
+                if (type)
+                {
+                    const parameterType = await typeOfResult(nextDepthEntry, parameter);
+                    const types = Array.isArray(type) ? type: [type];
+                    const compareTypeResult = types.map(t => ({ return: t.return, compareTypeResult: compareType(t.parameter, parameterType)}));
+                    const match = compareTypeResult.find(r => isBaseOrEqual(r.compareTypeResult));
+                    if (match)
+                    {
+                        return match.return;
+                    }
+                    else
+                    {
+                        throw new ErrorJson
+                        (
+                            entry, "Unmatch parameter type",
+                            {
+                                refer: entry.template.refer,
+                                compareTypeResult,
+                                type:
+                                {
+                                    template: type,
+                                    parameter: parameterType,
+                                },
+                                parameter,
+                            }
+                        );
+                        }
+                }
+                else
+                {
+                    throw new ErrorJson
+                    (
+                        entry, "Not found type define",
+                        {
+                            refer: entry.template.refer,
+                        }
+                    );
+                }
+            }
+            else
             if (isTemplateData(functionTemplate))
             {
                 const type = functionTemplate.type;
@@ -3935,6 +3978,7 @@ export module Jsonarch
                     entry, "Not found template",
                     {
                         refer: entry.template.refer,
+                        template: toJsonable(functionTemplate),
                     }
                 );
             }

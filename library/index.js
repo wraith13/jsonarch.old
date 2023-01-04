@@ -2874,7 +2874,7 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateCallResultType = function (entry) { return Jsonarch.profile(entry, "evaluateCallResultType", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_2, types, compareTypeResult, match;
+        var parameter, path, nextDepthEntry, functionTemplate, type, parameterType_2, types, compareTypeResult, match, type, parameterType_3, types, compareTypeResult, match;
         var _c, _d, _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
@@ -2897,8 +2897,8 @@ var Jsonarch;
                     }
                     // entry.originMap
                     );
-                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 5];
-                    type = functionTemplate.type;
+                    if (!Jsonarch.isIntermediateTemplateData(functionTemplate)) return [3 /*break*/, 5];
+                    type = undefinedable(Jsonarch.makeSolid)(functionTemplate.value.type);
                     if (!type) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.typeOfResult(nextDepthEntry, parameter)];
                 case 2:
@@ -2924,11 +2924,41 @@ var Jsonarch;
                 case 3: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                     refer: entry.template.refer,
                 });
-                case 4: return [3 /*break*/, 6];
-                case 5: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                case 4: return [3 /*break*/, 10];
+                case 5:
+                    if (!Jsonarch.isTemplateData(functionTemplate)) return [3 /*break*/, 9];
+                    type = functionTemplate.type;
+                    if (!type) return [3 /*break*/, 7];
+                    return [4 /*yield*/, Jsonarch.typeOfResult(nextDepthEntry, parameter)];
+                case 6:
+                    parameterType_3 = _f.sent();
+                    types = Array.isArray(type) ? type : [type];
+                    compareTypeResult = types.map(function (t) { return ({ return: t.return, compareTypeResult: Jsonarch.compareType(t.parameter, parameterType_3) }); });
+                    match = compareTypeResult.find(function (r) { return Jsonarch.isBaseOrEqual(r.compareTypeResult); });
+                    if (match) {
+                        return [2 /*return*/, match.return];
+                    }
+                    else {
+                        throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
+                            refer: entry.template.refer,
+                            compareTypeResult: compareTypeResult,
+                            type: {
+                                template: type,
+                                parameter: parameterType_3,
+                            },
+                            parameter: parameter,
+                        });
+                    }
+                    return [3 /*break*/, 8];
+                case 7: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                     refer: entry.template.refer,
                 });
-                case 6: return [2 /*return*/];
+                case 8: return [3 /*break*/, 10];
+                case 9: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                    refer: entry.template.refer,
+                    template: Jsonarch.toJsonable(functionTemplate),
+                });
+                case 10: return [2 /*return*/];
             }
         });
     }); }); };
