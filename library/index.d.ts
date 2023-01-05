@@ -696,7 +696,7 @@ export declare module Jsonarch {
     export const isIntermediateLoopResultData: IsType<IntermediateTarget<LoopFalseResult> | IntermediateTarget<LoopRegularResult>>;
     export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Match | Loop)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
-    export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<Jsonable>;
+    export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateMatchResultType: (entry: EvaluateEntry<Match>) => Promise<Type>;
@@ -710,7 +710,7 @@ export declare module Jsonarch {
     export const evaluateAndCasePattern: (entry: EvaluateEntry<AndCasePattern>) => Promise<boolean>;
     export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
     export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
-    export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<Jsonable | undefined>;
+    export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<IntermediateTarget<Jsonable> | undefined>;
     export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
@@ -1143,7 +1143,7 @@ export declare module Jsonarch {
     export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
     }>) => Jsonable | undefined;
-    export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<Jsonable>;
+    export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
     export const typeOfInput: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;
     export const typeOfResult: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;

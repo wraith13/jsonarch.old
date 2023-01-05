@@ -1966,7 +1966,7 @@ export module Jsonarch
         );
         return result;
     };
-    export const evaluateTemplate = (entry: EvaluateEntry<Template>): Promise<Jsonable> => profile
+    export const evaluateTemplate = (entry: EvaluateEntry<Template>): Promise<IntermediateTarget<Jsonable>> => profile
     (
         entry, "evaluateTemplate", async () =>
         {
@@ -1985,7 +1985,7 @@ export module Jsonarch
             {
                 try
                 {
-                    return apply
+                    return await apply
                     ({
                         ...entry,
                         this: this_,
@@ -2016,7 +2016,7 @@ export module Jsonarch
             }
             else
             {
-                return apply
+                return await apply
                 ({
                     ...entry,
                     this: this_,
@@ -2354,7 +2354,7 @@ export module Jsonarch
             );
         }
     );
-    export const evaluateCases = (entry: EvaluateEntry<Case[]>): Promise<Jsonable | undefined> => profile
+    export const evaluateCases = (entry: EvaluateEntry<Case[]>): Promise<IntermediateTarget<Jsonable> | undefined> => profile
     (
         entry, "evaluateCases", async () =>
         {
@@ -3717,7 +3717,7 @@ export module Jsonarch
             // entry.originMap
         );
     };
-    export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<Jsonable> => profile
+    export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<IntermediateTarget<Jsonable>> => profile
     (
         entry, "evaluateCall", async () =>
         {
@@ -4326,9 +4326,15 @@ export module Jsonarch
             const value = template.value;
             if (null === value || "object" !== typeof value)
             {
-                // const result = template;
-                // return await makeIntermediate(entry, result, entry.path);
-                return template;
+                if (isIntermediate(value))
+                {
+                    return template;
+                }
+                else
+                {
+                    const result = template;
+                    return await makeOutputIntermediate(entry, result, entry.path);
+                }
             }
             else
             if (isEvaluateTargetEntry(entry))

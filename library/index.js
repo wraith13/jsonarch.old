@@ -1429,25 +1429,27 @@ var Jsonarch;
                         template: entry.template,
                         path: entry.path,
                     };
-                    if (!((_g = entry.template.value.catch) === null || _g === void 0 ? void 0 : _g.value)) return [3 /*break*/, 6];
+                    if (!((_g = entry.template.value.catch) === null || _g === void 0 ? void 0 : _g.value)) return [3 /*break*/, 7];
                     _h.label = 1;
                 case 1:
-                    _h.trys.push([1, 2, , 5]);
-                    return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.value.return, parameter: parameter }))];
-                case 2:
-                    error_1 = _h.sent();
-                    if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "catch"), template: entry.template.value.catch, parameter: error_1 }))];
+                    _h.trys.push([1, 3, , 6]);
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.value.return, parameter: parameter }))];
+                case 2: return [2 /*return*/, _h.sent()];
                 case 3:
+                    error_1 = _h.sent();
+                    if (!Jsonarch.isJsonable(error_1)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, Jsonarch.evaluateCases(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "catch"), template: entry.template.value.catch, parameter: error_1 }))];
+                case 4:
                     result = _h.sent();
                     if (undefined !== result) {
                         return [2 /*return*/, result];
                     }
-                    _h.label = 4;
-                case 4: throw error_1;
-                case 5: return [3 /*break*/, 7];
-                case 6: return [2 /*return*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.value.return, parameter: parameter }))];
-                case 7: return [2 /*return*/];
+                    _h.label = 5;
+                case 5: throw error_1;
+                case 6: return [3 /*break*/, 9];
+                case 7: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { this: this_, path: Jsonarch.makeFullRefer(entry.path, "return"), template: entry.template.value.return, parameter: parameter }))];
+                case 8: return [2 /*return*/, _h.sent()];
+                case 9: return [2 /*return*/];
             }
         });
     }); }); };
@@ -3307,7 +3309,7 @@ var Jsonarch;
     Jsonarch.apply = function (entry, lazyable) {
         if (lazyable === void 0) { lazyable = false; }
         return Jsonarch.profile(entry, "apply", function () { return __awaiter(_this, void 0, void 0, function () {
-            var template, value, result;
+            var template, value, result, result;
             var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -3316,12 +3318,16 @@ var Jsonarch;
                         Limit.throwIfOverTheNestDepth(entry);
                         template = entry.template;
                         value = template.value;
-                        if (!(null === value || "object" !== typeof value)) return [3 /*break*/, 1];
-                        // const result = template;
-                        // return await makeIntermediate(entry, result, entry.path);
+                        if (!(null === value || "object" !== typeof value)) return [3 /*break*/, 4];
+                        if (!Jsonarch.isIntermediate(value)) return [3 /*break*/, 1];
                         return [2 /*return*/, template];
                     case 1:
-                        if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 4];
+                        result = template;
+                        return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, result, entry.path)];
+                    case 2: return [2 /*return*/, _c.sent()];
+                    case 3: return [3 /*break*/, 11];
+                    case 4:
+                        if (!Jsonarch.isEvaluateTargetEntry(entry)) return [3 /*break*/, 7];
                         return [4 /*yield*/, Jsonarch.profile(entry, "apply.evaluate", function () { return __awaiter(_this, void 0, void 0, function () {
                                 var _c;
                                 var _this = this;
@@ -3354,12 +3360,12 @@ var Jsonarch;
                                     }
                                 });
                             }); })];
-                    case 2:
+                    case 5:
                         result = _c.sent();
                         return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, result, entry.path)];
-                    case 3: return [2 /*return*/, _c.sent()];
-                    case 4:
-                        if (!Array.isArray(value)) return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/, _c.sent()];
+                    case 7:
+                        if (!Array.isArray(value)) return [3 /*break*/, 9];
                         return [4 /*yield*/, Jsonarch.profile(entry, "apply.array", function () { return __awaiter(_this, void 0, void 0, function () {
                                 var maxArrayLength, nextDepthEntry, result, _c, _d, _e, i, ix, _f, _g;
                                 return __generator(this, function (_h) {
@@ -3396,8 +3402,8 @@ var Jsonarch;
                                     }
                                 });
                             }); })];
-                    case 5: return [2 /*return*/, _c.sent()];
-                    case 6: return [4 /*yield*/, Jsonarch.profile(entry, "apply.object", function () { return __awaiter(_this, void 0, void 0, function () {
+                    case 8: return [2 /*return*/, _c.sent()];
+                    case 9: return [4 /*yield*/, Jsonarch.profile(entry, "apply.object", function () { return __awaiter(_this, void 0, void 0, function () {
                             var result, maxObjectMembers, nextDepthEntry, keys, _c, _d, _e, i, key, _f, _g;
                             return __generator(this, function (_h) {
                                 switch (_h.label) {
@@ -3435,7 +3441,8 @@ var Jsonarch;
                                 }
                             });
                         }); })];
-                    case 7: return [2 /*return*/, _c.sent()];
+                    case 10: return [2 /*return*/, _c.sent()];
+                    case 11: return [2 /*return*/];
                 }
             });
         }); });
