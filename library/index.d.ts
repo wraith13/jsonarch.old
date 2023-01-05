@@ -731,6 +731,324 @@ export declare module Jsonarch {
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey: (template: Refer, parameter: Jsonable) => string;
     export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
+    export const makeSureIntermediateLibrarygJson: <TargetType extends Jsonable>(entry: EvaluateEntry<TargetType>) => Promise<IntermediateTarget<{
+        $ref: string;
+        $arch: string;
+        object: {
+            $arch: string;
+            typeOf: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+            equal: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                        minLength: number;
+                        maxLength: number;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+        };
+        array: {
+            $arch: string;
+            contain: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        list: ({
+                            $arch: string;
+                            type: string;
+                            itemType: {
+                                $arch: string;
+                                type: string;
+                            };
+                        } | {
+                            $arch: string;
+                            type: string;
+                            itemType?: undefined;
+                        })[];
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+        };
+        boolean: {
+            $arch: string;
+            not: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+            or: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+            and: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+            xor: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                        minLength: number;
+                        maxLength: number;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                };
+            };
+        };
+        number: {
+            $arch: string;
+            compare: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                        minLength: number;
+                        maxLength: number;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        enum: string[];
+                    };
+                };
+            };
+            sum: {
+                $arch: string;
+                type: ({
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                            integerOnly: boolean;
+                            minValue: number;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        integerOnly: boolean;
+                        minValue: number;
+                    };
+                } | {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                            minValue: number;
+                            integerOnly?: undefined;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        minValue: number;
+                        integerOnly?: undefined;
+                    };
+                } | {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                            integerOnly: boolean;
+                            minValue?: undefined;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        integerOnly: boolean;
+                        minValue?: undefined;
+                    };
+                } | {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                            integerOnly?: undefined;
+                            minValue?: undefined;
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        integerOnly?: undefined;
+                        minValue?: undefined;
+                    };
+                })[];
+            };
+            remainder: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        list: {
+                            $arch: string;
+                            type: string;
+                            minValue: number;
+                            integerOnly: boolean;
+                        }[];
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        minValue: number;
+                        integerOnly: boolean;
+                    };
+                };
+            };
+        };
+        string: {
+            $arch: string;
+            join: {
+                $arch: string;
+                type: ({
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                        member?: undefined;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                } | {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        member: {
+                            list: {
+                                $arch: string;
+                                type: string;
+                                itemType: string;
+                            };
+                            separator: {
+                                $arch: string;
+                                type: string;
+                            };
+                        };
+                        itemType?: undefined;
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                    };
+                })[];
+            };
+            split: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        member: {
+                            text: {
+                                $arch: string;
+                                type: string;
+                            };
+                            separator: {
+                                $arch: string;
+                                type: string;
+                            };
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        itemType: string;
+                    };
+                };
+            };
+        };
+    }>>;
     export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable) => Promise<CallTemplate>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => ResultType;
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;

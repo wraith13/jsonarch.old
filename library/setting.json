@@ -10,5 +10,14 @@
         "maxArrayLength": 1000,
         "maxObjectNestDepth": 32,
         "maxObjectMembers": 1000
+    },
+    "outputFormat": {
+        "digest": {
+            "minTargetSize": 100000,
+            "maxStringLength": 128,
+            "maxObjectNestDepth": 12,
+            "maxArrayLength": 32,
+            "maxObjectMembers": 32
+        }
     }
 }

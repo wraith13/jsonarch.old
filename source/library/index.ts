@@ -2468,15 +2468,20 @@ export module Jsonarch
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
     export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
+    export const makeSureIntermediateLibrarygJson = async <TargetType extends Jsonable>(entry: EvaluateEntry<TargetType>) =>
+    {
+        if ( ! intermediateLibrarygJson)
+        {
+            intermediateLibrarygJson = await makeInputIntermediate(entry, librarygJson, getSystemFileContext("library.json"));
+        }
+        return intermediateLibrarygJson;
+    };
     export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable): Promise<CallTemplate> => profile
     (
         entry, "getTemplate", async () =>
         {
             const refer = makeSolid(entry.template.value.refer);
-            if ( ! intermediateLibrarygJson)
-            {
-                intermediateLibrarygJson = await makeInputIntermediate(entry, librarygJson, getSystemFileContext("library.json"));
-            }
+            await makeSureIntermediateLibrarygJson(entry);
             const template = turnRefer<JsonableValue | Function>
             (
                 entry,
@@ -3872,15 +3877,21 @@ export module Jsonarch
                 //     originMap: entry.originMap,
                 // },
             };
+            const refer = makeSolid(entry.template.value.refer);
+            await makeSureIntermediateLibrarygJson(entry);
             const functionTemplate = turnRefer<JsonableValue | Function>
             (
                 entry,
                 {
-                    ...librarygJson,
-                    this: entry.this?.template,
-                    template: entry.cache.template,
+                    ...intermediateLibrarygJson,
+                    value:
+                    {
+                        ...intermediateLibrarygJson.value,
+                        this: entry.this?.template,
+                        template: entry.cache.template,
+                    },
                 },
-                makeSolid(entry.template.value.refer),
+                refer,
                 {
                     template: entry.path,
                 }
@@ -3905,7 +3916,7 @@ export module Jsonarch
                         (
                             entry, "Unmatch parameter type",
                             {
-                                refer: entry.template.refer,
+                                refer,
                                 compareTypeResult,
                                 type:
                                 {
@@ -3923,50 +3934,7 @@ export module Jsonarch
                     (
                         entry, "Not found type define",
                         {
-                            refer: entry.template.refer,
-                        }
-                    );
-                }
-            }
-            else
-            if (isTemplateData(functionTemplate))
-            {
-                const type = functionTemplate.type;
-                if (type)
-                {
-                    const parameterType = await typeOfResult(nextDepthEntry, parameter);
-                    const types = Array.isArray(type) ? type: [type];
-                    const compareTypeResult = types.map(t => ({ return: t.return, compareTypeResult: compareType(t.parameter, parameterType)}));
-                    const match = compareTypeResult.find(r => isBaseOrEqual(r.compareTypeResult));
-                    if (match)
-                    {
-                        return match.return;
-                    }
-                    else
-                    {
-                        throw new ErrorJson
-                        (
-                            entry, "Unmatch parameter type",
-                            {
-                                refer: entry.template.refer,
-                                compareTypeResult,
-                                type:
-                                {
-                                    template: type,
-                                    parameter: parameterType,
-                                },
-                                parameter,
-                            }
-                        );
-                        }
-                }
-                else
-                {
-                    throw new ErrorJson
-                    (
-                        entry, "Not found type define",
-                        {
-                            refer: entry.template.refer,
+                            refer,
                         }
                     );
                 }
@@ -3977,7 +3945,7 @@ export module Jsonarch
                 (
                     entry, "Not found template",
                     {
-                        refer: entry.template.refer,
+                        refer,
                         template: toJsonable(functionTemplate),
                     }
                 );
