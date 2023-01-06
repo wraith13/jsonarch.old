@@ -353,7 +353,7 @@ export declare module Jsonarch {
         [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
     } : TargetType;
     export const isIntermediate: (template: unknown) => template is Intermediate;
-    export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<TargetType[key]>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
+    export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
     export const isIntermediateJsonarch: (template: unknown) => template is IntermediateTarget<AlphaJsonarch>;
     export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;
     export const isIntermediateJsonarchTarget: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
@@ -579,6 +579,7 @@ export declare module Jsonarch {
     export type Type = TypeRefer | NeverType | UnknownType | AnyType | ValueType | ArrayType | TupleType | ObjectType | CompositeType | TemplateType | MetaType;
     export type PrimitiveType = Type["type"];
     export const isTypeData: (template: unknown) => template is Type;
+    export const isIntermediateTypeData: (template: unknown) => template is IntermediateTarget<Type>;
     export interface Call extends AlphaJsonarch {
         $arch: "call";
         cache?: boolean;
@@ -668,14 +669,23 @@ export declare module Jsonarch {
         and: CasePattern[];
     }
     export const isValueCasePattern: (value: unknown) => value is ValueCasePattern;
+    export const isIntermediateValueCasePattern: (value: unknown) => value is IntermediateTarget<ValueCasePattern>;
     export const isListCasePattern: (value: unknown) => value is ListCasePattern;
+    export const isIntermediateListCasePattern: (value: unknown) => value is IntermediateTarget<ListCasePattern>;
     export const isTypeCasePattern: (value: unknown) => value is TypeCasePattern;
+    export const isIntermediateTypeCasePattern: (value: unknown) => value is IntermediateTarget<TypeCasePattern>;
     export const isIfCasePattern: (value: unknown) => value is IfCasePattern;
+    export const isIntermediateIfCasePattern: (value: unknown) => value is IntermediateTarget<IfCasePattern>;
     export const isIfCaseCasePattern: (value: unknown) => value is IfCaseCasePattern;
+    export const isIntermediateIfCaseCasePattern: (value: unknown) => value is IntermediateTarget<IfCaseCasePattern>;
     export const isNotCasePattern: (value: unknown) => value is NotCasePattern;
+    export const isIntermediateNotCasePattern: (value: unknown) => value is IntermediateTarget<NotCasePattern>;
     export const isOrCasePattern: (value: unknown) => value is OrCasePattern;
+    export const isIntermediateOrCasePattern: (value: unknown) => value is IntermediateTarget<OrCasePattern>;
     export const isAndCasePattern: (value: unknown) => value is AndCasePattern;
+    export const isIntermediateAndCasePattern: (value: unknown) => value is IntermediateTarget<AndCasePattern>;
     export const isCasePattern: IsType<ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | IfCaseCasePattern | NotCasePattern | OrCasePattern | AndCasePattern>;
+    export const isIntermediateCasePattern: IsType<IntermediateTarget<IfCaseCasePattern> | IntermediateTarget<NotCasePattern> | IntermediateTarget<OrCasePattern> | IntermediateTarget<AndCasePattern> | IntermediateTarget<ValueCasePattern> | IntermediateTarget<ListCasePattern> | IntermediateTarget<TypeCasePattern> | IntermediateTarget<IfCasePattern>>;
     export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | IfCaseCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
     export interface Loop extends AlphaJsonarch {
         $arch: "loop";
@@ -708,7 +718,7 @@ export declare module Jsonarch {
     export const evaluateNotCasePattern: (entry: EvaluateEntry<NotCasePattern>) => Promise<boolean>;
     export const evaluateOrCasePattern: (entry: EvaluateEntry<OrCasePattern>) => Promise<boolean>;
     export const evaluateAndCasePattern: (entry: EvaluateEntry<AndCasePattern>) => Promise<boolean>;
-    export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is CasePatternType, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
+    export const evaluateIfMatchCasePattern: <CasePatternType extends CasePattern>(isMatch: (entry: Jsonable) => entry is IntermediateTarget<CasePatternType>, evaluateTarget: (entry: EvaluateEntry<CasePatternType>) => Promise<boolean>) => (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
     export const evaluateCasePattern: (entry: EvaluateEntry<CasePattern>) => Promise<boolean | undefined>;
     export const evaluateCases: (entry: EvaluateEntry<Case[]>) => Promise<IntermediateTarget<Jsonable> | undefined>;
     export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;

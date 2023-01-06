@@ -8,8 +8,8 @@ export declare const master: {
         $name: string;
     };
 };
-export declare type LocaleKeyType = keyof typeof languageEn & keyof typeof languageJa;
-export declare type LocaleType = keyof typeof master;
+export type LocaleKeyType = keyof typeof languageEn & keyof typeof languageJa;
+export type LocaleType = keyof typeof master;
 export declare const locales: ("en" | "ja")[];
 export declare const getSystemLocale: () => "en" | "ja";
 export declare const getShortLocale: (locale: string) => string;

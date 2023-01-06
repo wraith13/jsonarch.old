@@ -1,6 +1,6 @@
-export declare type TypeOfResultType = "unknown" | "object" | "boolean" | "number" | "bigint" | "string" | "symbol" | "function" | string;
-export declare type CompareResultType = -1 | 0 | 1;
-export declare type ComparerType<objectT> = (a: objectT, b: objectT) => CompareResultType;
+export type TypeOfResultType = "unknown" | "object" | "boolean" | "number" | "bigint" | "string" | "symbol" | "function" | string;
+export type CompareResultType = -1 | 0 | 1;
+export type ComparerType<objectT> = (a: objectT, b: objectT) => CompareResultType;
 export declare const basic: <valueT>(a: valueT, b: valueT) => CompareResultType;
 export interface RawSource<objectT> {
     raw: ComparerType<objectT>;
