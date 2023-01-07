@@ -455,6 +455,206 @@ export module Jsonarch
         "object" === typeof template &&
         "$arch" in template &&
         "string" === typeof template.$arch;
+    export type Intermediate = IntermediateTarget<Jsonable>;
+    export interface IntermediateTarget<TargetType extends Jsonable> extends AlphaJsonarch
+    {
+        $arch: "intermediate";
+        type: Type;
+        value: IntermediateTargetNest<TargetType>;
+        origin: Origin;
+    }
+    export type IntermediateTargetNest<TargetType extends Jsonable> =
+        TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[]:
+        TargetType extends JsonableObject ? { [key in keyof TargetType]: IntermediateTarget<TargetType[key]>; }:
+        TargetType;
+    export const isIntermediate = isJsonarch<Intermediate>("intermediate");
+    export const isIntermediateTarget =
+        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>> }>) =>
+        (value: unknown): value is IntermediateTarget<TargetType> =>
+            isIntermediate(value) &&
+            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
+    export const isIntermediateJsonarch = (template: unknown): template is IntermediateTarget<AlphaJsonarch> =>
+        isIntermediate(template) &&
+        null !== template.value &&
+        "object" === typeof template.value &&
+        "$arch" in template.value && "string" === typeof template.value.$arch.value;
+    export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
+        isIntermediateJsonarch(template) ? template.value.$arch.value: undefined;
+    export const isIntermediateJsonarchTarget = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
+        (template: unknown): template is IntermediateTarget<Type> =>
+            type === getIntermediateJsonarchType(template);
+    export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
+    {
+        const originMap: OriginMap = { };
+        if (isIntermediate(intermediate))
+        {
+            originMap[jsonStringify(base)] = intermediate.origin;
+        }
+        const value = getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value))
+        {
+            const output: Jsonable[] = [ ];
+            for(const i in value)
+            {
+                const ix = parseInt(i);
+                const v = value[ix];
+                const r = makeOutput(v, makeOrigin(base, ix));
+                output.push(r.output);
+                Object.assign(originMap, r.originMap);
+            }
+            return { output, originMap, };
+        }
+        else
+        if (null !== value && "object" === typeof value)
+        {
+            const output: JsonableObject = { };
+            const keys = objectKeys<JsonableObject>(value);
+            for(const i in keys)
+            {
+                const key = keys[i];
+                const v = value[key];
+                if (undefined !== v)
+                {
+                    const r = makeOutput(v, makeOrigin(base, key));
+                    output[key] = r.output;
+                    Object.assign(originMap, r.originMap);
+                }
+            }
+            return { output, originMap, };
+        }
+        else
+        {
+            const output = value;
+            return { output, originMap, };
+        }
+    };
+    export const makeSolid = <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>): TargetType =>
+    {
+        const value = getValueFromIntermediateOrValue(intermediate);
+        if (Array.isArray(value))
+        {
+            return value.map(i => makeSolid(i)) as TargetType;
+        }
+        else
+        if (null !== value && "object" === typeof value)
+        {
+            const output: JsonableObject = { };
+            const keys = objectKeys(value);
+            keys.forEach(key => output[key] = makeSolid(value[key] as IntermediateTarget<Jsonable>));
+            return output as TargetType;
+        }
+        else
+        {
+            return value as TargetType;
+        }
+    };
+    // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
+    // ({
+    //     $arch: "intermediate",
+    //     type: await typeOfResult(entry, value),
+    //     value,
+    //     origin,
+    // });
+    export const makeInputIntermediate = async <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin): Promise<IntermediateTarget<TargetType>> =>
+    {
+        if (isIntermediate(target))
+        {
+            return target as IntermediateTarget<TargetType>;
+        }
+        else
+        {
+            let value: IntermediateTargetNest<TargetType>;
+            if (Array.isArray(target))
+            {
+                const result: Intermediate[] = [ ];
+                for(const i in target)
+                {
+                    const ix = parseInt(i);
+                    const v = target[ix];
+                    result.push(await makeInputIntermediate(entry, v, makeOrigin(origin, ix)));
+                }
+                value = <IntermediateTargetNest<TargetType>>result;
+            }
+            else
+            if (null !== target && "object" === typeof target)
+            {
+                const result: IntermediateTargetNest<Jsonable> = { };
+                const keys = objectKeys<JsonableObject>(target);
+                for(const i in keys)
+                {
+                    const key = keys[i];
+                    const v = target[key] as Jsonable;
+                    result[key] = await makeInputIntermediate(entry, v, makeOrigin(origin, key));
+                }
+                value = <IntermediateTargetNest<TargetType>>result;
+            }
+            else
+            {
+                value = <IntermediateTargetNest<TargetType>>target;
+            }
+            const result: IntermediateTarget<TargetType> =
+            {
+                $arch: "intermediate",
+                type: await typeOfInput(entry, value),
+                value: value as IntermediateTargetNest<TargetType>,
+                origin,
+            };
+            return result;
+        }
+    };
+    export const makeOutputIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin): Promise<IntermediateTarget<TargetType>> => profile
+    (
+        entry, "makeOutputIntermediate", async () =>
+        {
+            if (isIntermediate(target))
+            {
+                return target;
+                // throw new ErrorJson(entry, "never", { target, origin, });
+            }
+            else
+            {
+                let value: IntermediateTargetNest<TargetType>;
+                if (Array.isArray(target))
+                {
+                    const result: Intermediate[] = [ ];
+                    for(const i in target)
+                    {
+                        const ix = parseInt(i);
+                        const v = target[ix];
+                        result.push(await makeOutputIntermediate(entry, v, makeOrigin(origin, ix)));
+                    }
+                    value = <IntermediateTargetNest<TargetType>>result;
+                }
+                else
+                if (null !== target && "object" === typeof target)
+                {
+                    const result: IntermediateTargetNest<Jsonable> = { };
+                    const keys = objectKeys<JsonableObject>(target);
+                    for(const i in keys)
+                    {
+                        const key = keys[i];
+                        const v = target[key] as Jsonable;
+                        result[key] = await makeOutputIntermediate(entry, v, makeOrigin(origin, key));
+                    }
+                    value = <IntermediateTargetNest<TargetType>>result;
+                }
+                else
+                {
+                    value = <IntermediateTargetNest<TargetType>>target;
+                }
+                const result: IntermediateTarget<TargetType> =
+                {
+                    $arch: "intermediate",
+                    type: await typeOfResult(entry, target),
+                    value,
+                    origin,
+                };
+                return result;
+            }
+        }
+    );
+    export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
+        isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     
     export interface ProfileScore extends JsonableObject
     {
@@ -894,6 +1094,7 @@ export module Jsonarch
         scope?: JsonableObject | undefined;
     }
     export const isLazy = isJsonarch<Lazy>("lazy");
+    export const isIntermediateLazy = isIntermediateJsonarchTarget<Lazy>("lazy");
     export const makeLazy = async <TemplateType extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType>): Promise<Lazy> => regulateJsonable<Lazy>
     (
         {
@@ -908,25 +1109,25 @@ export module Jsonarch
         },
         "shallow"
     );
-    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: Lazy): EvaluateEntry<AlphaJsonarch> =>
+    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): EvaluateEntry<AlphaJsonarch> =>
     ({
         context: entry.context,
-        ...lazy,
+        ...solid,
         this: <{ template: IntermediateTarget<Template>; path: FullRefer; }>
             (
-                undefined !== lazy.thisPath ?
+                undefined !== solid.thisPath ?
                 {
                     template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
                     (
                         entry,
-                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.thisPath.root.path],
-                        toLeafFullRefer(lazy.thisPath).refer
+                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
+                        toLeafFullRefer(solid.thisPath).refer
                     ),
                     path: lazy.thisPath,
                 }:
                 undefined
             ),
-        template: getLazyTemplate(entry, lazy),
+        template: getLazyTemplate(entry, solid),
         cache: entry.cache,
         setting: entry.setting,
         handler: entry.handler,
@@ -937,7 +1138,7 @@ export module Jsonarch
         (
             async (value: Jsonable) =>
             {
-                return isLazy(value) ?
+                return isIntermediateLazy(value) ?
                     await resolveLazy(entry, await evaluateLazy(entry, value)):
                     undefined;
             }
@@ -945,206 +1146,6 @@ export module Jsonarch
         (lazy)
     );
     export const hasLazy = hasStructureObject((value: Structure<JsonableValue | undefined | Function>) => isLazy(value));
-    export type Intermediate = IntermediateTarget<Jsonable>;
-    export interface IntermediateTarget<TargetType extends Jsonable> extends AlphaJsonarch
-    {
-        $arch: "intermediate";
-        type: Type;
-        value: IntermediateTargetNest<TargetType>;
-        origin: Origin;
-    }
-    export type IntermediateTargetNest<TargetType extends Jsonable> =
-        TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[]:
-        TargetType extends JsonableObject ? { [key in keyof TargetType]: IntermediateTarget<TargetType[key]>; }:
-        TargetType;
-    export const isIntermediate = isJsonarch<Intermediate>("intermediate");
-    export const isIntermediateTarget =
-        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>> }>) =>
-        (value: unknown): value is IntermediateTarget<TargetType> =>
-            isIntermediate(value) &&
-            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
-    export const isIntermediateJsonarch = (template: unknown): template is IntermediateTarget<AlphaJsonarch> =>
-        isIntermediate(template) &&
-        null !== template.value &&
-        "object" === typeof template.value &&
-        "$arch" in template.value && "string" === typeof template.value.$arch.value;
-    export const getIntermediateJsonarchType = (template: unknown): JsonarchType | undefined =>
-        isIntermediateJsonarch(template) ? template.value.$arch.value: undefined;
-    export const isIntermediateJsonarchTarget = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
-        (template: unknown): template is IntermediateTarget<Type> =>
-            type === getIntermediateJsonarchType(template);
-    export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
-    {
-        const originMap: OriginMap = { };
-        if (isIntermediate(intermediate))
-        {
-            originMap[jsonStringify(base)] = intermediate.origin;
-        }
-        const value = getValueFromIntermediateOrValue(intermediate);
-        if (Array.isArray(value))
-        {
-            const output: Jsonable[] = [ ];
-            for(const i in value)
-            {
-                const ix = parseInt(i);
-                const v = value[ix];
-                const r = makeOutput(v, makeOrigin(base, ix));
-                output.push(r.output);
-                Object.assign(originMap, r.originMap);
-            }
-            return { output, originMap, };
-        }
-        else
-        if (null !== value && "object" === typeof value)
-        {
-            const output: JsonableObject = { };
-            const keys = objectKeys<JsonableObject>(value);
-            for(const i in keys)
-            {
-                const key = keys[i];
-                const v = value[key];
-                if (undefined !== v)
-                {
-                    const r = makeOutput(v, makeOrigin(base, key));
-                    output[key] = r.output;
-                    Object.assign(originMap, r.originMap);
-                }
-            }
-            return { output, originMap, };
-        }
-        else
-        {
-            const output = value;
-            return { output, originMap, };
-        }
-    };
-    export const makeSolid = <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>): TargetType =>
-    {
-        const value = getValueFromIntermediateOrValue(intermediate);
-        if (Array.isArray(value))
-        {
-            return value.map(i => makeSolid(i)) as TargetType;
-        }
-        else
-        if (null !== value && "object" === typeof value)
-        {
-            const output: JsonableObject = { };
-            const keys = objectKeys(value);
-            keys.forEach(key => output[key] = makeSolid(value[key] as IntermediateTarget<Jsonable>));
-            return output as TargetType;
-        }
-        else
-        {
-            return value as TargetType;
-        }
-    };
-    // export const makeIntermediate = async (entry: EvaluateEntry<Jsonable>, value: Jsonable, origin: Origin): Promise<Intermediate> =>
-    // ({
-    //     $arch: "intermediate",
-    //     type: await typeOfResult(entry, value),
-    //     value,
-    //     origin,
-    // });
-    export const makeInputIntermediate = async <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin): Promise<IntermediateTarget<TargetType>> =>
-    {
-        if (isIntermediate(target))
-        {
-            return target as IntermediateTarget<TargetType>;
-        }
-        else
-        {
-            let value: IntermediateTargetNest<TargetType>;
-            if (Array.isArray(target))
-            {
-                const result: Intermediate[] = [ ];
-                for(const i in target)
-                {
-                    const ix = parseInt(i);
-                    const v = target[ix];
-                    result.push(await makeInputIntermediate(entry, v, makeOrigin(origin, ix)));
-                }
-                value = <IntermediateTargetNest<TargetType>>result;
-            }
-            else
-            if (null !== target && "object" === typeof target)
-            {
-                const result: IntermediateTargetNest<Jsonable> = { };
-                const keys = objectKeys<JsonableObject>(target);
-                for(const i in keys)
-                {
-                    const key = keys[i];
-                    const v = target[key] as Jsonable;
-                    result[key] = await makeInputIntermediate(entry, v, makeOrigin(origin, key));
-                }
-                value = <IntermediateTargetNest<TargetType>>result;
-            }
-            else
-            {
-                value = <IntermediateTargetNest<TargetType>>target;
-            }
-            const result: IntermediateTarget<TargetType> =
-            {
-                $arch: "intermediate",
-                type: await typeOfInput(entry, value),
-                value: value as IntermediateTargetNest<TargetType>,
-                origin,
-            };
-            return result;
-        }
-    };
-    export const makeOutputIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin): Promise<IntermediateTarget<TargetType>> => profile
-    (
-        entry, "makeOutputIntermediate", async () =>
-        {
-            if (isIntermediate(target))
-            {
-                return target;
-                // throw new ErrorJson(entry, "never", { target, origin, });
-            }
-            else
-            {
-                let value: IntermediateTargetNest<TargetType>;
-                if (Array.isArray(target))
-                {
-                    const result: Intermediate[] = [ ];
-                    for(const i in target)
-                    {
-                        const ix = parseInt(i);
-                        const v = target[ix];
-                        result.push(await makeOutputIntermediate(entry, v, makeOrigin(origin, ix)));
-                    }
-                    value = <IntermediateTargetNest<TargetType>>result;
-                }
-                else
-                if (null !== target && "object" === typeof target)
-                {
-                    const result: IntermediateTargetNest<Jsonable> = { };
-                    const keys = objectKeys<JsonableObject>(target);
-                    for(const i in keys)
-                    {
-                        const key = keys[i];
-                        const v = target[key] as Jsonable;
-                        result[key] = await makeOutputIntermediate(entry, v, makeOrigin(origin, key));
-                    }
-                    value = <IntermediateTargetNest<TargetType>>result;
-                }
-                else
-                {
-                    value = <IntermediateTargetNest<TargetType>>target;
-                }
-                const result: IntermediateTarget<TargetType> =
-                {
-                    $arch: "intermediate",
-                    type: await typeOfResult(entry, target),
-                    value,
-                    origin,
-                };
-                return result;
-            }
-        }
-    );
-    export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
-        isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     interface ErrorStatus extends JsonableObject
     {
         this?: FullRefer;
@@ -4249,9 +4250,9 @@ export module Jsonarch
         <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
         toLeafFullRefer(lazy.path).refer
     );
-    export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
+    export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
         await apply(restoreFromLazy(entry, lazy));
-    export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) =>
+    export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
         await evaluateResultType(restoreFromLazy(entry, lazy));
     export module Limit
     {

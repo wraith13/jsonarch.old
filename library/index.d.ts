@@ -100,6 +100,29 @@ export declare module Jsonarch {
     }
     export const isJsonarch: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is Type_1;
     export const isAlphaJsonarch: (template: any) => template is AlphaJsonarch;
+    export type Intermediate = IntermediateTarget<Jsonable>;
+    export interface IntermediateTarget<TargetType extends Jsonable> extends AlphaJsonarch {
+        $arch: "intermediate";
+        type: Type;
+        value: IntermediateTargetNest<TargetType>;
+        origin: Origin;
+    }
+    export type IntermediateTargetNest<TargetType extends Jsonable> = TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[] : TargetType extends JsonableObject ? {
+        [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
+    } : TargetType;
+    export const isIntermediate: (template: unknown) => template is Intermediate;
+    export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
+    export const isIntermediateJsonarch: (template: unknown) => template is IntermediateTarget<AlphaJsonarch>;
+    export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;
+    export const isIntermediateJsonarchTarget: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
+    export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
+        output: Jsonable;
+        originMap: OriginMap;
+    };
+    export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
+    export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     export interface ProfileScore extends JsonableObject {
         count: number;
         time: number;
@@ -338,33 +361,11 @@ export declare module Jsonarch {
         scope?: JsonableObject | undefined;
     }
     export const isLazy: (template: unknown) => template is Lazy;
+    export const isIntermediateLazy: (template: unknown) => template is IntermediateTarget<Lazy>;
     export const makeLazy: <TemplateType_1 extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType_1>) => Promise<Lazy>;
-    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => EvaluateEntry<AlphaJsonarch>;
+    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid?: Lazy) => EvaluateEntry<AlphaJsonarch>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<IntermediateTarget<Jsonable>>;
     export const hasLazy: (value: Structure<Function | JsonableValue>, key?: number | string) => boolean;
-    export type Intermediate = IntermediateTarget<Jsonable>;
-    export interface IntermediateTarget<TargetType extends Jsonable> extends AlphaJsonarch {
-        $arch: "intermediate";
-        type: Type;
-        value: IntermediateTargetNest<TargetType>;
-        origin: Origin;
-    }
-    export type IntermediateTargetNest<TargetType extends Jsonable> = TargetType extends (infer ItemType extends Jsonable)[] ? IntermediateTarget<ItemType>[] : TargetType extends JsonableObject ? {
-        [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
-    } : TargetType;
-    export const isIntermediate: (template: unknown) => template is Intermediate;
-    export const isIntermediateTarget: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
-    export const isIntermediateJsonarch: (template: unknown) => template is IntermediateTarget<AlphaJsonarch>;
-    export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;
-    export const isIntermediateJsonarchTarget: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
-    export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
-        output: Jsonable;
-        originMap: OriginMap;
-    };
-    export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
-    export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
-    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
-    export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     interface ErrorStatus extends JsonableObject {
         this?: FullRefer;
         parameter: Jsonable | undefined;
@@ -1164,8 +1165,8 @@ export declare module Jsonarch {
     export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
     export const evaluateResultType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
     export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => IntermediateTarget<AlphaJsonarch>;
-    export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<IntermediateTarget<Jsonable>>;
-    export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<Type>;
+    export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) => Promise<IntermediateTarget<Jsonable>>;
+    export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) => Promise<Type>;
     export module Limit {
         const getProcessTimeout: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxCallNestDepth: (entry: EvaluateEntry<Jsonable>) => number;
