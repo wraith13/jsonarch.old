@@ -2203,7 +2203,7 @@ export module Jsonarch
                 path: makeFullRefer(entry.path, "if"),
                 template: entry.template.value.if,
             });
-            if ("boolean" !== typeof result)
+            if ("boolean" !== typeof result.value)
             {
                 throw new ErrorJson
                 (
@@ -2214,7 +2214,7 @@ export module Jsonarch
                     }
                 );
             }
-            return result;
+            return result.value;
         }
     );
     export const evaluateIfCaseCasePattern = (entry: EvaluateEntry<IfCaseCasePattern>): Promise<boolean> => profile

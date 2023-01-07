@@ -1619,13 +1619,13 @@ var Jsonarch;
                 case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "if"), template: entry.template.value.if }))];
                 case 1:
                     result = _c.sent();
-                    if ("boolean" !== typeof result) {
+                    if ("boolean" !== typeof result.value) {
                         throw new Jsonarch.ErrorJson(entry, "Unmatch if result type", {
                             template: entry.template.if,
                             result: result,
                         });
                     }
-                    return [2 /*return*/, result];
+                    return [2 /*return*/, result.value];
             }
         });
     }); }); };
