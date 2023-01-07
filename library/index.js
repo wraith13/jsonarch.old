@@ -740,7 +740,7 @@ var Jsonarch;
     Jsonarch.isIntermediateTarget = function (isMember) {
         return function (value) {
             return Jsonarch.isIntermediate(value) &&
-                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](Jsonarch.getValueFromIntermediateOrValue(value.value[key])); });
+                Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value.value[key]); });
         };
     };
     Jsonarch.isIntermediateJsonarch = function (template) {

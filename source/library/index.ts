@@ -962,7 +962,7 @@ export module Jsonarch
         <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>> }>) =>
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
-            objectKeys(isMember).every(key => isMember[key](getValueFromIntermediateOrValue((<{ [key:string]: unknown }>value.value)[key])));
+            objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
     export const isIntermediateJsonarch = (template: unknown): template is IntermediateTarget<AlphaJsonarch> =>
         isIntermediate(template) &&
         null !== template.value &&
