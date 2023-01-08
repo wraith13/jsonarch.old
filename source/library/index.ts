@@ -134,12 +134,7 @@ export module Jsonarch
         {
             if (Array.isArray(value))
             {
-                const result = [];
-                for(const i in value)
-                {
-                    result.push(await self(value[i], i));
-                }
-                return result;
+                return await Promise.all(value.map(async (i, ix) => await self(i, ix)));
             }
             else
             if (null !== value && "object" === typeof value)
@@ -152,12 +147,7 @@ export module Jsonarch
                 else
                 {
                     const result: StructureObject<Element | ResultType> = { };
-                    const keys = objectKeys(value);
-                    for(const i in keys)
-                    {
-                        const key = keys[i];
-                        result[key] = await self(<Element>value[key], key);
-                    }
+                    await Promise.all(objectKeys(value).map(async key => result[key] = await self(<Element>value[key], key)));
                     return result;
                 }
             }
