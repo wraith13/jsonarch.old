@@ -8,7 +8,7 @@ export declare module Jsonarch {
     }
     export type Structure<Element> = Element | Structure<Element>[] | StructureObject<Element>;
     export const structure: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => ResultType) => (value: Structure<Element_1>, key?: number | string) => Structure<ResultType>;
-    export const structureAsync: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => Promise<ResultType>) => (value: Structure<Element_1>, key?: number | string) => Promise<Structure<ResultType>>;
+    export const structureAsync: <Element_1, ResultType>(processor: (value: Element_1, key?: number | string) => Promise<ResultType>) => (value: Structure<Element_1>, key?: number | string) => Promise<Structure<Element_1 | ResultType>>;
     export const hasStructure: <Element_1>(processor: (value: Element_1, key?: number | string) => boolean) => (value: Structure<Element_1>, key?: number | string) => boolean;
     export const structureObject: <Element_1, ResultType>(processor: (value: StructureObject<Element_1>, key?: number | string) => ResultType | undefined) => (value: Structure<Element_1>, key?: number | string) => Structure<Element_1 | ResultType>;
     export const structureObjectAsync: <Element_1, ResultType>(processor: (value: StructureObject<Element_1>, key?: number | string) => Promise<ResultType | undefined>) => (value: Structure<Element_1>, key?: number | string) => Promise<Structure<Element_1 | ResultType>>;

@@ -45,27 +45,17 @@ export module Jsonarch
     };
     export const structureAsync = <Element, ResultType>(processor: (value: Element, key?: number | string) => Promise<ResultType>) =>
     {
-        const self = async (value: Structure<Element>, key?: number | string): Promise<Structure<ResultType>> =>
+        const self = async (value: Structure<Element>, key?: number | string): Promise<Structure<Element | ResultType>> =>
         {
             if (Array.isArray(value))
             {
-                const result = [];
-                for(const i in value)
-                {
-                    result.push(await self(value[i], i));
-                }
-                return result;
+                return await Promise.all(value.map(async (i, ix) => await self(i, ix)));
             }
             else
             if (null !== value && "object" === typeof value)
             {
-                const result: StructureObject<ResultType> = { };
-                const keys = objectKeys(value);
-                for(const i in keys)
-                {
-                    const key = keys[i];
-                    result[key] = await self(<Element>value[key], key);
-                }
+                const result: StructureObject<Element | ResultType> = { };
+                await Promise.all(objectKeys(value).map(async key => result[key] = await self(<Element>value[key], key)));
                 return result;
             }
             else
