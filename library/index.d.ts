@@ -363,7 +363,7 @@ export declare module Jsonarch {
     export const isLazy: (template: unknown) => template is Lazy;
     export const isIntermediateLazy: (template: unknown) => template is IntermediateTarget<Lazy>;
     export const makeLazy: <TemplateType_1 extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType_1>) => Promise<Lazy>;
-    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid?: Lazy) => EvaluateEntry<AlphaJsonarch>;
+    export const restoreFromLazy: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid?: Lazy) => Promise<EvaluateEntry<AlphaJsonarch>>;
     export const resolveLazy: (entry: EvaluateEntry<Jsonable>, lazy: Jsonable) => Promise<IntermediateTarget<Jsonable>>;
     export const hasLazy: (value: Structure<Function | JsonableValue>, key?: number | string) => boolean;
     interface ErrorStatus extends JsonableObject {
@@ -1164,7 +1164,7 @@ export declare module Jsonarch {
     export const evaluate: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Jsonable>;
     export const evaluateResultTypeIfMatch: <TargetType extends AlphaJsonarch>(isMatch: (entry: AlphaJsonarch) => entry is IntermediateTarget<TargetType>, evaluateTarget: (entry: EvaluateEntry<TargetType>) => Promise<Type>) => (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type | undefined>;
     export const evaluateResultType: (entry: EvaluateEntry<AlphaJsonarch>) => Promise<Type>;
-    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => IntermediateTarget<AlphaJsonarch>;
+    export const getLazyTemplate: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<IntermediateTarget<AlphaJsonarch>>;
     export const evaluateLazy: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateLazyResultType: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) => Promise<Type>;
     export module Limit {

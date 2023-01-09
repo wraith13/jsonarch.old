@@ -1089,7 +1089,7 @@ export module Jsonarch
         },
         "shallow"
     );
-    export const restoreFromLazy = (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): EvaluateEntry<AlphaJsonarch> =>
+    export const restoreFromLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<EvaluateEntry<AlphaJsonarch>> =>
     ({
         context: entry.context,
         ...solid,
@@ -1107,7 +1107,7 @@ export module Jsonarch
                 }:
                 undefined
             ),
-        template: getLazyTemplate(entry, solid),
+        template: await getLazyTemplate(entry, solid),
         cache: entry.cache,
         setting: entry.setting,
         handler: entry.handler,
@@ -4224,16 +4224,21 @@ export module Jsonarch
             // return entry.template;
         }
     );
-    export const getLazyTemplate = (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <IntermediateTarget<AlphaJsonarch>>turnRefer<JsonableValue>
+    export const getLazyTemplate = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
     (
         entry,
-        <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
-        toLeafFullRefer(lazy.path).refer
+        <AlphaJsonarch>turnRefer<JsonableValue>
+        (
+            entry,
+            <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
+            toLeafFullRefer(lazy.path).refer
+        ),
+        lazy.path.root
     );
     export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
-        await apply(restoreFromLazy(entry, lazy));
+        await apply(await restoreFromLazy(entry, lazy));
     export const evaluateLazyResultType = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
-        await evaluateResultType(restoreFromLazy(entry, lazy));
+        await evaluateResultType(await restoreFromLazy(entry, lazy));
     export module Limit
     {
         export const getProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
