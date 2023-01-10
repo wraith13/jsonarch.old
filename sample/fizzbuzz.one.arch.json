@@ -1,0 +1,79 @@
+{
+    "$ref": "https://raw.githubusercontent.com/wraith13/jsonarch/master/template-json-schema.json#",
+    "$arch": "template",
+    "default":
+    {
+        "parameter": 30
+    },
+    "return":
+    {
+        "$arch": "match",
+        "cases":
+        [
+            {
+                "case":
+                {
+                    "ifCase": { "value": 0 },
+                    "parameter":
+                    {
+                        "$arch": "call", "refer": [ "number", "remainder" ],
+                        "parameter":
+                        [
+                            { "$arch": "value", "refer": [ "parameter" ] },
+                            15
+                        ]
+                    }
+                },
+                "return": "FizzBuzz"
+            },
+            {
+                "case":
+                {
+                    "ifCase": { "value": 0 },
+                    "parameter":
+                    {
+                        "$arch": "call", "refer": [ "number", "remainder" ],
+                        "parameter":
+                        [
+                            { "$arch": "value", "refer": [ "parameter" ] },
+                            3
+                        ]
+                    }
+                },
+                "return": "Fizz"
+            },
+            {
+                "case":
+                {
+                    "ifCase": { "value": 0 },
+                    "parameter":
+                    {
+                        "$arch": "call", "refer": [ "number", "remainder" ],
+                        "parameter":
+                        [
+                            { "$arch": "value", "refer": [ "parameter" ] },
+                            5
+                        ]
+                    }
+                },
+                "return": "Buzz"
+            },
+            {
+                "return.x": { "$arch": "value", "refer": [ "parameter" ] },
+                "return":
+                {
+                    "i": { "$arch": "value", "refer": [ "parameter" ] },
+                    "x":
+                    {
+                        "$arch": "call", "refer": [ "number", "remainder" ],
+                        "parameter":
+                        [
+                            { "$arch": "value", "refer": [ "parameter" ] },
+                            15
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}

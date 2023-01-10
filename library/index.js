@@ -1543,7 +1543,7 @@ var Jsonarch;
     Jsonarch.evaluateValueCasePattern = function (entry) { return Jsonarch.profile(entry, "evaluateValueCasePattern", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_c) {
             if (undefined !== entry.parameter) {
-                return [2 /*return*/, Jsonarch.jsonStringify(entry.parameter) === Jsonarch.jsonStringify(entry.template.value)];
+                return [2 /*return*/, Jsonarch.jsonStringify(Jsonarch.makeSolid(entry.parameter)) === Jsonarch.jsonStringify(Jsonarch.makeSolid(entry.template).value)];
             }
             else {
                 throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
@@ -1556,7 +1556,8 @@ var Jsonarch;
         return __generator(this, function (_c) {
             entryParameter = entry.parameter;
             if (undefined !== entryParameter) {
-                return [2 /*return*/, entry.template.value.list.value.some(function (i) { return Jsonarch.jsonStringify(entryParameter) === Jsonarch.jsonStringify(i); })];
+                // return entry.template.value.list.value.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
+                return [2 /*return*/, entry.template.value.list.value.some(function (i) { return Jsonarch.jsonStringify(Jsonarch.makeSolid(entryParameter)) === Jsonarch.jsonStringify(Jsonarch.makeSolid(i)); })];
             }
             else {
                 throw new Jsonarch.ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
@@ -1879,37 +1880,38 @@ var Jsonarch;
         var _this = this;
         return __generator(this, function (_c) {
             return [2 /*return*/, Jsonarch.profile(entry, "getTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
-                    var refer, template, useCache, liquid, _c, _d, cacheKey, result, parameterType_1, _e, types0, types, type;
-                    var _f, _g, _h, _j, _k, _l;
-                    return __generator(this, function (_m) {
-                        switch (_m.label) {
+                    var refer, template, useCache, liquid, _c, _d, cacheKey, result, parameterType_1, _e, types0, types, type, _f, _g;
+                    var _h, _j;
+                    var _k, _l, _m, _o, _p, _q;
+                    return __generator(this, function (_r) {
+                        switch (_r.label) {
                             case 0:
                                 refer = Jsonarch.makeSolid(entry.template.value.refer);
                                 return [4 /*yield*/, Jsonarch.makeSureIntermediateLibrarygJson(entry)];
                             case 1:
-                                _m.sent();
-                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_f = entry.this) === null || _f === void 0 ? void 0 : _f.template }) }), refer, {
+                                _r.sent();
+                                template = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_k = entry.this) === null || _k === void 0 ? void 0 : _k.template }) }), refer, {
                                     template: entry.path,
                                 }
                                 // entry.originMap
                                 );
-                                if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 10];
-                                if (!template.value.type) return [3 /*break*/, 8];
-                                useCache = (_k = (_h = (_g = entry.template.value.cache) === null || _g === void 0 ? void 0 : _g.value) !== null && _h !== void 0 ? _h : (_j = template.value.cache) === null || _j === void 0 ? void 0 : _j.value) !== null && _k !== void 0 ? _k : false;
+                                if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 13];
+                                if (!template.value.type) return [3 /*break*/, 11];
+                                useCache = (_p = (_m = (_l = entry.template.value.cache) === null || _l === void 0 ? void 0 : _l.value) !== null && _m !== void 0 ? _m : (_o = template.value.cache) === null || _o === void 0 ? void 0 : _o.value) !== null && _p !== void 0 ? _p : false;
                                 if (!("system" === systemOrTemplate || useCache)) return [3 /*break*/, 3];
                                 _d = Jsonarch.makeSolid;
                                 return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
                             case 2:
-                                _c = _d.apply(void 0, [_m.sent()]);
+                                _c = _d.apply(void 0, [_r.sent()]);
                                 return [3 /*break*/, 4];
                             case 3:
                                 _c = parameter;
-                                _m.label = 4;
+                                _r.label = 4;
                             case 4:
                                 liquid = _c;
                                 cacheKey = useCache ? Jsonarch.makeCallCacheKey(refer, liquid) : undefined;
                                 if (undefined !== cacheKey) {
-                                    result = (_l = entry.cache.call) === null || _l === void 0 ? void 0 : _l[cacheKey];
+                                    result = (_q = entry.cache.call) === null || _q === void 0 ? void 0 : _q[cacheKey];
                                     if (undefined !== result) {
                                         return [2 /*return*/, { template: template, parameter: liquid, cacheKey: cacheKey, result: result, }];
                                     }
@@ -1917,38 +1919,48 @@ var Jsonarch;
                                 if (!Jsonarch.hasLazy(liquid)) return [3 /*break*/, 6];
                                 return [4 /*yield*/, Jsonarch.typeOfResult(entry, liquid)];
                             case 5:
-                                _e = _m.sent();
+                                _e = _r.sent();
                                 return [3 /*break*/, 7];
                             case 6:
                                 _e = Jsonarch.typeOfJsonable(liquid);
-                                _m.label = 7;
+                                _r.label = 7;
                             case 7:
                                 parameterType_1 = _e;
                                 types0 = Jsonarch.makeSolid(template.value.type);
                                 types = undefined === types0 ? [] : Array.isArray(types0) ? types0 : [types0];
                                 type = types.find(function (t) { return Jsonarch.isBaseOrEqual(Jsonarch.compareType(t.parameter, parameterType_1)); });
-                                if (type) {
-                                    return [2 /*return*/, { template: template, type: type, parameter: liquid, cacheKey: cacheKey }];
-                                }
-                                else {
-                                    throw new Jsonarch.ErrorJson(entry, "Unmatch parameter type", {
-                                        refer: refer,
-                                        type: {
-                                            template: template.value.type,
-                                            parameter: parameterType_1,
-                                        },
-                                        parameter: parameter,
-                                    });
-                                }
-                                return [3 /*break*/, 9];
-                            case 8: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
+                                if (!type) return [3 /*break*/, 8];
+                                return [2 /*return*/, { template: template, type: type, parameter: liquid, cacheKey: cacheKey }];
+                            case 8:
+                                _f = Jsonarch.ErrorJson.bind;
+                                _g = [void 0, entry, "Unmatch parameter type"];
+                                _h = {
+                                    refer: refer
+                                };
+                                _j = {
+                                    template: Jsonarch.makeSolid(template.value.type),
+                                    hasLazy: Jsonarch.hasLazy(liquid)
+                                };
+                                return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
+                            case 9: throw new (_f.apply(Jsonarch.ErrorJson, _g.concat([(_h.debug = (_j.xxx = _r.sent(),
+                                    _j.liquid = liquid,
+                                    _j.parameter = parameter,
+                                    _j),
+                                    _h.type = {
+                                        template: template.value.type,
+                                        parameter: parameterType_1,
+                                    },
+                                    _h.parameter = parameter,
+                                    _h)])))();
+                            case 10: return [3 /*break*/, 12];
+                            case 11: throw new Jsonarch.ErrorJson(entry, "Not found type define", {
                                 refer: refer,
                             });
-                            case 9: return [3 /*break*/, 11];
-                            case 10: throw new Jsonarch.ErrorJson(entry, "Not found template", {
+                            case 12: return [3 /*break*/, 14];
+                            case 13: throw new Jsonarch.ErrorJson(entry, "Not found template", {
                                 refer: refer,
                             });
-                            case 11: return [2 /*return*/];
+                            case 14: return [2 /*return*/];
                         }
                     });
                 }); })];

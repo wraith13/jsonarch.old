@@ -2135,7 +2135,7 @@ export module Jsonarch
         {
             if (undefined !== entry.parameter)
             {
-                return jsonStringify(entry.parameter) === jsonStringify(entry.template.value);
+                return jsonStringify(makeSolid(<IntermediateTarget<Jsonable>>entry.parameter)) === jsonStringify(makeSolid(entry.template).value);
             }
             else
             {
@@ -2150,7 +2150,8 @@ export module Jsonarch
             const entryParameter = entry.parameter;
             if (undefined !== entryParameter)
             {
-                return entry.template.value.list.value.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
+                // return entry.template.value.list.value.some(i => jsonStringify(entryParameter) === jsonStringify(i)) ;
+                return entry.template.value.list.value.some(i => jsonStringify(makeSolid(<IntermediateTarget<Jsonable>>entryParameter)) === jsonStringify(makeSolid(i)));
             }
             else
             {
@@ -2364,7 +2365,16 @@ export module Jsonarch
                 const ix = parseInt(i);
                 const case_ = entry.template.value[ix];
                 const path = makeFullRefer(entry.path, ix);
-                if (undefined === case_.value.case || await evaluateCasePattern({ ...entry, path: makeFullRefer(path, "case"), template: case_.value.case as IntermediateTarget<CasePattern>, }))
+                if
+                (
+                    undefined === case_.value.case ||
+                    await evaluateCasePattern
+                    ({
+                        ...entry,
+                        path: makeFullRefer(path, "case"),
+                        template: case_.value.case as IntermediateTarget<CasePattern>,
+                    })
+                )
                 {
                     return await apply
                     ({
@@ -2534,6 +2544,14 @@ export module Jsonarch
                             entry, "Unmatch parameter type",
                             {
                                 refer,
+                                debug:
+                                {
+                                    template: makeSolid(template.value.type),
+                                    hasLazy: hasLazy(liquid),
+                                    xxx: await resolveLazy(entry, parameter ?? null),
+                                    liquid,
+                                    parameter,
+                                },
                                 type:
                                 {
                                     template: template.value.type,
