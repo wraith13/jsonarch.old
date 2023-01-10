@@ -421,10 +421,15 @@ var Jsonarch;
             "string" === typeof template.$arch;
     };
     Jsonarch.isIntermediate = Jsonarch.isJsonarch("intermediate");
-    Jsonarch.isIntermediateTarget = function (isMember) {
+    Jsonarch.isIntermediateTargetObject = function (isMember) {
         return function (value) {
             return Jsonarch.isIntermediate(value) &&
                 Jsonarch.objectKeys(isMember).every(function (key) { return isMember[key](value.value[key]); });
+        };
+    };
+    Jsonarch.isIntermediateTargetValue = function (isType) {
+        return function (value) {
+            return Jsonarch.isIntermediate(value) && isType(value.value);
         };
     };
     Jsonarch.isIntermediateJsonarch = function (template) {
@@ -1375,21 +1380,21 @@ var Jsonarch;
     Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
     Jsonarch.isIntermediateMatchData = Jsonarch.isIntermediateJsonarchTarget("match");
     Jsonarch.isValueCasePattern = Jsonarch.isObject({ value: Jsonarch.isJsonable, });
-    Jsonarch.isIntermediateValueCasePattern = Jsonarch.isIntermediateTarget({ value: isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate), });
+    Jsonarch.isIntermediateValueCasePattern = Jsonarch.isIntermediateTargetObject({ value: Jsonarch.isIntermediateTargetValue(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), });
     Jsonarch.isListCasePattern = Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isJsonable), });
-    Jsonarch.isIntermediateListCasePattern = Jsonarch.isIntermediateTarget({ list: Jsonarch.isArray(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), });
+    Jsonarch.isIntermediateListCasePattern = Jsonarch.isIntermediateTargetObject({ list: Jsonarch.isIntermediateTargetValue(Jsonarch.isArray(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate))), });
     Jsonarch.isTypeCasePattern = Jsonarch.isObject({ type: Jsonarch.isTypeData, });
-    Jsonarch.isIntermediateTypeCasePattern = Jsonarch.isIntermediateTarget({ type: Jsonarch.isIntermediateTypeData, });
+    Jsonarch.isIntermediateTypeCasePattern = Jsonarch.isIntermediateTargetObject({ type: Jsonarch.isIntermediateTypeData, });
     Jsonarch.isIfCasePattern = Jsonarch.isObject({ if: Jsonarch.isJsonable, });
-    Jsonarch.isIntermediateIfCasePattern = Jsonarch.isIntermediateTarget({ if: isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate), });
+    Jsonarch.isIntermediateIfCasePattern = Jsonarch.isIntermediateTargetObject({ if: Jsonarch.isIntermediateTargetValue(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), });
     Jsonarch.isIfCaseCasePattern = function (value) { return Jsonarch.isObject({ ifCase: Jsonarch.isCasePattern, parameter: Jsonarch.isJsonable, })(value); };
-    Jsonarch.isIntermediateIfCaseCasePattern = function (value) { return Jsonarch.isIntermediateTarget({ ifCase: Jsonarch.isIntermediateCasePattern, parameter: isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate), })(value); };
+    Jsonarch.isIntermediateIfCaseCasePattern = function (value) { return Jsonarch.isIntermediateTargetObject({ ifCase: Jsonarch.isIntermediateCasePattern, parameter: Jsonarch.isIntermediateTargetValue(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), })(value); };
     Jsonarch.isNotCasePattern = function (value) { return Jsonarch.isObject({ not: Jsonarch.isCasePattern, })(value); };
-    Jsonarch.isIntermediateNotCasePattern = function (value) { return Jsonarch.isIntermediateTarget({ not: Jsonarch.isIntermediateCasePattern, })(value); };
+    Jsonarch.isIntermediateNotCasePattern = function (value) { return Jsonarch.isIntermediateTargetObject({ not: Jsonarch.isIntermediateCasePattern, })(value); };
     Jsonarch.isOrCasePattern = function (value) { return Jsonarch.isObject({ or: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
-    Jsonarch.isIntermediateOrCasePattern = function (value) { return Jsonarch.isIntermediateTarget({ or: Jsonarch.isArray(Jsonarch.isIntermediateCasePattern), })(value); };
+    Jsonarch.isIntermediateOrCasePattern = function (value) { return Jsonarch.isIntermediateTargetObject({ or: Jsonarch.isIntermediateTargetValue(Jsonarch.isArray(Jsonarch.isIntermediateCasePattern)), })(value); };
     Jsonarch.isAndCasePattern = function (value) { return Jsonarch.isObject({ and: Jsonarch.isArray(Jsonarch.isCasePattern), })(value); };
-    Jsonarch.isIntermediateAndCasePattern = function (value) { return Jsonarch.isIntermediateTarget({ and: Jsonarch.isArray(Jsonarch.isIntermediateCasePattern), })(value); };
+    Jsonarch.isIntermediateAndCasePattern = function (value) { return Jsonarch.isIntermediateTargetObject({ and: Jsonarch.isIntermediateTargetValue(Jsonarch.isArray(Jsonarch.isIntermediateCasePattern)), })(value); };
     Jsonarch.isCasePattern = isTypeOr(Jsonarch.isValueCasePattern, Jsonarch.isListCasePattern, Jsonarch.isTypeCasePattern, Jsonarch.isIfCasePattern, Jsonarch.isIfCaseCasePattern, Jsonarch.isNotCasePattern, Jsonarch.isOrCasePattern, Jsonarch.isAndCasePattern);
     Jsonarch.isIntermediateCasePattern = isTypeOr(Jsonarch.isIntermediateValueCasePattern, Jsonarch.isIntermediateListCasePattern, Jsonarch.isIntermediateTypeCasePattern, Jsonarch.isIntermediateIfCasePattern, Jsonarch.isIntermediateIfCaseCasePattern, Jsonarch.isIntermediateNotCasePattern, Jsonarch.isIntermediateOrCasePattern, Jsonarch.isIntermediateAndCasePattern);
     Jsonarch.isLoopData = Jsonarch.isJsonarch("loop");
@@ -1397,8 +1402,8 @@ var Jsonarch;
     // export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
     // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
-    Jsonarch.isIntermediateLoopFalseResultData = Jsonarch.isIntermediateTarget({ continue: Jsonarch.isJustValue(false), });
-    Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTarget({ continue: Jsonarch.isUndefinedOr(Jsonarch.isBoolean), return: isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate), });
+    Jsonarch.isIntermediateLoopFalseResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isJustValue(false)), });
+    Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isUndefinedOr(Jsonarch.isBoolean)), return: Jsonarch.isIntermediateTargetValue(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), });
     Jsonarch.isIntermediateLoopResultData = isTypeOr(Jsonarch.isIntermediateLoopFalseResultData, Jsonarch.isIntermediateLoopRegularResultData);
     Jsonarch.applyDefault = function () {
         var defaults = [];

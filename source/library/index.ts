@@ -448,11 +448,15 @@ export module Jsonarch
         TargetType extends JsonableObject ? { [key in keyof TargetType]: IntermediateTarget<TargetType[key]>; }:
         TargetType;
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
-    export const isIntermediateTarget =
-        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTargetNest<TargetType[key]>> }>) =>
+    export const isIntermediateTargetObject =
+        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTarget<TargetType[key]>> }>) =>
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
+    export const isIntermediateTargetValue =
+        <TargetType extends Jsonable>(isType: IsType<TargetType>) =>
+        (value: unknown): value is IntermediateTarget<TargetType> =>
+            isIntermediate(value) && isType(value.value);
     export const isIntermediateJsonarch = (template: unknown): template is IntermediateTarget<AlphaJsonarch> =>
         isIntermediate(template) &&
         null !== template.value &&
@@ -1860,21 +1864,21 @@ export module Jsonarch
         and: CasePattern[];
     }
     export const isValueCasePattern = isObject<ValueCasePattern>({ value: isJsonable, });
-    export const isIntermediateValueCasePattern = isIntermediateTarget<ValueCasePattern>({ value: isTypeOr(isJsonableValue, isIntermediate) as any, });
+    export const isIntermediateValueCasePattern = isIntermediateTargetObject<ValueCasePattern>({ value: isIntermediateTargetValue(isTypeOr(isJsonableValue, isIntermediate)), });
     export const isListCasePattern = isObject<ListCasePattern>({ list: isArray(isJsonable), });
-    export const isIntermediateListCasePattern = isIntermediateTarget<ListCasePattern>({ list: isArray(isTypeOr(isJsonableValue, isIntermediate) as any), });
+    export const isIntermediateListCasePattern = isIntermediateTargetObject<ListCasePattern>({ list: isIntermediateTargetValue(isArray(isTypeOr(isJsonableValue, isIntermediate))), });
     export const isTypeCasePattern = isObject<TypeCasePattern>({ type: isTypeData, });
-    export const isIntermediateTypeCasePattern = isIntermediateTarget<TypeCasePattern>({ type: isIntermediateTypeData as any, });
+    export const isIntermediateTypeCasePattern = isIntermediateTargetObject<TypeCasePattern>({ type: isIntermediateTypeData, });
     export const isIfCasePattern = isObject<IfCasePattern>({ if: isJsonable, });
-    export const isIntermediateIfCasePattern = isIntermediateTarget<IfCasePattern>({ if: isTypeOr(isJsonableValue, isIntermediate) as any, });
+    export const isIntermediateIfCasePattern = isIntermediateTargetObject<IfCasePattern>({ if: isIntermediateTargetValue(isTypeOr(isJsonableValue, isIntermediate)), });
     export const isIfCaseCasePattern = (value: unknown): value is IfCaseCasePattern => isObject<IfCaseCasePattern>({ ifCase: isCasePattern, parameter: isJsonable, })(value);
-    export const isIntermediateIfCaseCasePattern = (value: unknown): value is IntermediateTarget<IfCaseCasePattern> => isIntermediateTarget<IfCaseCasePattern>({ ifCase: isIntermediateCasePattern as any, parameter: isTypeOr(isJsonableValue, isIntermediate) as any, })(value);
+    export const isIntermediateIfCaseCasePattern = (value: unknown): value is IntermediateTarget<IfCaseCasePattern> => isIntermediateTargetObject<IfCaseCasePattern>({ ifCase: isIntermediateCasePattern, parameter: isIntermediateTargetValue(isTypeOr(isJsonableValue, isIntermediate)), })(value);
     export const isNotCasePattern = (value: unknown): value is NotCasePattern => isObject<NotCasePattern>({ not: isCasePattern, })(value);
-    export const isIntermediateNotCasePattern = (value: unknown): value is IntermediateTarget<NotCasePattern> => isIntermediateTarget<NotCasePattern>({ not: isIntermediateCasePattern as any, })(value);
+    export const isIntermediateNotCasePattern = (value: unknown): value is IntermediateTarget<NotCasePattern> => isIntermediateTargetObject<NotCasePattern>({ not: isIntermediateCasePattern, })(value);
     export const isOrCasePattern = (value: unknown): value is OrCasePattern => isObject<OrCasePattern>({ or: isArray(isCasePattern), })(value);
-    export const isIntermediateOrCasePattern = (value: unknown): value is IntermediateTarget<OrCasePattern> => isIntermediateTarget<OrCasePattern>({ or: isArray(isIntermediateCasePattern), })(value);
+    export const isIntermediateOrCasePattern = (value: unknown): value is IntermediateTarget<OrCasePattern> => isIntermediateTargetObject<OrCasePattern>({ or: isIntermediateTargetValue(isArray(isIntermediateCasePattern)), })(value);
     export const isAndCasePattern = (value: unknown): value is AndCasePattern => isObject<AndCasePattern>({ and: isArray(isCasePattern), })(value);
-    export const isIntermediateAndCasePattern = (value: unknown): value is IntermediateTarget<AndCasePattern> => isIntermediateTarget<AndCasePattern>({ and: isArray(isIntermediateCasePattern), })(value);
+    export const isIntermediateAndCasePattern = (value: unknown): value is IntermediateTarget<AndCasePattern> => isIntermediateTargetObject<AndCasePattern>({ and: isIntermediateTargetValue(isArray(isIntermediateCasePattern)), })(value);
     export const isCasePattern = isTypeOr<ValueCasePattern, ListCasePattern, TypeCasePattern, IfCasePattern, IfCaseCasePattern, NotCasePattern, OrCasePattern, AndCasePattern>
     (
         isValueCasePattern,
@@ -1918,8 +1922,8 @@ export module Jsonarch
     // export const isLoopFalseResultData = isObject<LoopFalseResult>({ continue: isJustValue<false>(false), });
     // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
-    export const isIntermediateLoopFalseResultData = isIntermediateTarget<LoopFalseResult>({ continue: isJustValue<false>(false), });
-    export const isIntermediateLoopRegularResultData = isIntermediateTarget<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isTypeOr(isJsonableValue, isIntermediate) as any, });
+    export const isIntermediateLoopFalseResultData = isIntermediateTargetObject<LoopFalseResult>({ continue: isIntermediateTargetValue(isJustValue<false>(false)), });
+    export const isIntermediateLoopRegularResultData = isIntermediateTargetObject<LoopRegularResult>({ continue: isIntermediateTargetValue(isUndefinedOr(isBoolean)), return: isIntermediateTargetValue(isTypeOr(isJsonableValue, isIntermediate)), });
     export const isIntermediateLoopResultData = isTypeOr<IntermediateTarget<LoopFalseResult>, IntermediateTarget<LoopRegularResult>>(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
     export type JsonarchType =
     (
