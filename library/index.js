@@ -2823,7 +2823,7 @@ var Jsonarch;
         );
     };
     Jsonarch.evaluateCall = function (entry) { return Jsonarch.profile(entry, "evaluateCall", function () { return __awaiter(_this, void 0, void 0, function () {
-        var parameter, path, nextDepthEntry, target;
+        var parameter, refer, path, nextDepthEntry, target;
         var _this = this;
         var _c, _d, _e;
         return __generator(this, function (_f) {
@@ -2833,16 +2833,17 @@ var Jsonarch;
                     return [4 /*yield*/, Jsonarch.makeParameter(entry)];
                 case 1:
                     parameter = (_c = _f.sent()) !== null && _c !== void 0 ? _c : null;
+                    refer = Jsonarch.makeSolid(entry.template.value.refer);
                     path = Jsonarch.resolveThisPath((_d = entry.this) === null || _d === void 0 ? void 0 : _d.path, {
                         root: entry.context.template,
-                        refer: Jsonarch.makeSolid(entry.template.value.refer),
+                        refer: refer,
                     });
                     nextDepthEntry = __assign(__assign({}, Limit.resetNestDepth(entry, entry.template.value.refer.value.length)), { callStack: Jsonarch.makeCallStack(entry.callStack, {
                             path: path,
                             parameter: parameter,
                             caller: entry.path,
                         }), path: path });
-                    target = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }), Jsonarch.makeSolid(entry.template.value.refer), {
+                    target = Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }), refer, {
                         template: entry.path,
                     }
                     // entry.originMap
@@ -2909,7 +2910,8 @@ var Jsonarch;
                         }); })];
                 case 4: return [2 /*return*/, _f.sent()];
                 case 5: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
-                    refer: entry.template.refer,
+                    path: path,
+                    refer: refer,
                 });
             }
         });

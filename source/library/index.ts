@@ -3746,12 +3746,13 @@ export module Jsonarch
         {
             Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry) ?? null;
+            const refer = makeSolid(entry.template.value.refer);
             const path = resolveThisPath
             (
                 entry.this?.path,
                 {
                     root: entry.context.template,
-                    refer: makeSolid(entry.template.value.refer),
+                    refer,
                 }
             );
             const nextDepthEntry =
@@ -3775,6 +3776,7 @@ export module Jsonarch
                 //     originMap: entry.originMap,
                 // },
             };
+
             const target = turnRefer<JsonableValue | Function>
             (
                 entry,
@@ -3783,7 +3785,7 @@ export module Jsonarch
                     this: entry.this?.template,
                     template: entry.cache.template,
                 },
-                makeSolid(entry.template.value.refer),
+                refer,
                 {
                     template: entry.path,
                 }
@@ -3859,7 +3861,8 @@ export module Jsonarch
                 (
                     entry, "Unknown refer call",
                     {
-                        refer: entry.template.refer,
+                        path,
+                        refer,
                     }
                 );
             }
