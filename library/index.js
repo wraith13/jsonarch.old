@@ -2912,6 +2912,7 @@ var Jsonarch;
                 case 5: throw new Jsonarch.ErrorJson(entry, "Unknown refer call", {
                     path: path,
                     refer: refer,
+                    target: Jsonarch.toJsonable(target),
                 });
             }
         });

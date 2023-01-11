@@ -3863,6 +3863,7 @@ export module Jsonarch
                     {
                         path,
                         refer,
+                        target: toJsonable(target),
                     }
                 );
             }
