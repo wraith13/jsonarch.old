@@ -1180,16 +1180,16 @@ var Jsonarch;
                     if (undefined !== cache) {
                         return [2 /*return*/, cache];
                     }
-                    _c = Jsonarch.jsonParse;
-                    return [4 /*yield*/, Jsonarch.loadFile(entry)];
-                case 4:
-                    result = _c.apply(void 0, [_f.sent()]);
                     if (!entry.cache) {
                         entry.cache = { $arch: "cache", };
                     }
                     if (!entry.cache.json) {
                         entry.cache.json = {};
                     }
+                    _c = Jsonarch.jsonParse;
+                    return [4 /*yield*/, Jsonarch.loadFile(entry)];
+                case 4:
+                    result = _c.apply(void 0, [_f.sent()]);
                     entry.cache.json[entry.file.path] = result;
                     return [2 /*return*/, result];
                 case 5: throw new Error("never");

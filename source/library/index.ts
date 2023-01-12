@@ -1421,7 +1421,6 @@ export module Jsonarch
                 {
                     return cache as DataType;
                 }
-                const result = jsonParse(await loadFile(entry));
                 if ( ! entry.cache)
                 {
                     entry.cache = { $arch: "cache", };
@@ -1430,6 +1429,7 @@ export module Jsonarch
                 {
                     entry.cache.json = { };
                 }
+                const result = jsonParse(await loadFile(entry));
                 entry.cache.json[entry.file.path] = result;
                 return result as DataType;
             }
@@ -3776,7 +3776,6 @@ export module Jsonarch
                 //     originMap: entry.originMap,
                 // },
             };
-
             const target = turnRefer<JsonableValue | Function>
             (
                 entry,
