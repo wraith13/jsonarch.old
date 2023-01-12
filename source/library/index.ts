@@ -1400,18 +1400,22 @@ export module Jsonarch
             throw new Error("never");
         }
     );
-    export const load = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>): Promise<DataType> => profile
+    export const load = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>): Promise<IntermediateTarget<DataType>> => profile
     (
-        entry, "load", async () =>
+        entry, "load", async (): Promise<IntermediateTarget<DataType>> =>
         {
             if (isSystemFileLoadEntry(entry))
             {
-                return await loadSystemJson(entry) as DataType;
+                const json = await loadSystemJson<DataType>(entry);
+                const result = await makeInputIntermediate(entry, json, entry.file);
+                return result;
             }
             else
             if (isNoneFileLoadEntry(entry))
             {
-                return entry.file.data;
+                const json = <DataType>entry.file.data;
+                const result = await makeInputIntermediate(entry, json, entry.file);
+                return result;
             }
             else
             if (isNetFileLoadEntry(entry) || isLocalFileLoadEntry(entry))
@@ -1419,7 +1423,7 @@ export module Jsonarch
                 const cache = entry.cache?.json?.[entry.file.path];
                 if (undefined !== cache)
                 {
-                    return cache as DataType;
+                    return cache as IntermediateTarget<DataType>;
                 }
                 if ( ! entry.cache)
                 {
@@ -1429,9 +1433,10 @@ export module Jsonarch
                 {
                     entry.cache.json = { };
                 }
-                const result = jsonParse(await loadFile(entry));
+                const json = jsonParse<DataType>(await loadFile(entry));
+                const result = await makeInputIntermediate(entry, json, entry.file);
                 entry.cache.json[entry.file.path] = result;
-                return result as DataType;
+                return result;
             }
             throw new Error("never");
         }
