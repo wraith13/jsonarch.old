@@ -4468,7 +4468,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRoot = (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -4484,11 +4484,10 @@ export module Jsonarch
             // const origin = entry.template;
             const callStack: CallStackEntry[] = [];
             const path: FullRefer = { root: entry.template, refer: [] };
-            const intermediateTemplate = await makeInputIntermediate(context, template, entry.template);
             const rootEvaluateEntry: EvaluateEntry<Jsonable> =
             {
                 context,
-                template: intermediateTemplate,
+                template,
                 callStack,
                 path,
                 // origin,
@@ -4550,7 +4549,7 @@ export module Jsonarch
         const handler = entry.handler;
         const emptyCache: Cache = { "$arch": "cache" };
         const cache = entry.cache ?
-            await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: entry.cache }):
+            makeSolid(await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: entry.cache })):
             emptyCache;
         const settingFileContext =
             entry.setting ??

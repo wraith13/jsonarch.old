@@ -419,7 +419,7 @@ export declare module Jsonarch {
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;
     export const loadFile: (entry: LoadEntry<NetFileContext | LocalFileContext>) => Promise<string>;
-    export const load: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>) => Promise<DataType>;
+    export const load: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<FileContext<DataType>>) => Promise<IntermediateTarget<DataType>>;
     export interface StaticTemplate extends AlphaJsonarch {
         $arch: "static";
         return: Jsonable;
@@ -1182,7 +1182,7 @@ export declare module Jsonarch {
     }
     export const apply: (entry: EvaluateEntry<Jsonable>, lazyable?: boolean) => Promise<IntermediateTarget<Jsonable>>;
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<IntermediateTarget<Jsonable>>;
-    export const applyRoot: (entry: CompileEntry, template: Jsonable, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
+    export const applyRoot: (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const encode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;
     export const decode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;

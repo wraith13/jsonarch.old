@@ -1163,19 +1163,28 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.load = function (entry) { return Jsonarch.profile(entry, "load", function () { return __awaiter(_this, void 0, void 0, function () {
-        var cache, result, _c;
+        var json, result, json, result, cache, json, _c, result;
         var _d, _e;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
-                    if (!Jsonarch.isSystemFileLoadEntry(entry)) return [3 /*break*/, 2];
+                    if (!Jsonarch.isSystemFileLoadEntry(entry)) return [3 /*break*/, 3];
                     return [4 /*yield*/, Jsonarch.loadSystemJson(entry)];
-                case 1: return [2 /*return*/, _f.sent()];
+                case 1:
+                    json = _f.sent();
+                    return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, json, entry.file)];
                 case 2:
-                    if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 3];
-                    return [2 /*return*/, entry.file.data];
+                    result = _f.sent();
+                    return [2 /*return*/, result];
                 case 3:
-                    if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 5];
+                    if (!Jsonarch.isNoneFileLoadEntry(entry)) return [3 /*break*/, 5];
+                    json = entry.file.data;
+                    return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, json, entry.file)];
+                case 4:
+                    result = _f.sent();
+                    return [2 /*return*/, result];
+                case 5:
+                    if (!(Jsonarch.isNetFileLoadEntry(entry) || Jsonarch.isLocalFileLoadEntry(entry))) return [3 /*break*/, 8];
                     cache = (_e = (_d = entry.cache) === null || _d === void 0 ? void 0 : _d.json) === null || _e === void 0 ? void 0 : _e[entry.file.path];
                     if (undefined !== cache) {
                         return [2 /*return*/, cache];
@@ -1188,11 +1197,14 @@ var Jsonarch;
                     }
                     _c = Jsonarch.jsonParse;
                     return [4 /*yield*/, Jsonarch.loadFile(entry)];
-                case 4:
-                    result = _c.apply(void 0, [_f.sent()]);
+                case 6:
+                    json = _c.apply(void 0, [_f.sent()]);
+                    return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, json, entry.file)];
+                case 7:
+                    result = _f.sent();
                     entry.cache.json[entry.file.path] = result;
                     return [2 /*return*/, result];
-                case 5: throw new Error("never");
+                case 8: throw new Error("never");
             }
         });
     }); }); };
@@ -3510,7 +3522,7 @@ var Jsonarch;
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, intermediateTemplate, rootEvaluateEntry, _c, output, originMap, _d, _e, _f, _g, profile_1, result, error_2, profile_2, result;
+        var handler, context, callStack, path, rootEvaluateEntry, _c, output, originMap, _d, _e, _f, _g, profile_1, result, error_2, profile_2, result;
         return __generator(this, function (_h) {
             switch (_h.label) {
                 case 0:
@@ -3524,12 +3536,9 @@ var Jsonarch;
                     };
                     callStack = [];
                     path = { root: entry.template, refer: [] };
-                    return [4 /*yield*/, Jsonarch.makeInputIntermediate(context, template, entry.template)];
-                case 1:
-                    intermediateTemplate = _h.sent();
                     rootEvaluateEntry = {
                         context: context,
-                        template: intermediateTemplate,
+                        template: template,
                         callStack: callStack,
                         path: path,
                         // origin,
@@ -3546,23 +3555,23 @@ var Jsonarch;
                             }) :
                             undefined),
                     };
-                    _h.label = 2;
-                case 2:
-                    _h.trys.push([2, 8, , 9]);
+                    _h.label = 1;
+                case 1:
+                    _h.trys.push([1, 7, , 8]);
                     _d = Jsonarch.makeOutput;
-                    if (!("resolveLazy" === lazy)) return [3 /*break*/, 5];
+                    if (!("resolveLazy" === lazy)) return [3 /*break*/, 4];
                     _f = Jsonarch.resolveLazy;
                     _g = [rootEvaluateEntry];
                     return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
-                case 3: return [4 /*yield*/, _f.apply(void 0, _g.concat([_h.sent()]))];
-                case 4:
+                case 2: return [4 /*yield*/, _f.apply(void 0, _g.concat([_h.sent()]))];
+                case 3:
                     _e = _h.sent();
-                    return [3 /*break*/, 7];
-                case 5: return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                    return [3 /*break*/, 6];
+                case 4: return [4 /*yield*/, Jsonarch.apply(rootEvaluateEntry)];
+                case 5:
+                    _e = _h.sent();
+                    _h.label = 6;
                 case 6:
-                    _e = _h.sent();
-                    _h.label = 7;
-                case 7:
                     _c = _d.apply(void 0, [_e, entry.template]), output = _c.output, originMap = _c.originMap;
                     profile_1 = Jsonarch.makeProfileReport(context.profile);
                     result = {
@@ -3574,7 +3583,7 @@ var Jsonarch;
                         setting: setting,
                     };
                     return [2 /*return*/, result];
-                case 8:
+                case 7:
                     error_2 = _h.sent();
                     profile_2 = Jsonarch.makeProfileReport(context.profile);
                     result = {
@@ -3585,31 +3594,32 @@ var Jsonarch;
                         setting: setting,
                     };
                     return [2 /*return*/, result];
-                case 9: return [2 /*return*/];
+                case 8: return [2 /*return*/];
             }
         });
     }); }); };
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, emptyCache, cache, _c, settingFileContext, settingResult, _d, _e, setting, parameterResult, _f, _g, _h, parameter, template;
-        var _j, _k;
-        return __generator(this, function (_l) {
-            switch (_l.label) {
+        var handler, emptyCache, cache, _c, _d, settingFileContext, settingResult, _e, _f, setting, parameterResult, _g, _h, _j, parameter, template;
+        var _k, _l;
+        return __generator(this, function (_m) {
+            switch (_m.label) {
                 case 0:
                     handler = entry.handler;
                     emptyCache = { "$arch": "cache" };
                     if (!entry.cache) return [3 /*break*/, 2];
+                    _d = Jsonarch.makeSolid;
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: emptyCache, setting: boot_setting_json_1.default, handler: handler, file: entry.cache })];
                 case 1:
-                    _c = _l.sent();
+                    _c = _d.apply(void 0, [_m.sent()]);
                     return [3 /*break*/, 3];
                 case 2:
                     _c = emptyCache;
-                    _l.label = 3;
+                    _m.label = 3;
                 case 3:
                     cache = _c;
-                    settingFileContext = (_j = entry.setting) !== null && _j !== void 0 ? _j : Jsonarch.getSystemFileContext("default-setting.json");
-                    _d = Jsonarch.applyRoot;
-                    _e = [{
+                    settingFileContext = (_k = entry.setting) !== null && _k !== void 0 ? _k : Jsonarch.getSystemFileContext("default-setting.json");
+                    _e = Jsonarch.applyRoot;
+                    _f = [{
                             handler: handler,
                             template: settingFileContext,
                             cache: entry.cache,
@@ -3617,19 +3627,19 @@ var Jsonarch;
                             profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
-                case 4: return [4 /*yield*/, _d.apply(void 0, _e.concat([_l.sent(), null,
+                case 4: return [4 /*yield*/, _e.apply(void 0, _f.concat([_m.sent(), null,
                         cache,
                         boot_setting_json_1.default,
                         "resolveLazy"]))];
                 case 5:
-                    settingResult = _l.sent();
+                    settingResult = _m.sent();
                     if (Jsonarch.isError(settingResult.output)) {
                         return [2 /*return*/, settingResult];
                     }
-                    setting = (_k = settingResult.output) !== null && _k !== void 0 ? _k : { "$arch": "setting", };
+                    setting = (_l = settingResult.output) !== null && _l !== void 0 ? _l : { "$arch": "setting", };
                     if (!entry.parameter) return [3 /*break*/, 8];
-                    _g = Jsonarch.applyRoot;
-                    _h = [{
+                    _h = Jsonarch.applyRoot;
+                    _j = [{
                             handler: handler,
                             template: entry.parameter,
                             cache: entry.cache,
@@ -3637,26 +3647,26 @@ var Jsonarch;
                             profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.parameter })];
-                case 6: return [4 /*yield*/, _g.apply(void 0, _h.concat([_l.sent(), null,
+                case 6: return [4 /*yield*/, _h.apply(void 0, _j.concat([_m.sent(), null,
                         cache,
                         setting]))];
                 case 7:
-                    _f = _l.sent();
+                    _g = _m.sent();
                     return [3 /*break*/, 9];
                 case 8:
-                    _f = undefined;
-                    _l.label = 9;
+                    _g = undefined;
+                    _m.label = 9;
                 case 9:
-                    parameterResult = _f;
+                    parameterResult = _g;
                     parameter = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output;
                     if (parameterResult && Jsonarch.isError(parameterResult.output)) {
                         return [2 /*return*/, parameterResult];
                     }
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: entry.template })];
                 case 10:
-                    template = _l.sent();
+                    template = _m.sent();
                     return [4 /*yield*/, Jsonarch.applyRoot(entry, template, parameter, cache, setting, "resolveLazy")];
-                case 11: return [2 /*return*/, _l.sent()];
+                case 11: return [2 /*return*/, _m.sent()];
             }
         });
     }); };
