@@ -111,7 +111,7 @@ export declare module Jsonarch {
         [key in keyof TargetType]: IntermediateTarget<TargetType[key]>;
     } : TargetType;
     export const isIntermediate: (template: unknown) => template is Intermediate;
-    export const isIntermediateTargetObject: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTarget<TargetType[key]>>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
+    export const isIntermediateTargetObject: <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: undefined extends TargetType[key] ? IsType<IntermediateTarget<TargetType[key]> | undefined> : IsType<IntermediateTarget<TargetType[key]>>; }>) => (value: unknown) => value is IntermediateTarget<TargetType>;
     export const isIntermediateTargetValue: <TargetType extends Jsonable>(isType: IsType<TargetType>) => (value: unknown) => value is IntermediateTarget<TargetType>;
     export const isIntermediateJsonarch: (template: unknown) => template is IntermediateTarget<AlphaJsonarch>;
     export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;

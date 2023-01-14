@@ -449,7 +449,7 @@ export module Jsonarch
         TargetType;
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
     export const isIntermediateTargetObject =
-        <TargetType extends JsonableObject>(isMember: { [key in keyof TargetType]: IsType<IntermediateTarget<TargetType[key]>> }) =>
+        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: undefined extends TargetType[key] ? IsType<undefined | IntermediateTarget<TargetType[key]>>: IsType<IntermediateTarget<TargetType[key]>> }>) =>
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
