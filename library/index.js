@@ -1415,7 +1415,7 @@ var Jsonarch;
     // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
     Jsonarch.isIntermediateLoopFalseResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isJustValue(false)), });
-    Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isUndefinedOr(Jsonarch.isBoolean)), return: Jsonarch.isIntermediateTargetValue(isTypeOr(Jsonarch.isJsonableValue, Jsonarch.isIntermediate)), });
+    Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isUndefinedOr(Jsonarch.isBoolean)), return: Jsonarch.isIntermediate, });
     Jsonarch.isIntermediateLoopResultData = isTypeOr(Jsonarch.isIntermediateLoopFalseResultData, Jsonarch.isIntermediateLoopRegularResultData);
     Jsonarch.applyDefault = function () {
         var defaults = [];

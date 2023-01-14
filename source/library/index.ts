@@ -449,7 +449,7 @@ export module Jsonarch
         TargetType;
     export const isIntermediate = isJsonarch<Intermediate>("intermediate");
     export const isIntermediateTargetObject =
-        <TargetType extends JsonableObject>(isMember: Required<{ [key in keyof TargetType]: IsType<IntermediateTarget<TargetType[key]>> }>) =>
+        <TargetType extends JsonableObject>(isMember: { [key in keyof TargetType]: IsType<IntermediateTarget<TargetType[key]>> }) =>
         (value: unknown): value is IntermediateTarget<TargetType> =>
             isIntermediate(value) &&
             objectKeys(isMember).every(key => isMember[key]((<{ [key:string]: unknown }>value.value)[key]));
@@ -1928,8 +1928,8 @@ export module Jsonarch
     // export const isLoopRegularResultData = isObject<LoopRegularResult>({ continue: isUndefinedOr(isBoolean), return: isJsonable, });
     // export const isLoopResultData = isTypeOr<LoopFalseResult, LoopRegularResult>(isLoopFalseResultData, isLoopRegularResultData);
     export const isIntermediateLoopFalseResultData = isIntermediateTargetObject<LoopFalseResult>({ continue: isIntermediateTargetValue(isJustValue<false>(false)), });
-    export const isIntermediateLoopRegularResultData = isIntermediateTargetObject<LoopRegularResult>({ continue: isIntermediateTargetValue(isUndefinedOr(isBoolean)), return: isIntermediateTargetValue(isTypeOr(isJsonableValue, isIntermediate)), });
-    export const isIntermediateLoopResultData = isTypeOr<IntermediateTarget<LoopFalseResult>, IntermediateTarget<LoopRegularResult>>(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
+    export const isIntermediateLoopRegularResultData = isIntermediateTargetObject<LoopRegularResult>({ continue: isUndefinedOr(isIntermediateTargetValue(isBoolean)), return: isIntermediate, });
+    export const isIntermediateLoopResultData = isTypeOr(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
     export type JsonarchType =
     (
         Cache |
