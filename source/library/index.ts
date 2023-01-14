@@ -1093,29 +1093,32 @@ export module Jsonarch
         },
         "shallow"
     );
-    export const restoreFromLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<EvaluateEntry<AlphaJsonarch>> =>
-    ({
-        context: entry.context,
-        ...solid,
-        this: <{ template: IntermediateTarget<Template>; path: FullRefer; }>
-            (
-                undefined !== solid.thisPath ?
-                {
-                    template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
-                    (
-                        entry,
-                        <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
-                        toLeafFullRefer(solid.thisPath).refer
-                    ),
-                    path: lazy.thisPath,
-                }:
-                undefined
-            ),
-        template: await getLazyTemplate(entry, solid),
-        cache: entry.cache,
-        setting: entry.setting,
-        handler: entry.handler,
-    });
+    export const restoreFromLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<EvaluateEntry<AlphaJsonarch>> => profile
+    (
+        entry, "restoreFromLazy", async () =>
+        ({
+            context: entry.context,
+            ...solid,
+            this: <{ template: IntermediateTarget<Template>; path: FullRefer; }>
+                (
+                    undefined !== solid.thisPath ?
+                    {
+                        template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
+                        (
+                            entry,
+                            <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
+                            toLeafFullRefer(solid.thisPath).refer
+                        ),
+                        path: lazy.thisPath,
+                    }:
+                    undefined
+                ),
+            template: await getLazyTemplate(entry, solid),
+            cache: entry.cache,
+            setting: entry.setting,
+            handler: entry.handler,
+        })
+    );
     export const resolveLazy = async (entry: EvaluateEntry<Jsonable>, lazy: Jsonable): Promise<IntermediateTarget<Jsonable>> => await profile
     (
         entry, "resolveLazy", async () => <IntermediateTarget<Jsonable>> await structureObjectAsync
@@ -4254,16 +4257,20 @@ export module Jsonarch
             // return entry.template;
         }
     );
-    export const getLazyTemplate = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
+    export const getLazyTemplate = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => profile
     (
-        entry,
-        <AlphaJsonarch>turnRefer<JsonableValue>
+        entry, "getLazyTemplate", async () =>
+        <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
         (
             entry,
-            <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
-            toLeafFullRefer(lazy.path).refer
-        ),
-        lazy.path.root
+            <AlphaJsonarch>turnRefer<JsonableValue>
+            (
+                entry,
+                <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
+                toLeafFullRefer(lazy.path).refer
+            ),
+            lazy.path.root
+        )
     );
     export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
         await apply(await restoreFromLazy(entry, lazy));

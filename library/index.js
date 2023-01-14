@@ -902,22 +902,27 @@ var Jsonarch;
     Jsonarch.restoreFromLazy = function (entry, lazy, solid) {
         if (solid === void 0) { solid = Jsonarch.makeSolid(lazy); }
         return __awaiter(_this, void 0, void 0, function () {
-            var _c;
-            var _d;
-            var _e;
-            return __generator(this, function (_f) {
-                switch (_f.label) {
-                    case 0:
-                        _c = [__assign({ context: entry.context }, solid)];
-                        _d = { this: (undefined !== solid.thisPath ?
-                                {
-                                    template: Jsonarch.turnRefer(entry, (_e = entry.cache.json) === null || _e === void 0 ? void 0 : _e[solid.thisPath.root.path], Jsonarch.toLeafFullRefer(solid.thisPath).refer),
-                                    path: lazy.thisPath,
-                                } :
-                                undefined) };
-                        return [4 /*yield*/, Jsonarch.getLazyTemplate(entry, solid)];
-                    case 1: return [2 /*return*/, (__assign.apply(void 0, _c.concat([(_d.template = _f.sent(), _d.cache = entry.cache, _d.setting = entry.setting, _d.handler = entry.handler, _d)])))];
-                }
+            var _this = this;
+            return __generator(this, function (_c) {
+                return [2 /*return*/, Jsonarch.profile(entry, "restoreFromLazy", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var _c;
+                        var _d;
+                        var _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
+                                case 0:
+                                    _c = [__assign({ context: entry.context }, solid)];
+                                    _d = { this: (undefined !== solid.thisPath ?
+                                            {
+                                                template: Jsonarch.turnRefer(entry, (_e = entry.cache.json) === null || _e === void 0 ? void 0 : _e[solid.thisPath.root.path], Jsonarch.toLeafFullRefer(solid.thisPath).refer),
+                                                path: lazy.thisPath,
+                                            } :
+                                            undefined) };
+                                    return [4 /*yield*/, Jsonarch.getLazyTemplate(entry, solid)];
+                                case 1: return [2 /*return*/, (__assign.apply(void 0, _c.concat([(_d.template = _f.sent(), _d.cache = entry.cache, _d.setting = entry.setting, _d.handler = entry.handler, _d)])))];
+                            }
+                        });
+                    }); })];
             });
         });
     };
@@ -3287,12 +3292,17 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.getLazyTemplate = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () {
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer), lazy.path.root)];
-                case 1: return [2 /*return*/, _d.sent()];
-            }
+        var _this = this;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.profile(entry, "getLazyTemplate", function () { return __awaiter(_this, void 0, void 0, function () {
+                    var _c;
+                    return __generator(this, function (_d) {
+                        switch (_d.label) {
+                            case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer), lazy.path.root)];
+                            case 1: return [2 /*return*/, _d.sent()];
+                        }
+                    });
+                }); })];
         });
     }); };
     Jsonarch.evaluateLazy = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () { var _c; return __generator(this, function (_d) {
