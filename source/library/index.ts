@@ -1093,26 +1093,31 @@ export module Jsonarch
         },
         "shallow"
     );
+    export const restoreThis = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<{ template: IntermediateTarget<Template>; path: FullRefer; }> => profile
+    (
+        entry, "restoreThis", async () =>
+        <{ template: IntermediateTarget<Template>; path: FullRefer; }>
+        (
+            undefined !== solid.thisPath ?
+            {
+                template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
+                (
+                    entry,
+                    <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
+                    toLeafFullRefer(solid.thisPath).refer
+                ),
+                path: lazy.thisPath,
+            }:
+            undefined
+        )
+    );
     export const restoreFromLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<EvaluateEntry<AlphaJsonarch>> => profile
     (
         entry, "restoreFromLazy", async () =>
         ({
             context: entry.context,
             ...solid,
-            this: <{ template: IntermediateTarget<Template>; path: FullRefer; }>
-                (
-                    undefined !== solid.thisPath ?
-                    {
-                        template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
-                        (
-                            entry,
-                            <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
-                            toLeafFullRefer(solid.thisPath).refer
-                        ),
-                        path: lazy.thisPath,
-                    }:
-                    undefined
-                ),
+            this: await restoreThis(entry, lazy, solid),
             template: await getLazyTemplate(entry, solid),
             cache: entry.cache,
             setting: entry.setting,
