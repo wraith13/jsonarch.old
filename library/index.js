@@ -1465,7 +1465,9 @@ var Jsonarch;
                     parameter = Jsonarch.applyDefault((_d = (_c = entry.template.value.default) === null || _c === void 0 ? void 0 : _c.value) === null || _d === void 0 ? void 0 : _d.parameter, entry.parameter, (_f = (_e = entry.template.value.override) === null || _e === void 0 ? void 0 : _e.value) === null || _f === void 0 ? void 0 : _f.parameter);
                     this_ = {
                         template: entry.template,
-                        path: entry.path,
+                        path: entry.this ?
+                            Jsonarch.resolveThisPath(entry.this.path, entry.path) :
+                            entry.path,
                     };
                     if (!((_g = entry.template.value.catch) === null || _g === void 0 ? void 0 : _g.value)) return [3 /*break*/, 7];
                     _h.label = 1;
@@ -3314,7 +3316,7 @@ var Jsonarch;
                     var _c;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
-                            case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer.filter(function (i) { return "this" !== i; })), lazy.path.root)];
+                            case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer), lazy.path.root)];
                             case 1: return [2 /*return*/, _d.sent()];
                         }
                     });

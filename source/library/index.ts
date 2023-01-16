@@ -1997,7 +1997,9 @@ export module Jsonarch
             const this_ =
             {
                 template: entry.template,
-                path: entry.path,
+                path: entry.this ?
+                    resolveThisPath(entry.this.path, entry.path):
+                    entry.path,
             };
             if (entry.template.value.catch?.value)
             {
@@ -4265,17 +4267,19 @@ export module Jsonarch
     export const getLazyTemplate = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => profile
     (
         entry, "getLazyTemplate", async () =>
-        <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
-        (
-            entry,
-            <AlphaJsonarch>turnRefer<JsonableValue>
+        {
+            return <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
             (
                 entry,
-                <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
-                toLeafFullRefer(lazy.path).refer.filter(i => "this" !== i)
-            ),
-            lazy.path.root
-        )
+                <AlphaJsonarch>turnRefer<JsonableValue>
+                (
+                    entry,
+                    <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
+                    toLeafFullRefer(lazy.path).refer
+                ),
+                lazy.path.root
+            );
+        }
     );
     export const evaluateLazy = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>) =>
         await apply(await restoreFromLazy(entry, lazy));
