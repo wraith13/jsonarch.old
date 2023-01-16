@@ -909,7 +909,7 @@ var Jsonarch;
                         return __generator(this, function (_d) {
                             return [2 /*return*/, (undefined !== solid.thisPath ?
                                     {
-                                        template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[solid.thisPath.root.path], Jsonarch.toLeafFullRefer(solid.thisPath).refer),
+                                        template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[solid.thisPath.root.path], Jsonarch.toLeafFullRefer(solid.thisPath).refer.filter(function (i) { return "this" !== i; })),
                                         path: lazy.thisPath,
                                     } :
                                     undefined)];
@@ -2842,7 +2842,7 @@ var Jsonarch;
             }
         }
     };
-    Jsonarch.resolveRefer = function (entry) {
+    Jsonarch.resolveValueRefer = function (entry) {
         return Jsonarch.turnRefer(entry, {
             template: entry.cache.template,
             type: entry.cache.type,
@@ -2893,7 +2893,7 @@ var Jsonarch;
                                         if (Jsonarch.isCallTemplateCache(parameterInfo)) {
                                             return [2 /*return*/, parameterInfo.result];
                                         }
-                                        return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "library.".concat(entry.template.value.refer.value.join(".")), function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+                                        return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "library.".concat(entry.template.value.refer.value.map(function (i) { return i.value; }).join(".")), function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
                                                 switch (_c.label) {
                                                     case 0: return [4 /*yield*/, target(nextDepthEntry, parameterInfo.parameter)];
                                                     case 1: return [2 /*return*/, _c.sent()];
@@ -3187,7 +3187,7 @@ var Jsonarch;
     Jsonarch.evaluateValue = function (entry) { return Jsonarch.profile(entry, "evaluateValue", function () { return __awaiter(_this, void 0, void 0, function () {
         var result;
         return __generator(this, function (_c) {
-            result = Jsonarch.resolveRefer(entry);
+            result = Jsonarch.resolveValueRefer(entry);
             if (undefined === result) {
                 throw new Jsonarch.ErrorJson(entry, "Unknown refer value", {
                     value: entry.template,
@@ -3204,7 +3204,7 @@ var Jsonarch;
                     if (entry.template.type) {
                         return [2 /*return*/, entry.template.type];
                     }
-                    result = Jsonarch.resolveRefer(entry);
+                    result = Jsonarch.resolveValueRefer(entry);
                     if (undefined === result) {
                         throw new Jsonarch.ErrorJson(entry, "Unknown refer value", {
                             value: entry.template,
@@ -3314,7 +3314,7 @@ var Jsonarch;
                     var _c;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
-                            case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer), lazy.path.root)];
+                            case 0: return [4 /*yield*/, Jsonarch.makeInputIntermediate(entry, Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.path.root.path], Jsonarch.toLeafFullRefer(lazy.path).refer.filter(function (i) { return "this" !== i; })), lazy.path.root)];
                             case 1: return [2 /*return*/, _d.sent()];
                         }
                     });

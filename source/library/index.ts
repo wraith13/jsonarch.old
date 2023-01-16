@@ -1104,7 +1104,7 @@ export module Jsonarch
                 (
                     entry,
                     <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
-                    toLeafFullRefer(solid.thisPath).refer
+                    toLeafFullRefer(solid.thisPath).refer.filter(i => "this" !== i)
                 ),
                 path: lazy.thisPath,
             }:
@@ -3734,7 +3734,7 @@ export module Jsonarch
             }
         }
     };
-    export const resolveRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer }>): Jsonable | undefined =>
+    export const resolveValueRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer }>): Jsonable | undefined =>
     {
         return turnRefer<JsonableValue>
         (
@@ -3817,7 +3817,7 @@ export module Jsonarch
                         const result = await profile
                         (
                             nextDepthEntry,
-                            `library.${entry.template.value.refer.value.join(".")}`,
+                            `library.${entry.template.value.refer.value.map(i => i.value).join(".")}`,
                             async () => await target(nextDepthEntry, parameterInfo.parameter)
                         );
                         if (undefined === result)
@@ -4156,7 +4156,7 @@ export module Jsonarch
     (
         entry, "evaluateValue", async () =>
         {
-            const result = resolveRefer(entry);
+            const result = resolveValueRefer(entry);
             if (undefined === result)
             {
                 throw new ErrorJson
@@ -4178,7 +4178,7 @@ export module Jsonarch
             {
                 return entry.template.type;
             }
-            const result = resolveRefer(entry);
+            const result = resolveValueRefer(entry);
             if (undefined === result)
             {
                 throw new ErrorJson
@@ -4272,7 +4272,7 @@ export module Jsonarch
             (
                 entry,
                 <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
-                toLeafFullRefer(lazy.path).refer
+                toLeafFullRefer(lazy.path).refer.filter(i => "this" !== i)
             ),
             lazy.path.root
         )

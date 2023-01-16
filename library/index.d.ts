@@ -1156,7 +1156,7 @@ export declare module Jsonarch {
     export const andType: (list: Type[]) => Type;
     export const regulateType: (compositeType: Type) => Type;
     export const turnRefer: <Element_1 extends Function | JsonableValue>(entry: EvaluateEntry<Jsonable>, root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Structure<Element_1> | undefined;
-    export const resolveRefer: (entry: EvaluateEntry<AlphaJsonarch & {
+    export const resolveValueRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
     }>) => Jsonable | undefined;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<IntermediateTarget<Jsonable>>;
