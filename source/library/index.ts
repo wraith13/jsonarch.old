@@ -1093,18 +1093,18 @@ export module Jsonarch
         },
         "shallow"
     );
-    export const restoreThis = async (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid = makeSolid(lazy)): Promise<{ template: IntermediateTarget<Template>; path: FullRefer; }> => profile
+    export const restoreThis = async (entry: EvaluateEntry<Jsonable>, lazy: Lazy): Promise<{ template: IntermediateTarget<Template>; path: FullRefer; }> => profile
     (
         entry, "restoreThis", async () =>
         <{ template: IntermediateTarget<Template>; path: FullRefer; }>
         (
-            undefined !== solid.thisPath ?
+            undefined !== lazy.thisPath ?
             {
                 template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
                 (
                     entry,
-                    <StructureObject<JsonableValue>>entry.cache.json?.[<string>solid.thisPath.root.path],
-                    toLeafFullRefer(solid.thisPath).refer.filter(i => "this" !== i)
+                    <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.thisPath.root.path],
+                    toLeafFullRefer(lazy.thisPath).refer.filter(i => "this" !== i)
                 ),
                 path: lazy.thisPath,
             }:
@@ -1117,7 +1117,7 @@ export module Jsonarch
         ({
             context: entry.context,
             ...solid,
-            this: await restoreThis(entry, lazy, solid),
+            this: await restoreThis(entry, solid),
             template: await getLazyTemplate(entry, solid),
             cache: entry.cache,
             setting: entry.setting,

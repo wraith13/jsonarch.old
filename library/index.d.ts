@@ -364,7 +364,7 @@ export declare module Jsonarch {
     export const isLazy: (template: unknown) => template is Lazy;
     export const isIntermediateLazy: (template: unknown) => template is IntermediateTarget<Lazy>;
     export const makeLazy: <TemplateType_1 extends AlphaJsonarch>(entry: EvaluateEntry<TemplateType_1>) => Promise<Lazy>;
-    export const restoreThis: (entry: EvaluateEntry<Jsonable>, lazy: IntermediateTarget<Lazy>, solid?: Lazy) => Promise<{
+    export const restoreThis: (entry: EvaluateEntry<Jsonable>, lazy: Lazy) => Promise<{
         template: IntermediateTarget<Template>;
         path: FullRefer;
     }>;

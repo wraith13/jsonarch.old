@@ -899,25 +899,22 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.restoreThis = function (entry, lazy, solid) {
-        if (solid === void 0) { solid = Jsonarch.makeSolid(lazy); }
-        return __awaiter(_this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_c) {
-                return [2 /*return*/, Jsonarch.profile(entry, "restoreThis", function () { return __awaiter(_this, void 0, void 0, function () {
-                        var _c;
-                        return __generator(this, function (_d) {
-                            return [2 /*return*/, (undefined !== solid.thisPath ?
-                                    {
-                                        template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[solid.thisPath.root.path], Jsonarch.toLeafFullRefer(solid.thisPath).refer.filter(function (i) { return "this" !== i; })),
-                                        path: lazy.thisPath,
-                                    } :
-                                    undefined)];
-                        });
-                    }); })];
-            });
+    Jsonarch.restoreThis = function (entry, lazy) { return __awaiter(_this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.profile(entry, "restoreThis", function () { return __awaiter(_this, void 0, void 0, function () {
+                    var _c;
+                    return __generator(this, function (_d) {
+                        return [2 /*return*/, (undefined !== lazy.thisPath ?
+                                {
+                                    template: Jsonarch.turnRefer(entry, (_c = entry.cache.json) === null || _c === void 0 ? void 0 : _c[lazy.thisPath.root.path], Jsonarch.toLeafFullRefer(lazy.thisPath).refer.filter(function (i) { return "this" !== i; })),
+                                    path: lazy.thisPath,
+                                } :
+                                undefined)];
+                    });
+                }); })];
         });
-    };
+    }); };
     Jsonarch.restoreFromLazy = function (entry, lazy, solid) {
         if (solid === void 0) { solid = Jsonarch.makeSolid(lazy); }
         return __awaiter(_this, void 0, void 0, function () {
@@ -931,7 +928,7 @@ var Jsonarch;
                                 case 0:
                                     _c = [__assign({ context: entry.context }, solid)];
                                     _d = {};
-                                    return [4 /*yield*/, Jsonarch.restoreThis(entry, lazy, solid)];
+                                    return [4 /*yield*/, Jsonarch.restoreThis(entry, solid)];
                                 case 1:
                                     _d.this = _e.sent();
                                     return [4 /*yield*/, Jsonarch.getLazyTemplate(entry, solid)];
