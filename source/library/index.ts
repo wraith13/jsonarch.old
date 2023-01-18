@@ -2420,10 +2420,20 @@ export module Jsonarch
             while(true)
             {
                 const scope = { ...entry.scope, $loop: { index, } };
+                const path = makeFullRefer(entry.path, "loop");
                 const current = await apply
                 ({
-                    ...entry,
-                    path: makeFullRefer(entry.path, "loop"),
+                    ...Limit.incrementNestDepth(entry),
+                    callStack: makeCallStack
+                    (
+                        entry.callStack,
+                        {
+                            path,
+                            parameter: scope,
+                            caller: entry.path,
+                        }
+                    ),
+                    path,
                     template: entry.template.value.loop,
                     scope,
                 }) as IntermediateTarget<LoopResult>;

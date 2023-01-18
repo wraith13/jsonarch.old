@@ -1837,7 +1837,7 @@ var Jsonarch;
         }
     }); }); }); };
     Jsonarch.evaluateLoop = function (entry) { return Jsonarch.profile(entry, "evaluateLoop", function () { return __awaiter(_this, void 0, void 0, function () {
-        var result, index, scope, current;
+        var result, index, scope, path, current;
         var _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
@@ -1848,7 +1848,12 @@ var Jsonarch;
                 case 1:
                     if (!true) return [3 /*break*/, 3];
                     scope = __assign(__assign({}, entry.scope), { $loop: { index: index, } });
-                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "loop"), template: entry.template.value.loop, scope: scope }))];
+                    path = Jsonarch.makeFullRefer(entry.path, "loop");
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, Limit.incrementNestDepth(entry)), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                                path: path,
+                                parameter: scope,
+                                caller: entry.path,
+                            }), path: path, template: entry.template.value.loop, scope: scope }))];
                 case 2:
                     current = _e.sent();
                     if (!Jsonarch.isIntermediateLoopResultData(current)) {
