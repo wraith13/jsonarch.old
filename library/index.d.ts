@@ -720,6 +720,8 @@ export declare module Jsonarch {
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
+    export const evaluateThrow: (entry: EvaluateEntry<Throw>) => Promise<IntermediateTarget<Jsonable>>;
+    export const evaluateThrowResultType: (entry: EvaluateEntry<Throw>) => Promise<Type>;
     export const evaluateMatch: (entry: EvaluateEntry<Match>) => Promise<Jsonable>;
     export const evaluateMatchResultType: (entry: EvaluateEntry<Match>) => Promise<Type>;
     export const evaluateValueCasePattern: (entry: EvaluateEntry<ValueCasePattern>) => Promise<boolean>;

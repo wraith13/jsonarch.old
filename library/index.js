@@ -1516,6 +1516,17 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateThrow = function (entry) { return Jsonarch.profile(entry, "evaluateThrow", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, entry), { path: Jsonarch.makeFullRefer(entry.path, "throw"), template: entry.template.value.throw }))];
+                case 1: throw _c.sent();
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateThrowResultType = function (entry) { return Jsonarch.profile(entry, "evaluateTemplateResultType", function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+        return [2 /*return*/, ({ $arch: "type", type: "never", })];
+    }); }); }); };
     Jsonarch.evaluateMatch = function (entry) { return Jsonarch.profile(entry, "evaluateMatch", function () { return __awaiter(_this, void 0, void 0, function () {
         var parameter, _c, _d, _e, result;
         return __generator(this, function (_f) {
@@ -3230,6 +3241,7 @@ var Jsonarch;
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateStaticData, Jsonarch.evaluateStatic),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateIncludeStaticJsonData, Jsonarch.evaluateIncludeStaticJson),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateTemplateData, Jsonarch.evaluateTemplate),
+        Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateThrowData, Jsonarch.evaluateThrow),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateMatchData, Jsonarch.evaluateMatch),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateLoopData, Jsonarch.evaluateLoop),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateCallData, Jsonarch.evaluateCall),

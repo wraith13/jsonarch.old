@@ -2082,6 +2082,22 @@ export module Jsonarch
             return typeOfResult(entry, entry.template.return);
         }
     );
+    export const evaluateThrow = (entry: EvaluateEntry<Throw>): Promise<IntermediateTarget<Jsonable>> => profile
+    (
+        entry, "evaluateThrow", async () =>
+        {
+            throw await apply
+            ({
+                ...entry,
+                path: makeFullRefer(entry.path, "throw"),
+                template: entry.template.value.throw,
+            });
+        }
+    );
+    export const evaluateThrowResultType = (entry: EvaluateEntry<Throw>): Promise<Type> => profile
+    (
+        entry, "evaluateTemplateResultType", async () => ({ $arch: "type", type: "never", })
+    );
     export const evaluateMatch = (entry: EvaluateEntry<Match>): Promise<Jsonable> => profile
     (
         entry, "evaluateMatch", async () =>
@@ -4220,6 +4236,7 @@ export module Jsonarch
         evaluateIfMatch(isIntermediateStaticData, evaluateStatic),
         evaluateIfMatch(isIntermediateIncludeStaticJsonData, evaluateIncludeStaticJson),
         evaluateIfMatch(isIntermediateTemplateData, evaluateTemplate),
+        evaluateIfMatch(isIntermediateThrowData, evaluateThrow),
         evaluateIfMatch(isIntermediateMatchData, evaluateMatch),
         evaluateIfMatch(isIntermediateLoopData, evaluateLoop),
         evaluateIfMatch(isIntermediateCallData, evaluateCall),
