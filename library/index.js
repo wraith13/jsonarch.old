@@ -1407,6 +1407,8 @@ var Jsonarch;
     };
     Jsonarch.isTemplateData = Jsonarch.isJsonarch("template");
     Jsonarch.isIntermediateTemplateData = Jsonarch.isIntermediateJsonarchTarget("template");
+    Jsonarch.isThrowData = Jsonarch.isJsonarch("throw");
+    Jsonarch.isIntermediateThrowData = Jsonarch.isIntermediateJsonarchTarget("throw");
     Jsonarch.isMatchData = Jsonarch.isJsonarch("match");
     Jsonarch.isIntermediateMatchData = Jsonarch.isIntermediateJsonarchTarget("match");
     Jsonarch.isValueCasePattern = Jsonarch.isObject({ value: Jsonarch.isJsonable, });

@@ -1820,6 +1820,13 @@ export module Jsonarch
     }
     export const isTemplateData = isJsonarch<Template>("template");
     export const isIntermediateTemplateData = isIntermediateJsonarchTarget<Template>("template");
+    export interface Throw extends AlphaJsonarch
+    {
+        $arch: "throw";
+        throw: Jsonable;
+    }
+    export const isThrowData = isJsonarch<Throw>("throw");
+    export const isIntermediateThrowData = isIntermediateJsonarchTarget<Throw>("throw");
     export interface Match extends AlphaJsonarch
     {
         $arch: "match";
@@ -1952,6 +1959,7 @@ export module Jsonarch
         Call |
         Value |
         Template |
+        Throw |
         Match |
         Loop
     )["$arch"];
