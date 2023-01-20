@@ -471,6 +471,7 @@ export declare module Jsonarch {
         $arch: "type";
         type: PrimitiveType;
         optional?: boolean;
+        lazyable?: boolean;
     }
     export interface TypeHasMinMaxLength extends AlphaType {
         minLength?: number;
@@ -785,6 +786,7 @@ export declare module Jsonarch {
                         };
                         minLength: number;
                         maxLength: number;
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -820,6 +822,37 @@ export declare module Jsonarch {
                     };
                 };
             };
+            map: {
+                $arch: string;
+                type: {
+                    parameter: {
+                        $arch: string;
+                        type: string;
+                        member: {
+                            array: {
+                                $arch: string;
+                                type: string;
+                                itemType: {
+                                    $arch: string;
+                                    type: string;
+                                };
+                            };
+                            template: {
+                                $arch: string;
+                                type: string;
+                            };
+                        };
+                    };
+                    return: {
+                        $arch: string;
+                        type: string;
+                        itemType: {
+                            $arch: string;
+                            type: string;
+                        };
+                    };
+                };
+            };
         };
         boolean: {
             $arch: string;
@@ -829,6 +862,7 @@ export declare module Jsonarch {
                     parameter: {
                         $arch: string;
                         type: string;
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -846,6 +880,7 @@ export declare module Jsonarch {
                             $arch: string;
                             type: string;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -863,6 +898,7 @@ export declare module Jsonarch {
                             $arch: string;
                             type: string;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -882,6 +918,7 @@ export declare module Jsonarch {
                         };
                         minLength: number;
                         maxLength: number;
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -904,6 +941,7 @@ export declare module Jsonarch {
                         };
                         minLength: number;
                         maxLength: number;
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -924,6 +962,7 @@ export declare module Jsonarch {
                             integerOnly: boolean;
                             minValue: number;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -941,6 +980,7 @@ export declare module Jsonarch {
                             minValue: number;
                             integerOnly?: undefined;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -958,6 +998,7 @@ export declare module Jsonarch {
                             integerOnly: boolean;
                             minValue?: undefined;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -975,6 +1016,7 @@ export declare module Jsonarch {
                             integerOnly?: undefined;
                             minValue?: undefined;
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -996,6 +1038,7 @@ export declare module Jsonarch {
                             minValue: number;
                             integerOnly: boolean;
                         }[];
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;
@@ -1018,6 +1061,7 @@ export declare module Jsonarch {
                             $arch: string;
                             type: string;
                         };
+                        lazyable: boolean;
                         member?: undefined;
                     };
                     return: {
@@ -1039,6 +1083,7 @@ export declare module Jsonarch {
                                 type: string;
                             };
                         };
+                        lazyable: boolean;
                         itemType?: undefined;
                     };
                     return: {
@@ -1063,6 +1108,7 @@ export declare module Jsonarch {
                                 type: string;
                             };
                         };
+                        lazyable: boolean;
                     };
                     return: {
                         $arch: string;

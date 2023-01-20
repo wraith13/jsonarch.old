@@ -21,7 +21,8 @@
                     "type": "array",
                     "itemType": { "$arch": "type", "type": "any" },
                     "minLength": 2,
-                    "maxLength": 2
+                    "maxLength": 2,
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
@@ -46,6 +47,31 @@
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
+        },
+        "map": {
+            "$arch": "template",
+            "type": {
+                "parameter": {
+                    "$arch": "type",
+                    "type": "object",
+                    "member": {
+                        "array": {
+                            "$arch": "type",
+                            "type": "array",
+                            "itemType": { "$arch": "type", "type": "any" }
+                        },
+                        "template": {
+                            "$arch": "type",
+                            "type": "template"
+                        }
+                    }
+                },
+                "return": {
+                    "$arch": "type",
+                    "type": "array",
+                    "itemType": { "$arch": "type", "type": "any" }
+                }
+            }
         }
     },
     "boolean": {
@@ -53,7 +79,7 @@
         "not": {
             "$arch": "template",
             "type": {
-                "parameter": { "$arch": "type", "type": "boolean" },
+                "parameter": { "$arch": "type", "type": "boolean", "lazyable": false },
                 "return": { "$arch": "type", "type": "boolean" }
             }
         },
@@ -63,7 +89,8 @@
                 "parameter": {
                     "$arch": "type",
                     "type": "array",
-                    "itemType": { "$arch": "type", "type": "boolean" }
+                    "itemType": { "$arch": "type", "type": "boolean" },
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
@@ -74,7 +101,8 @@
                 "parameter": {
                     "$arch": "type",
                     "type": "array",
-                    "itemType": { "$arch": "type", "type": "boolean" }
+                    "itemType": { "$arch": "type", "type": "boolean" },
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
@@ -87,7 +115,8 @@
                     "type": "array",
                     "itemType": { "$arch": "type", "type": "boolean" },
                     "minLength": 2,
-                    "maxLength": 2
+                    "maxLength": 2,
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
@@ -103,7 +132,8 @@
                     "type": "array",
                     "itemType": { "$arch": "type", "type": "number" },
                     "minLength": 2,
-                    "maxLength": 2
+                    "maxLength": 2,
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "string", "enum": ["<", "=", ">"] }
             }
@@ -115,7 +145,8 @@
                     "parameter": {
                         "$arch": "type",
                         "type": "array",
-                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 }
+                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 },
+                        "lazyable": false
                     },
                     "return": { "$arch": "type", "type": "number", "integerOnly": true, "minValue": 0 }
                 },
@@ -123,7 +154,8 @@
                     "parameter": {
                         "$arch": "type",
                         "type": "array",
-                        "itemType": { "$arch": "type", "type": "number", "minValue": 0 }
+                        "itemType": { "$arch": "type", "type": "number", "minValue": 0 },
+                        "lazyable": false
                     },
                     "return": { "$arch": "type", "type": "number", "minValue": 0 }
                 },
@@ -131,7 +163,8 @@
                     "parameter": {
                         "$arch": "type",
                         "type": "array",
-                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true }
+                        "itemType": { "$arch": "type", "type": "number", "integerOnly": true },
+                        "lazyable": false
                     },
                     "return": { "$arch": "type", "type": "number", "integerOnly": true }
                 },
@@ -139,7 +172,8 @@
                     "parameter": {
                         "$arch": "type",
                         "type": "array",
-                        "itemType": { "$arch": "type", "type": "number" }
+                        "itemType": { "$arch": "type", "type": "number" },
+                        "lazyable": false
                     },
                     "return": { "$arch": "type", "type": "number" }
                 }
@@ -154,7 +188,8 @@
                     "list": [
                         { "$arch": "type", "type": "number", "minValue": 0, "integerOnly": true },
                         { "$arch": "type", "type": "number", "minValue": 1, "integerOnly": true }
-                    ]
+                    ],
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "number", "minValue": 0, "integerOnly": true }
             }
@@ -166,7 +201,12 @@
             "$arch": "template",
             "type": [
                 {
-                    "parameter": { "$arch": "type", "type": "array", "itemType": { "$arch": "type", "type": "string" } },
+                    "parameter": {
+                        "$arch": "type",
+                        "type": "array",
+                        "itemType": { "$arch": "type", "type": "string" },
+                        "lazyable": false
+                    },
                     "return": { "$arch": "type", "type": "string" }
                 },
                 {
@@ -176,7 +216,8 @@
                         "member": {
                             "list": { "$arch": "type", "type": "array", "itemType": "string" },
                             "separator": { "$arch": "type", "type": "string" }
-                        }
+                        },
+                        "lazyable": false
                     },
                     "return": { "$arch": "type", "type": "string" }
                 }
@@ -191,7 +232,8 @@
                     "member": {
                         "text": { "$arch": "type", "type": "string" },
                         "separator": { "$arch": "type", "type": "string" }
-                    }
+                    },
+                    "lazyable": false
                 },
                 "return": { "$arch": "type", "type": "array", "itemType": "string" }
             }

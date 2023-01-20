@@ -1531,6 +1531,7 @@ export module Jsonarch
         $arch: "type";
         type: PrimitiveType;
         optional?: boolean;
+        lazyable?: boolean;
     }
     export interface TypeHasMinMaxLength extends AlphaType
     {
