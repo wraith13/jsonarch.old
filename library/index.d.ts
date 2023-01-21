@@ -702,6 +702,7 @@ export declare module Jsonarch {
     export type CasePattern = ValueCasePattern | ListCasePattern | TypeCasePattern | IfCasePattern | IfCaseCasePattern | NotCasePattern | OrCasePattern | AndCasePattern;
     export interface Loop extends AlphaJsonarch {
         $arch: "loop";
+        parameter?: Jsonable;
         loop: AlphaJsonarch;
     }
     export const isLoopData: (template: unknown) => template is Loop;

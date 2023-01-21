@@ -1926,6 +1926,7 @@ export module Jsonarch
     export interface Loop extends AlphaJsonarch
     {
         $arch: "loop";
+        parameter?: Jsonable;
         loop: AlphaJsonarch;
     }
     export const isLoopData = isJsonarch<Loop>("loop");
@@ -2444,7 +2445,11 @@ export module Jsonarch
             let index = 0;
             while(true)
             {
-                const scope = { ...entry.scope, $loop: { index, } };
+                const scope =
+                {
+                    ...entry.scope,
+                    $loop: { index, }
+                };
                 const path = makeFullRefer(entry.path, "loop");
                 const current = await apply
                 ({
