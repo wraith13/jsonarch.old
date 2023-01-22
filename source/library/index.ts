@@ -1947,14 +1947,22 @@ export module Jsonarch
     export const isIntermediateLoopFalseResultData = isIntermediateTargetObject<LoopFalseResult>({ continue: isIntermediateTargetValue(isJustValue<false>(false)), });
     export const isIntermediateLoopRegularResultData = isIntermediateTargetObject<LoopRegularResult>({ continue: isUndefinedOr(isIntermediateTargetValue(isBoolean)), return: isIntermediate, });
     export const isIntermediateLoopResultData = isTypeOr(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
+    export interface Iterator extends AlphaJsonarch
+    {
+        $arch: "iterator";
+        // parameter: Jsonable[] | Call | Template | Value;
+        parameter: Jsonable;
+    }
     export interface Step extends AlphaJsonarch
     {
         $arch: "step";
+        // parameter: Iterator | Loop;
         parameter: Jsonable;
     }
     export interface Chain extends AlphaJsonarch
     {
         $arch: "chain";
+        // list: [Jsonable, ...(Template | Call)[] ];
         list: Jsonable[];
     }
     export type JsonarchType =
@@ -1974,6 +1982,7 @@ export module Jsonarch
         Throw |
         Match |
         Loop |
+        Iterator |
         Step |
         Chain
     )["$arch"];

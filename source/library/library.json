@@ -59,38 +59,6 @@
                 },
                 "return": { "$arch": "type", "type": "boolean" }
             }
-        },
-        "map":
-        {
-            "$arch": "template",
-            "type":
-            {
-                "parameter":
-                {
-                    "$arch": "type",
-                    "type": "object",
-                    "member":
-                    {
-                        "array":
-                        {
-                            "$arch": "type",
-                            "type": "array",
-                            "itemType": { "$arch": "type", "type": "any" }
-                        },
-                        "template":
-                        {
-                            "$arch": "type",
-                            "type": "template"
-                        }
-                    }
-                },
-                "return":
-                {
-                    "$arch": "type",
-                    "type": "array",
-                    "itemType": { "$arch": "type", "type": "any" }
-                }
-            }
         }
     },
     "boolean":

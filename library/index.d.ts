@@ -718,6 +718,10 @@ export declare module Jsonarch {
     export const isIntermediateLoopFalseResultData: (value: unknown) => value is IntermediateTarget<LoopFalseResult>;
     export const isIntermediateLoopRegularResultData: (value: unknown) => value is IntermediateTarget<LoopRegularResult>;
     export const isIntermediateLoopResultData: IsType<IntermediateTarget<LoopFalseResult> | IntermediateTarget<LoopRegularResult>>;
+    export interface Iterator extends AlphaJsonarch {
+        $arch: "iterator";
+        parameter: Jsonable;
+    }
     export interface Step extends AlphaJsonarch {
         $arch: "step";
         parameter: Jsonable;
@@ -726,7 +730,7 @@ export declare module Jsonarch {
         $arch: "chain";
         list: Jsonable[];
     }
-    export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Throw | Match | Loop | Step | Chain)["$arch"];
+    export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Throw | Match | Loop | Iterator | Step | Chain)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;
@@ -828,37 +832,6 @@ export declare module Jsonarch {
                     return: {
                         $arch: string;
                         type: string;
-                    };
-                };
-            };
-            map: {
-                $arch: string;
-                type: {
-                    parameter: {
-                        $arch: string;
-                        type: string;
-                        member: {
-                            array: {
-                                $arch: string;
-                                type: string;
-                                itemType: {
-                                    $arch: string;
-                                    type: string;
-                                };
-                            };
-                            template: {
-                                $arch: string;
-                                type: string;
-                            };
-                        };
-                    };
-                    return: {
-                        $arch: string;
-                        type: string;
-                        itemType: {
-                            $arch: string;
-                            type: string;
-                        };
                     };
                 };
             };
