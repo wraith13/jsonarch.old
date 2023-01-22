@@ -718,7 +718,15 @@ export declare module Jsonarch {
     export const isIntermediateLoopFalseResultData: (value: unknown) => value is IntermediateTarget<LoopFalseResult>;
     export const isIntermediateLoopRegularResultData: (value: unknown) => value is IntermediateTarget<LoopRegularResult>;
     export const isIntermediateLoopResultData: IsType<IntermediateTarget<LoopFalseResult> | IntermediateTarget<LoopRegularResult>>;
-    export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Throw | Match | Loop)["$arch"];
+    export interface Step extends AlphaJsonarch {
+        $arch: "step";
+        parameter: Jsonable;
+    }
+    export interface Chain extends AlphaJsonarch {
+        $arch: "chain";
+        list: Jsonable[];
+    }
+    export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Throw | Match | Loop | Step | Chain)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateTemplateResultType: (entry: EvaluateEntry<Template>) => Promise<Type>;

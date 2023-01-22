@@ -1947,6 +1947,16 @@ export module Jsonarch
     export const isIntermediateLoopFalseResultData = isIntermediateTargetObject<LoopFalseResult>({ continue: isIntermediateTargetValue(isJustValue<false>(false)), });
     export const isIntermediateLoopRegularResultData = isIntermediateTargetObject<LoopRegularResult>({ continue: isUndefinedOr(isIntermediateTargetValue(isBoolean)), return: isIntermediate, });
     export const isIntermediateLoopResultData = isTypeOr(isIntermediateLoopFalseResultData, isIntermediateLoopRegularResultData);
+    export interface Step extends AlphaJsonarch
+    {
+        $arch: "step";
+        parameter: Jsonable;
+    }
+    export interface Chain extends AlphaJsonarch
+    {
+        $arch: "chain";
+        list: Jsonable[];
+    }
     export type JsonarchType =
     (
         Cache |
@@ -1963,7 +1973,9 @@ export module Jsonarch
         Template |
         Throw |
         Match |
-        Loop
+        Loop |
+        Step |
+        Chain
     )["$arch"];
     export const applyDefault = <DataType extends Jsonable>(...defaults: (DataType | undefined)[]): DataType | undefined =>
     {
