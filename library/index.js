@@ -1437,6 +1437,8 @@ var Jsonarch;
     Jsonarch.isIntermediateLoopFalseResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isIntermediateTargetValue(Jsonarch.isJustValue(false)), });
     Jsonarch.isIntermediateLoopRegularResultData = Jsonarch.isIntermediateTargetObject({ continue: Jsonarch.isUndefinedOr(Jsonarch.isIntermediateTargetValue(Jsonarch.isBoolean)), return: Jsonarch.isIntermediate, });
     Jsonarch.isIntermediateLoopResultData = isTypeOr(Jsonarch.isIntermediateLoopFalseResultData, Jsonarch.isIntermediateLoopRegularResultData);
+    // export const isChainData = isObject<Chain>({ $arch: isJustValue("chain"), list: isArray(isJsonable), });
+    Jsonarch.isIntermediateChainData = Jsonarch.isIntermediateTargetObject({ $arch: Jsonarch.isIntermediateTargetValue(Jsonarch.isJustValue("chain")), list: Jsonarch.isIntermediateTargetValue(Jsonarch.isArray(Jsonarch.isIntermediate)), });
     Jsonarch.applyDefault = function () {
         var defaults = [];
         for (var _c = 0; _c < arguments.length; _c++) {

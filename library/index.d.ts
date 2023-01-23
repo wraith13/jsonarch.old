@@ -730,6 +730,7 @@ export declare module Jsonarch {
         $arch: "chain";
         list: Jsonable[];
     }
+    export const isIntermediateChainData: (value: unknown) => value is IntermediateTarget<Chain>;
     export type JsonarchType = (Cache | Setting | Lazy | Intermediate | Result | JsonarchError<Jsonable> | StaticTemplate | IncludeStaticJsonTemplate | AlphaType | Call | Value | Template | Throw | Match | Loop | Iterator | Step | Chain)["$arch"];
     export const applyDefault: <DataType extends Jsonable>(...defaults: (DataType | undefined)[]) => DataType | undefined;
     export const evaluateTemplate: (entry: EvaluateEntry<Template>) => Promise<IntermediateTarget<Jsonable>>;

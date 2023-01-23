@@ -1965,6 +1965,8 @@ export module Jsonarch
         // list: [Jsonable, ...(Template | Call)[] ];
         list: Jsonable[];
     }
+    // export const isChainData = isObject<Chain>({ $arch: isJustValue("chain"), list: isArray(isJsonable), });
+    export const isIntermediateChainData = isIntermediateTargetObject<Chain>({ $arch: isIntermediateTargetValue(isJustValue<"chain">("chain")), list: isIntermediateTargetValue(isArray(isIntermediate)), });
     export type JsonarchType =
     (
         Cache |
