@@ -753,6 +753,8 @@ export declare module Jsonarch {
     export const evaluateCasesType: (entry: EvaluateEntry<Case[]>) => Promise<Type[]>;
     export const evaluateLoop: (entry: EvaluateEntry<Loop>) => Promise<Jsonable>;
     export const evaluateLoopResultType: (entry: EvaluateEntry<Loop>) => Promise<Type>;
+    export const evaluateChain: (entry: EvaluateEntry<Chain>) => Promise<Jsonable>;
+    export const evaluateChainResultType: (entry: EvaluateEntry<Chain>) => Promise<Type>;
     export const makeParameter: (entry: EvaluateEntry<Call>) => Promise<IntermediateTarget<Jsonable> | undefined>;
     export interface CallTemplateRegular extends JsonableObject {
         template: IntermediateTarget<Template>;

@@ -2534,6 +2534,42 @@ export module Jsonarch
             return result;
         }
     );
+    export const evaluateChain = (entry: EvaluateEntry<Chain>): Promise<Jsonable> => profile
+    (
+        entry, "evaluateChain", async () =>
+        {
+            let current: Jsonable = entry.parameter;
+            const basePath = makeFullRefer(entry.path, "list");
+            const list = entry.template.value.list.value;
+            for(const i in list)
+            {
+                const path = makeFullRefer(basePath, i);
+                current = await apply
+                ({
+                    ...Limit.incrementNestDepth(entry),
+                    callStack: makeCallStack
+                    (
+                        entry.callStack,
+                        {
+                            path,
+                            parameter: current,
+                            caller: entry.path,
+                        }
+                    ),
+                    path,
+                    template: list[i],
+                });
+            }
+            return current;
+        }
+    );
+    export const evaluateChainResultType = (entry: EvaluateEntry<Chain>): Promise<Type> => profile
+    (
+        entry, "evaluateChainResultType", async () =>
+        {
+            throw new ErrorJson(undefined, "NYI");
+        }
+    );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
         undefined === entry.template.value.parameter ?
             undefined:
@@ -4268,6 +4304,7 @@ export module Jsonarch
         evaluateIfMatch(isIntermediateThrowData, evaluateThrow),
         evaluateIfMatch(isIntermediateMatchData, evaluateMatch),
         evaluateIfMatch(isIntermediateLoopData, evaluateLoop),
+        evaluateIfMatch(isIntermediateChainData, evaluateChain),
         evaluateIfMatch(isIntermediateCallData, evaluateCall),
         evaluateIfMatch(isIntermediateValueData, evaluateValue),
     ];
@@ -4303,6 +4340,7 @@ export module Jsonarch
         evaluateResultTypeIfMatch(isIntermediateTemplateData, evaluateTemplateResultType),
         evaluateResultTypeIfMatch(isIntermediateMatchData, evaluateMatchResultType),
         evaluateResultTypeIfMatch(isIntermediateLoopData, evaluateLoopResultType),
+        evaluateResultTypeIfMatch(isIntermediateChainData, evaluateChainResultType),
         evaluateResultTypeIfMatch(isIntermediateCallData, evaluateCallResultType),
         evaluateResultTypeIfMatch(isIntermediateValueData, evaluateValueResultType),
     ];

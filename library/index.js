@@ -1902,6 +1902,46 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.evaluateChain = function (entry) { return Jsonarch.profile(entry, "evaluateChain", function () { return __awaiter(_this, void 0, void 0, function () {
+        var current, basePath, list, _c, _d, _e, _f, i, path;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
+                case 0:
+                    current = entry.parameter;
+                    basePath = Jsonarch.makeFullRefer(entry.path, "list");
+                    list = entry.template.value.list.value;
+                    _c = list;
+                    _d = [];
+                    for (_e in _c)
+                        _d.push(_e);
+                    _f = 0;
+                    _g.label = 1;
+                case 1:
+                    if (!(_f < _d.length)) return [3 /*break*/, 4];
+                    _e = _d[_f];
+                    if (!(_e in _c)) return [3 /*break*/, 3];
+                    i = _e;
+                    path = Jsonarch.makeFullRefer(basePath, i);
+                    return [4 /*yield*/, Jsonarch.apply(__assign(__assign({}, Limit.incrementNestDepth(entry)), { callStack: Jsonarch.makeCallStack(entry.callStack, {
+                                path: path,
+                                parameter: current,
+                                caller: entry.path,
+                            }), path: path, template: list[i] }))];
+                case 2:
+                    current = _g.sent();
+                    _g.label = 3;
+                case 3:
+                    _f++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, current];
+            }
+        });
+    }); }); };
+    Jsonarch.evaluateChainResultType = function (entry) { return Jsonarch.profile(entry, "evaluateChainResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_c) {
+            throw new Jsonarch.ErrorJson(undefined, "NYI");
+        });
+    }); }); };
     Jsonarch.makeParameter = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
         return __generator(this, function (_d) {
@@ -3246,6 +3286,7 @@ var Jsonarch;
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateThrowData, Jsonarch.evaluateThrow),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateMatchData, Jsonarch.evaluateMatch),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateLoopData, Jsonarch.evaluateLoop),
+        Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateChainData, Jsonarch.evaluateChain),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateCallData, Jsonarch.evaluateCall),
         Jsonarch.evaluateIfMatch(Jsonarch.isIntermediateValueData, Jsonarch.evaluateValue),
     ];
@@ -3292,6 +3333,7 @@ var Jsonarch;
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateTemplateData, Jsonarch.evaluateTemplateResultType),
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateMatchData, Jsonarch.evaluateMatchResultType),
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateLoopData, Jsonarch.evaluateLoopResultType),
+        Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateChainData, Jsonarch.evaluateChainResultType),
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateCallData, Jsonarch.evaluateCallResultType),
         Jsonarch.evaluateResultTypeIfMatch(Jsonarch.isIntermediateValueData, Jsonarch.evaluateValueResultType),
     ];
