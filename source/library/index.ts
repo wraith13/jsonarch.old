@@ -2567,7 +2567,12 @@ export module Jsonarch
     (
         entry, "evaluateChainResultType", async () =>
         {
-            throw new ErrorJson(undefined, "NYI");
+            const list = entry.template.value.list.value;
+            if (list.some(_ => true))
+            {
+                return typeOfResult(entry, list[list.length -1]);
+            }
+            throw new ErrorJson(undefined, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>

@@ -1938,8 +1938,13 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.evaluateChainResultType = function (entry) { return Jsonarch.profile(entry, "evaluateChainResultType", function () { return __awaiter(_this, void 0, void 0, function () {
+        var list;
         return __generator(this, function (_c) {
-            throw new Jsonarch.ErrorJson(undefined, "NYI");
+            list = entry.template.value.list.value;
+            if (list.some(function (_) { return true; })) {
+                return [2 /*return*/, Jsonarch.typeOfResult(entry, list[list.length - 1])];
+            }
+            throw new Jsonarch.ErrorJson(undefined, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
         });
     }); }); };
     Jsonarch.makeParameter = function (entry) { return __awaiter(_this, void 0, void 0, function () {
