@@ -2558,6 +2558,7 @@ export module Jsonarch
                     ),
                     path,
                     template: list[i],
+                    parameter: current,
                 });
             }
             return current;
@@ -2671,7 +2672,7 @@ export module Jsonarch
                                 {
                                     template: makeSolid(template.value.type),
                                     hasLazy: hasLazy(liquid),
-                                    xxx: await resolveLazy(entry, parameter ?? null),
+                                    resolveLazy: await resolveLazy(entry, parameter ?? null),
                                     liquid,
                                     parameter,
                                 },

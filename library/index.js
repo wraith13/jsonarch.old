@@ -1926,7 +1926,7 @@ var Jsonarch;
                                 path: path,
                                 parameter: current,
                                 caller: entry.path,
-                            }), path: path, template: list[i] }))];
+                            }), path: path, template: list[i], parameter: current }))];
                 case 2:
                     current = _g.sent();
                     _g.label = 3;
@@ -2044,7 +2044,7 @@ var Jsonarch;
                                     hasLazy: Jsonarch.hasLazy(liquid)
                                 };
                                 return [4 /*yield*/, Jsonarch.resolveLazy(entry, parameter !== null && parameter !== void 0 ? parameter : null)];
-                            case 9: throw new (_f.apply(Jsonarch.ErrorJson, _g.concat([(_h.debug = (_j.xxx = _r.sent(),
+                            case 9: throw new (_f.apply(Jsonarch.ErrorJson, _g.concat([(_h.debug = (_j.resolveLazy = _r.sent(),
                                     _j.liquid = liquid,
                                     _j.parameter = parameter,
                                     _j),
