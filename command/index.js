@@ -186,35 +186,38 @@ var writeFile = function (path, data) {
     }
 };
 var callJsonarch = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
-    var result, _a, _b;
-    var _c;
-    var _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var process, result;
+    var _a;
+    var _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b = (_a = library_1.Jsonarch).process;
-                _c = {};
+                _a = {};
                 return [4 /*yield*/, commandLineArgumentToFileContext(argv.template)];
             case 1:
-                _c.template = _e.sent();
+                _a.template = _c.sent();
                 return [4 /*yield*/, commandLineArgumentToFileContext(argv.parameter)];
             case 2:
-                _c.parameter = _e.sent();
+                _a.parameter = _c.sent();
                 return [4 /*yield*/, commandLineArgumentToFileContext(argv.cache)];
             case 3:
-                _c.cache = _e.sent();
+                _a.cache = _c.sent();
                 return [4 /*yield*/, commandLineArgumentToFileContext(argv.setting)];
-            case 4: return [4 /*yield*/, _b.apply(_a, [(_c.setting = _e.sent(),
-                        _c.profile = library_1.Jsonarch.makeProfile(),
-                        _c.handler = {},
-                        _c)])];
+            case 4:
+                process = (_a.setting = _c.sent(),
+                    _a);
+                return [4 /*yield*/, library_1.Jsonarch.process({
+                        process: process,
+                        profile: library_1.Jsonarch.makeProfile(),
+                        handler: {}
+                    })];
             case 5:
-                result = _e.sent();
+                result = _c.sent();
                 if (argv.result) {
                     writeFile(argv.result, library_1.Jsonarch.jsonToString(result, "result", result.setting));
                 }
                 if (argv.output || !argv.result) {
-                    writeFile((_d = argv.output) !== null && _d !== void 0 ? _d : "std:out", library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
+                    writeFile((_b = argv.output) !== null && _b !== void 0 ? _b : "std:out", library_1.Jsonarch.jsonToString(result.output, "output", result.setting));
                 }
                 return [2 /*return*/];
         }

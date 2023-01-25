@@ -798,18 +798,18 @@ export module Jsonarch
         const context = getContext(contextOrEntry);
         if (/^\.\.?\//.test(path))
         {
-            if (isSystemFileContext(context.template))
+            if (isSystemFileContext(context.process.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: system }, },...)");
             }
             else
-            if (isNoneFileContext(context.template))
+            if (isNoneFileContext(context.process.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
             }
             else
             {
-                let parent = context.template.path
+                let parent = context.process.template.path
                     .replace(/#.*/, "")
                     .replace(/\/[^/]*$/, "");
                 let current = path.replace(/^\.\//, "").replace(/\/\.\//, "/");
@@ -829,18 +829,18 @@ export module Jsonarch
         else
         if ( ! System.isConsoleMode && /^\//.test(path))
         {
-            if (isSystemFileContext(context.template))
+            if (isSystemFileContext(context.process.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: system }, },...)");
             }
             else
-            if (isNoneFileContext(context.template))
+            if (isNoneFileContext(context.process.template))
             {
                 throw new Error("makeFullPath({ templte:{ category: none }, },...)");
             }
             else
             {
-                return context.template.path.replace(/^(https?\:\/\/[^/]+\/).*$/, "$1") +path;
+                return context.process.template.path.replace(/^(https?\:\/\/[^/]+\/).*$/, "$1") +path;
             }
         }
         else
@@ -875,21 +875,29 @@ export module Jsonarch
             { category: "local", path: argument, hash: getHashFromPath(argument), },
             "shallow"
         );
-    export interface Context
+    export interface Process extends JsonableObject
     {
         template: FileContext;
         parameter?: FileContext;
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
-        profile: Profile;
-        nestDepth?: number;
     }
-    export const isContext = isObject<Context>
+    export const isProcess = isObject<Process>
     ({
         template: isFileContext,
         parameter: isUndefinedOr(isFileContext),
         cache: isUndefinedOr(<IsType<FileContext<Cache>>>isFileContext),
         setting: isUndefinedOr(<IsType<FileContext<Setting>>>isFileContext),
+    });
+    export interface Context
+    {
+        process: Process;
+        profile: Profile;
+        nestDepth?: number;
+    }
+    export const isContext = isObject<Context>
+    ({
+        process: isProcess,
         profile: isProfile,
         nestDepth: isUndefinedOr(isNumber),
     });
@@ -1192,13 +1200,7 @@ export module Jsonarch
     export interface Result extends AlphaJsonarch
     {
         $arch: "result";
-        process:
-        {
-            template: FileContext;
-            parameter?: FileContext;
-            cache?: FileContext;
-            setting?: FileContext;
-        };
+        process: Process;
         output: Jsonable;
         profile?: any;
         trace?: any;
@@ -3878,7 +3880,7 @@ export module Jsonarch
             (
                 entry.this?.path,
                 {
-                    root: entry.context.template,
+                    root: entry.context.process.template,
                     refer,
                 }
             );
@@ -4005,7 +4007,7 @@ export module Jsonarch
             (
                 entry.this?.path,
                 {
-                    root: entry.context.template,
+                    root: entry.context.process.template,
                     refer: makeSolid(entry.template.value.refer),
                 }
             );
@@ -4604,24 +4606,15 @@ export module Jsonarch
         entry, "applyRoot", async () =>
         {
             const handler = entry.handler;
-            const process = regulateJsonable
-            (
-                {
-                    template: entry.template,
-                    paremter: entry.parameter,
-                    cache: entry.cache,
-                    setting: entry.setting,
-                },
-                "deep"
-            );
+            const process = regulateJsonable(entry.process, "deep");
             const context =
             {
-                ...process,
+                process,
                 profile: makeProfile(),
             };
             // const origin = entry.template;
             const callStack: CallStackEntry[] = [];
-            const path: FullRefer = { root: entry.template, refer: [] };
+            const path: FullRefer = { root: process.template, refer: [] };
             const rootEvaluateEntry: EvaluateEntry<Jsonable> =
             {
                 context,
@@ -4635,11 +4628,11 @@ export module Jsonarch
                 handler,
                 originMap: <OriginMap>
                 (
-                    entry.parameter ?
+                    process.parameter ?
                     ({
                         paremter: <Origin>
                         {
-                            root: entry.parameter,
+                            root: process.parameter,
                             refer: "root",
                         },
                     }):
@@ -4653,7 +4646,7 @@ export module Jsonarch
                     "resolveLazy" === lazy ?
                         await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
                         await apply(rootEvaluateEntry),
-                    entry.template
+                    process.template
                 );
                 const profile = makeProfileReport(context.profile);
                 const result: Result =
@@ -4687,20 +4680,24 @@ export module Jsonarch
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const handler = entry.handler;
+        const process = entry.process;
         const emptyCache: Cache = { "$arch": "cache" };
-        const cache = entry.cache ?
-            makeSolid(await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: entry.cache })):
+        const cache = process.cache ?
+            makeSolid(await load({ context: entry, cache:emptyCache, setting: bootSettingJson as Setting, handler, file: process.cache })):
             emptyCache;
         const settingFileContext =
-            entry.setting ??
+            process.setting ??
             getSystemFileContext("default-setting.json");
         const settingResult = await applyRoot
         (
             {
                 handler,
-                template: settingFileContext,
-                cache: entry.cache,
-                setting: getSystemFileContext("boot-setting.json"),
+                process:
+                {
+                    template: settingFileContext,
+                    cache: process.cache,
+                    setting: getSystemFileContext("boot-setting.json"),
+                },
                 profile: makeProfile(),
             },
             await load({ context: entry, cache, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
@@ -4714,17 +4711,20 @@ export module Jsonarch
             return settingResult;
         }
         const setting: Setting = settingResult.output as Setting ?? { "$arch": "setting", };
-        const parameterResult = entry.parameter ?
+        const parameterResult = process.parameter ?
             await applyRoot
             (
                 {
-                    handler,
-                    template: entry.parameter,
-                    cache: entry.cache,
-                    setting: settingFileContext,
+                    process:
+                    {
+                        template: process.parameter,
+                        cache: process.cache,
+                        setting: settingFileContext,
+                    },
                     profile: makeProfile(),
+                    handler,
                 },
-                await load({ context: entry, cache, setting, handler, file: entry.parameter }),
+                await load({ context: entry, cache, setting, handler, file: process.parameter }),
                 null,
                 cache,
                 setting
@@ -4735,7 +4735,7 @@ export module Jsonarch
         {
             return parameterResult;
         }
-        const template = await load({ context: entry, cache, setting, handler, file: entry.template});
+        const template = await load({ context: entry, cache, setting, handler, file: process.template});
         return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
     };
     export const encode = structure

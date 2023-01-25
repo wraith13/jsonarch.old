@@ -211,11 +211,15 @@ export declare module Jsonarch {
     export const pathToFileContext: (contextOrEntry: ContextOrEntry, path: string) => NetFileContext | LocalFileContext;
     export const getHashFromPath: (path: string) => HashType | undefined;
     export const commandLineArgumentToFileContext: <DataType extends Jsonable = Jsonable>(argument: string) => FileContext<DataType>;
-    export interface Context {
+    export interface Process extends JsonableObject {
         template: FileContext;
         parameter?: FileContext;
         cache?: FileContext<Cache>;
         setting?: FileContext<Setting>;
+    }
+    export const isProcess: (value: unknown) => value is Process;
+    export interface Context {
+        process: Process;
         profile: Profile;
         nestDepth?: number;
     }
@@ -393,12 +397,7 @@ export declare module Jsonarch {
     export const isLazyableEvaluateTargetEntry: (entry: EvaluateEntry<Jsonable>) => entry is EvaluateEntry<AlphaJsonarch>;
     export interface Result extends AlphaJsonarch {
         $arch: "result";
-        process: {
-            template: FileContext;
-            parameter?: FileContext;
-            cache?: FileContext;
-            setting?: FileContext;
-        };
+        process: Process;
         output: Jsonable;
         profile?: any;
         trace?: any;

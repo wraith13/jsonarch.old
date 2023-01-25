@@ -152,12 +152,16 @@ const writeFile = (path: string, data: string) =>
 };
 const callJsonarch = async (argv: RegulatedCommandLineParameters) =>
 {
-    const result = await Jsonarch.process
-    ({
+    const process: Jsonarch.Process =
+    {
         template: await commandLineArgumentToFileContext(argv.template),
         parameter: await commandLineArgumentToFileContext(argv.parameter),
         cache: await commandLineArgumentToFileContext(argv.cache),
         setting: await commandLineArgumentToFileContext(argv.setting),
+    };
+    const result = await Jsonarch.process
+    ({
+        process,
         profile: Jsonarch.makeProfile(),
         handler: { }
     });
