@@ -3615,18 +3615,18 @@ var Jsonarch;
     };
     Jsonarch.lazyableApply = function (entry) { var _c, _d; return Jsonarch.apply(entry, (_d = (_c = entry.setting.process) === null || _c === void 0 ? void 0 : _c.lazyEvaluation) !== null && _d !== void 0 ? _d : true); };
     Jsonarch.applyRoot = function (entry, template, parameter, cache, setting, lazy) { return Jsonarch.profile(entry, "applyRoot", function () { return __awaiter(_this, void 0, void 0, function () {
-        var handler, context, callStack, path, rootEvaluateEntry, _c, output, originMap, _d, _e, _f, _g, profile_1, result, error_2, profile_2, result;
+        var handler, process, context, callStack, path, rootEvaluateEntry, _c, output, originMap, _d, _e, _f, _g, profile_1, result, error_2, profile_2, result;
         return __generator(this, function (_h) {
             switch (_h.label) {
                 case 0:
                     handler = entry.handler;
-                    context = {
+                    process = Jsonarch.regulateJsonable({
                         template: entry.template,
                         paremter: entry.parameter,
                         cache: entry.cache,
                         setting: entry.setting,
-                        profile: Jsonarch.makeProfile(),
-                    };
+                    }, "deep");
+                    context = __assign(__assign({}, process), { profile: Jsonarch.makeProfile() });
                     callStack = [];
                     path = { root: entry.template, refer: [] };
                     rootEvaluateEntry = {
@@ -3669,6 +3669,7 @@ var Jsonarch;
                     profile_1 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
+                        process: process,
                         output: Jsonarch.decode(output),
                         originMap: originMap,
                         profile: profile_1,
@@ -3681,6 +3682,7 @@ var Jsonarch;
                     profile_2 = Jsonarch.makeProfileReport(context.profile);
                     result = {
                         $arch: "result",
+                        process: process,
                         output: Jsonarch.parseErrorJson(error_2),
                         profile: profile_2,
                         cache: cache,

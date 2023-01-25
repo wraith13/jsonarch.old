@@ -393,6 +393,12 @@ export declare module Jsonarch {
     export const isLazyableEvaluateTargetEntry: (entry: EvaluateEntry<Jsonable>) => entry is EvaluateEntry<AlphaJsonarch>;
     export interface Result extends AlphaJsonarch {
         $arch: "result";
+        process: {
+            template: FileContext;
+            parameter?: FileContext;
+            cache?: FileContext;
+            setting?: FileContext;
+        };
         output: Jsonable;
         profile?: any;
         trace?: any;

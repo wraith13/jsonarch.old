@@ -1192,6 +1192,13 @@ export module Jsonarch
     export interface Result extends AlphaJsonarch
     {
         $arch: "result";
+        process:
+        {
+            template: FileContext;
+            parameter?: FileContext;
+            cache?: FileContext;
+            setting?: FileContext;
+        };
         output: Jsonable;
         profile?: any;
         trace?: any;
@@ -4597,12 +4604,19 @@ export module Jsonarch
         entry, "applyRoot", async () =>
         {
             const handler = entry.handler;
+            const process = regulateJsonable
+            (
+                {
+                    template: entry.template,
+                    paremter: entry.parameter,
+                    cache: entry.cache,
+                    setting: entry.setting,
+                },
+                "deep"
+            );
             const context =
             {
-                template: entry.template,
-                paremter: entry.parameter,
-                cache: entry.cache,
-                setting: entry.setting,
+                ...process,
                 profile: makeProfile(),
             };
             // const origin = entry.template;
@@ -4645,6 +4659,7 @@ export module Jsonarch
                 const result: Result =
                 {
                     $arch: "result",
+                    process,
                     output: decode(output),
                     originMap,
                     profile,
@@ -4659,6 +4674,7 @@ export module Jsonarch
                 const result: Result =
                 {
                     $arch: "result",
+                    process,
                     output: parseErrorJson(error),
                     profile,
                     cache,
