@@ -3774,6 +3774,7 @@ var Jsonarch;
                 case 11:
                     result = _o.sent();
                     if (undefined === result.process.startAt) {
+                        //  将来的に UI ができた際は toLocaleString() の値ではなく、 getTime() の値を格納するように変更
                         result.process.startAt = startAt.toLocaleString((_m = result.setting.locale) === null || _m === void 0 ? void 0 : _m.language);
                     }
                     result.process.duration = Jsonarch.getTicks() - startAtTicks;

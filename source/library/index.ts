@@ -1052,7 +1052,7 @@ export module Jsonarch
             path: FullRefer;
         };
         template: IntermediateTarget<TemplateType>;
-        parameter: Jsonable | undefined;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
         // origin: Origin;
@@ -1068,7 +1068,7 @@ export module Jsonarch
             context: isContext,
             this: isUndefinedOr(isObject({ template: isIntermediateJsonarchTarget<Template>("template"), path: isFullRefer, })),
             template: isTemplateType,
-            parameter: isUndefinedOr(isJsonable),
+            parameter: isUndefinedOr(isIntermediate),
             callStack: isArray(isCallStackEntry),
             path: isFullRefer,
             originMap: isUndefinedOr(isOriginMap),
@@ -2590,14 +2590,27 @@ export module Jsonarch
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
-        undefined === entry.template.value.parameter ?
-            undefined:
-            await lazyableApply
+    {
+        if (undefined !== entry.template.value.parameter)
+        {
+            return await lazyableApply
             ({
                 ...entry,
                 path: makeFullRefer(entry.path, "parameter"),
                 template: entry.template.value.parameter,
             });
+        }
+        if (undefined !== entry.parameter)
+        {
+            return await lazyableApply
+            ({
+                ...entry,
+                path: makeFullRefer(entry.path, "parameter"),
+                template: entry.parameter,
+            });
+        }
+        return undefined;
+    };
     export interface CallTemplateRegular extends JsonableObject
     {
         template: IntermediateTarget<Template>;
@@ -4605,7 +4618,7 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRoot = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export const applyRoot = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: IntermediateTarget<Jsonable> | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
     (
         entry, "applyRoot", async () =>
         {
@@ -4745,6 +4758,7 @@ export module Jsonarch
         const result = await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
         if (undefined === result.process.startAt)
         {
+            //  将来的に UI ができた際は toLocaleString() の値ではなく、 getTime() の値を格納するように変更
             result.process.startAt = startAt.toLocaleString(result.setting.locale?.language);
         }
         result.process.duration = getTicks() -startAtTicks;
