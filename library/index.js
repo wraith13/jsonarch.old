@@ -809,6 +809,8 @@ var Jsonarch;
                 { category: "local", path: argument, hash: Jsonarch.getHashFromPath(argument), }, "shallow");
     };
     Jsonarch.isProcess = Jsonarch.isObject({
+        startAt: Jsonarch.isUndefinedOr(Jsonarch.isString),
+        duration: Jsonarch.isUndefinedOr(Jsonarch.isNumber),
         template: Jsonarch.isFileContext,
         parameter: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
         cache: Jsonarch.isUndefinedOr(Jsonarch.isFileContext),
@@ -3695,11 +3697,13 @@ var Jsonarch;
         });
     }); }); };
     Jsonarch.process = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-        var handler, process, emptyCache, cache, _c, _d, settingFileContext, settingResult, _e, _f, setting, parameterResult, _g, _h, _j, parameter, template;
-        var _k, _l;
-        return __generator(this, function (_m) {
-            switch (_m.label) {
+        var startAt, startAtTicks, handler, process, emptyCache, cache, _c, _d, settingFileContext, settingResult, _e, _f, setting, parameterResult, _g, _h, _j, parameter, template, result;
+        var _k, _l, _m;
+        return __generator(this, function (_o) {
+            switch (_o.label) {
                 case 0:
+                    startAt = new Date();
+                    startAtTicks = Jsonarch.getTicks();
                     handler = entry.handler;
                     process = entry.process;
                     emptyCache = { "$arch": "cache" };
@@ -3707,11 +3711,11 @@ var Jsonarch;
                     _d = Jsonarch.makeSolid;
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: emptyCache, setting: boot_setting_json_1.default, handler: handler, file: process.cache })];
                 case 1:
-                    _c = _d.apply(void 0, [_m.sent()]);
+                    _c = _d.apply(void 0, [_o.sent()]);
                     return [3 /*break*/, 3];
                 case 2:
                     _c = emptyCache;
-                    _m.label = 3;
+                    _o.label = 3;
                 case 3:
                     cache = _c;
                     settingFileContext = (_k = process.setting) !== null && _k !== void 0 ? _k : Jsonarch.getSystemFileContext("default-setting.json");
@@ -3726,12 +3730,12 @@ var Jsonarch;
                             profile: Jsonarch.makeProfile(),
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: boot_setting_json_1.default, handler: handler, file: settingFileContext })];
-                case 4: return [4 /*yield*/, _e.apply(void 0, _f.concat([_m.sent(), null,
+                case 4: return [4 /*yield*/, _e.apply(void 0, _f.concat([_o.sent(), null,
                         cache,
                         boot_setting_json_1.default,
                         "resolveLazy"]))];
                 case 5:
-                    settingResult = _m.sent();
+                    settingResult = _o.sent();
                     if (Jsonarch.isError(settingResult.output)) {
                         return [2 /*return*/, settingResult];
                     }
@@ -3748,15 +3752,15 @@ var Jsonarch;
                             handler: handler,
                         }];
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: process.parameter })];
-                case 6: return [4 /*yield*/, _h.apply(void 0, _j.concat([_m.sent(), null,
+                case 6: return [4 /*yield*/, _h.apply(void 0, _j.concat([_o.sent(), null,
                         cache,
                         setting]))];
                 case 7:
-                    _g = _m.sent();
+                    _g = _o.sent();
                     return [3 /*break*/, 9];
                 case 8:
                     _g = undefined;
-                    _m.label = 9;
+                    _o.label = 9;
                 case 9:
                     parameterResult = _g;
                     parameter = parameterResult === null || parameterResult === void 0 ? void 0 : parameterResult.output;
@@ -3765,9 +3769,15 @@ var Jsonarch;
                     }
                     return [4 /*yield*/, Jsonarch.load({ context: entry, cache: cache, setting: setting, handler: handler, file: process.template })];
                 case 10:
-                    template = _m.sent();
+                    template = _o.sent();
                     return [4 /*yield*/, Jsonarch.applyRoot(entry, template, parameter, cache, setting, "resolveLazy")];
-                case 11: return [2 /*return*/, _m.sent()];
+                case 11:
+                    result = _o.sent();
+                    if (undefined === result.process.startAt) {
+                        result.process.startAt = startAt.toLocaleString((_m = result.setting.locale) === null || _m === void 0 ? void 0 : _m.language);
+                    }
+                    result.process.duration = Jsonarch.getTicks() - startAtTicks;
+                    return [2 /*return*/, result];
             }
         });
     }); };

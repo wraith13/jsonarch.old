@@ -212,6 +212,8 @@ export declare module Jsonarch {
     export const getHashFromPath: (path: string) => HashType | undefined;
     export const commandLineArgumentToFileContext: <DataType extends Jsonable = Jsonable>(argument: string) => FileContext<DataType>;
     export interface Process extends JsonableObject {
+        startAt?: string;
+        duration?: number;
         template: FileContext;
         parameter?: FileContext;
         cache?: FileContext<Cache>;

@@ -877,6 +877,8 @@ export module Jsonarch
         );
     export interface Process extends JsonableObject
     {
+        startAt?: string;
+        duration?: number;
         template: FileContext;
         parameter?: FileContext;
         cache?: FileContext<Cache>;
@@ -884,6 +886,8 @@ export module Jsonarch
     }
     export const isProcess = isObject<Process>
     ({
+        startAt: isUndefinedOr(isString),
+        duration: isUndefinedOr(isNumber),
         template: isFileContext,
         parameter: isUndefinedOr(isFileContext),
         cache: isUndefinedOr(<IsType<FileContext<Cache>>>isFileContext),
@@ -4679,6 +4683,8 @@ export module Jsonarch
     );
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
+        const startAt = new Date();
+        const startAtTicks = getTicks();
         const handler = entry.handler;
         const process = entry.process;
         const emptyCache: Cache = { "$arch": "cache" };
@@ -4736,7 +4742,13 @@ export module Jsonarch
             return parameterResult;
         }
         const template = await load({ context: entry, cache, setting, handler, file: process.template});
-        return await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
+        const result = await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
+        if (undefined === result.process.startAt)
+        {
+            result.process.startAt = startAt.toLocaleString(result.setting.locale?.language);
+        }
+        result.process.duration = getTicks() -startAtTicks;
+        return result;
     };
     export const encode = structure
     (
