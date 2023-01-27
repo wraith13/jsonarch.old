@@ -1082,7 +1082,7 @@ export module Jsonarch
         $arch: "lazy";
         type: Type;
         thisPath?: FullRefer;
-        parameter: Jsonable | undefined;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
         // origin: Origin;
