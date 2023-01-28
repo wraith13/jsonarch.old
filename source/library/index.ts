@@ -2142,7 +2142,7 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                entry.template.default,
+                entry.template.value.default,
                 undefined !== entry.template.value.parameter ?
                     await apply
                     ({
@@ -2172,7 +2172,7 @@ export module Jsonarch
         {
             const parameter = applyDefault
             (
-                entry.template.default,
+                entry.template.value.default,
                 undefined !== entry.template.value.parameter ?
                     await lazyableApply
                     ({
@@ -2551,7 +2551,7 @@ export module Jsonarch
     (
         entry, "evaluateChain", async () =>
         {
-            let current: Jsonable = entry.parameter;
+            let current = entry.parameter;
             const basePath = makeFullRefer(entry.path, "list");
             const list = entry.template.value.list.value;
             for(const i in list)
@@ -2615,17 +2615,17 @@ export module Jsonarch
     {
         template: IntermediateTarget<Template>;
         type: CallTypeInterface;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable>;
         cacheKey?: string;
     }
     export interface CallTemplateCache extends JsonableObject
     {
         template: IntermediateTarget<Template>;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable>;
         cacheKey: string;
         result: Jsonable;
     }
-    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isJsonable, cacheKey: isString, result: isJsonable, });
+    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isIntermediate, cacheKey: isString, result: isJsonable, });
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
     export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
@@ -2637,9 +2637,9 @@ export module Jsonarch
         }
         return intermediateLibrarygJson;
     };
-    export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable): Promise<CallTemplate> => profile
+    export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: IntermediateTarget<Jsonable>): Promise<CallTemplate> => profile
     (
-        entry, "getTemplate", async () =>
+        entry, "getTemplate", async (): Promise<CallTemplate> =>
         {
             const refer = makeSolid(entry.template.value.refer);
             await makeSureIntermediateLibrarygJson(entry);
@@ -2666,7 +2666,7 @@ export module Jsonarch
                 {
                     const useCache = entry.template.value.cache?.value ?? template.value.cache?.value ?? false;
                     const liquid = "system" === systemOrTemplate || useCache ?
-                        makeSolid(await resolveLazy(entry, parameter ?? null)):
+                        await resolveLazy(entry, parameter ?? null):
                         parameter;
                     const cacheKey = useCache ? makeCallCacheKey(refer, liquid): undefined;
                     if (undefined !== cacheKey)
