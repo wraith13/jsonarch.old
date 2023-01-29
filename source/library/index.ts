@@ -2615,13 +2615,13 @@ export module Jsonarch
     {
         template: IntermediateTarget<Template>;
         type: CallTypeInterface;
-        parameter: IntermediateTarget<Jsonable>;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey?: string;
     }
     export interface CallTemplateCache extends JsonableObject
     {
         template: IntermediateTarget<Template>;
-        parameter: IntermediateTarget<Jsonable>;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
         result: Jsonable;
     }
@@ -2637,7 +2637,7 @@ export module Jsonarch
         }
         return intermediateLibrarygJson;
     };
-    export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: IntermediateTarget<Jsonable>): Promise<CallTemplate> => profile
+    export const getTemplate = async (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: IntermediateTarget<Jsonable> | undefined): Promise<CallTemplate> => profile
     (
         entry, "getTemplate", async (): Promise<CallTemplate> =>
         {
@@ -3891,7 +3891,7 @@ export module Jsonarch
         entry, "evaluateCall", async () =>
         {
             Limit.throwIfOverTheCallDepth(entry);
-            const parameter = await makeParameter(entry) ?? null;
+            const parameter = await makeParameter(entry);
             const refer = makeSolid(entry.template.value.refer);
             const path = resolveThisPath
             (
@@ -4720,7 +4720,7 @@ export module Jsonarch
                 profile: makeProfile(),
             },
             await load({ context: entry, cache, setting: bootSettingJson as Setting, handler, file: settingFileContext }),
-            null,
+            undefined,
             cache,
             bootSettingJson as Setting,
             "resolveLazy"
@@ -4744,7 +4744,7 @@ export module Jsonarch
                     handler,
                 },
                 await load({ context: entry, cache, setting, handler, file: process.parameter }),
-                null,
+                undefined,
                 cache,
                 setting
             ):
