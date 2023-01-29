@@ -4618,16 +4618,25 @@ export module Jsonarch
         }
     );
     export const lazyableApply = (entry: EvaluateEntry<Jsonable>) => apply(entry, entry.setting.process?.lazyEvaluation ?? true);
-    export const applyRoot = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: IntermediateTarget<Jsonable> | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<Result> => profile
+    export interface ApplyRootResult extends JsonableObject
+    {
+        process: Process;
+        intermediateResult: IntermediateTarget<Jsonable>;
+        profile: Profile;
+        cache: Cache;
+        setting: Setting;
+    }
+    export const applyRoot = (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: IntermediateTarget<Jsonable> | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy"): Promise<ApplyRootResult> => profile
     (
         entry, "applyRoot", async () =>
         {
             const handler = entry.handler;
             const process = regulateJsonable(entry.process, "deep");
+            const profile = makeProfile();
             const context =
             {
                 process,
-                profile: makeProfile(),
+                profile,
             };
             // const origin = entry.template;
             const callStack: CallStackEntry[] = [];
@@ -4658,20 +4667,13 @@ export module Jsonarch
             };
             try
             {
-                const { output, originMap, } = makeOutput
-                (
-                    "resolveLazy" === lazy ?
+                const intermediateResult = "resolveLazy" === lazy ?
                         await resolveLazy(rootEvaluateEntry, await apply(rootEvaluateEntry)):
-                        await apply(rootEvaluateEntry),
-                    process.template
-                );
-                const profile = makeProfileReport(context.profile);
-                const result: Result =
+                        await apply(rootEvaluateEntry);
+                const result: ApplyRootResult =
                 {
-                    $arch: "result",
                     process,
-                    output: decode(output),
-                    originMap,
+                    intermediateResult,
                     profile,
                     cache,
                     setting,
@@ -4680,12 +4682,11 @@ export module Jsonarch
             }
             catch(error: any)
             {
-                const profile = makeProfileReport(context.profile);
-                const result: Result =
+                const intermediateResult = parseErrorJson(error);
+                const result: ApplyRootResult =
                 {
-                    $arch: "result",
                     process,
-                    output: parseErrorJson(error),
+                    intermediateResult,
                     profile,
                     cache,
                     setting,
@@ -4694,6 +4695,26 @@ export module Jsonarch
             }
         }
     );
+    export const applyRootResultToProcessResult = (root: ApplyRootResult): Result =>
+    {
+        const profile = makeProfileReport(root.profile);
+        const { output, originMap, } = makeOutput
+        (
+            root,
+            root.process.template
+        );
+        const result: Result =
+        {
+            $arch: "result",
+            process: root.process,
+            output: decode(output),
+            originMap,
+            profile,
+            cache: root.cache,
+            setting: root.setting,
+        };
+        return result;
+    };
     export const process = async (entry: CompileEntry):Promise<Result> =>
     {
         const startAt = new Date();
@@ -4725,9 +4746,9 @@ export module Jsonarch
             bootSettingJson as Setting,
             "resolveLazy"
         );
-        if (isError(settingResult.output))
+        if (isError(settingResult.intermediateResult))
         {
-            return settingResult;
+            return applyRootResultToProcessResult(settingResult);
         }
         const setting: Setting = settingResult.output as Setting ?? { "$arch": "setting", };
         const parameterResult = process.parameter ?
@@ -4749,13 +4770,13 @@ export module Jsonarch
                 setting
             ):
             undefined;
-        const parameter = parameterResult?.output;
-        if (parameterResult && isError(parameterResult.output))
+        const parameter: IntermediateTarget<Jsonable> | undefined = parameterResult?.intermediateResult;
+        if (parameterResult && isError(parameterResult.intermediateResult))
         {
-            return parameterResult;
+            return applyRootResultToProcessResult(parameterResult);
         }
         const template = await load({ context: entry, cache, setting, handler, file: process.template});
-        const result = await applyRoot(entry, template, parameter, cache, setting, "resolveLazy");
+        const result = applyRootResultToProcessResult(await applyRoot(entry, template, parameter, cache, setting, "resolveLazy"));
         if (undefined === result.process.startAt)
         {
             //  将来的に UI ができた際は toLocaleString() の値ではなく、 getTime() の値を格納するように変更
