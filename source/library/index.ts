@@ -2062,7 +2062,8 @@ export module Jsonarch
                 }
                 catch(error)
                 {
-                    if (isJsonable(error))
+                    // const xxxx = parseErrorJson(error);
+                    if (isIntermediate(error))
                     {
                         const result = await evaluateCases
                         ({
