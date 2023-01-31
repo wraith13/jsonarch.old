@@ -2587,7 +2587,7 @@ export module Jsonarch
             {
                 return typeOfResult(entry, list[list.length -1]);
             }
-            throw new ErrorJson(undefined, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
+            throw new ErrorJson(entry, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
