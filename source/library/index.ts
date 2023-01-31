@@ -586,14 +586,14 @@ export module Jsonarch
             return result;
         }
     };
-    export const makeOutputIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin): Promise<IntermediateTarget<TargetType>> => profile
+    export const makeOutputIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable> | ContextOrEntry, target: TargetType | IntermediateTarget<TargetType>, origin: Origin): Promise<IntermediateTarget<TargetType>> => profile
     (
         entry, "makeOutputIntermediate", async () =>
         {
             if (isIntermediate(target))
             {
                 return target;
-                // throw new ErrorJson(entry, "never", { target, origin, });
+                // throw await new ErrorJson(entry, "never", { target, origin, });
             }
             else
             {
@@ -637,6 +637,10 @@ export module Jsonarch
             }
         }
     );
+    export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
+        isEvaluateEntry(isAny)(entry) ?
+            await makeOutputIntermediate(entry, target, entry.path):
+            await makeOutputIntermediate(entry, target, { root: { category: "system", id: "jsonarch.json", }, refer: "root", });
     export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
         isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     
@@ -755,8 +759,14 @@ export module Jsonarch
         };
         return result;
     };
-    export type SystemFileType = "boot-setting.json" | "default-setting.json" | "library.json";
-    export const isSystemFileType = isEnum<"boot-setting.json", "default-setting.json", "library.json">(["boot-setting.json", "default-setting.json", "library.json"]);
+    export type SystemFileType = "jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType = isEnum<"jsonarch.json", "boot-setting.json", "default-setting.json", "library.json">
+    ([
+        "jsonarch.json",
+        "boot-setting.json",
+        "default-setting.json",
+        "library.json"
+    ]);
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject
     {
@@ -1333,12 +1343,12 @@ export module Jsonarch
         detail,
         status: undefinedable(toErrorStatusFromEvaluateEntry)(isEvaluateEntry(isAny)(entry) ? entry: undefined),
     });
-    export const ErrorJson = function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType)
+    export const ErrorJson = async function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType)
     {
-        return new Error(`json:${jsonStringify(makeError(entry, message, detail))}`);
+        return new Error(`json:${jsonStringify(await makeErrorIntermediate(entry, makeError(entry, message, detail)))}`);
     } as {
-        new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Error;
-        <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Error;
+        new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;
+        <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;
     };
     export const parseErrorJson = (error: unknown): JsonarchError<Jsonable> =>
     {
@@ -1391,7 +1401,7 @@ export module Jsonarch
             case "default-setting.json":
                 return settingJson as any;
             }
-            throw new ErrorJson(entry, "never");
+            throw await new ErrorJson(entry, "never");
         }
     );
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) =>
@@ -2221,7 +2231,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
+                throw await new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -2237,7 +2247,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
+                throw await new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -2253,7 +2263,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
+                throw await new ErrorJson(entry, "Unknown Jsonarch TypeUnspecified Parameter");
             }
         }
     );
@@ -2269,7 +2279,7 @@ export module Jsonarch
             });
             if ("boolean" !== typeof result.value)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unmatch if result type",
                     {
@@ -2300,7 +2310,7 @@ export module Jsonarch
             });
             if ("boolean" !== typeof result)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unmatch if-case result type",
                     {
@@ -2325,7 +2335,7 @@ export module Jsonarch
             });
             if ("boolean" !== typeof result)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unmatch not result type",
                     {
@@ -2353,7 +2363,7 @@ export module Jsonarch
                 });
                 if ("boolean" !== typeof result)
                 {
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "Unmatch or result type",
                         {
@@ -2386,7 +2396,7 @@ export module Jsonarch
                 });
                 if ("boolean" !== typeof result)
                 {
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "Unmatch and result type",
                         {
@@ -2429,7 +2439,7 @@ export module Jsonarch
                     return result;
                 }
             }
-            throw new ErrorJson
+            throw await new ErrorJson
             (
                 entry, "Unknown Case Pattern",
                 {
@@ -2506,7 +2516,7 @@ export module Jsonarch
                 }) as IntermediateTarget<LoopResult>;
                 if ( ! isIntermediateLoopResultData(current))
                 {
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "Unknown Lopp Result",
                         {
@@ -2587,7 +2597,7 @@ export module Jsonarch
             {
                 return typeOfResult(entry, list[list.length -1]);
             }
-            throw new ErrorJson(entry, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
+            throw await new ErrorJson(entry, "NYI"); // このケースでも本来は正常に稼働しないといけないが、パラメーター対応が済まない対応できない。
         }
     );
     export const makeParameter = async (entry: EvaluateEntry<Call>) =>
@@ -2690,7 +2700,7 @@ export module Jsonarch
                     }
                     else
                     {
-                        throw new ErrorJson
+                        throw await new ErrorJson
                         (
                             entry, "Unmatch parameter type",
                             {
@@ -2715,7 +2725,7 @@ export module Jsonarch
                 }
                 else
                 {
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "Not found type define",
                         {
@@ -2726,7 +2736,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Not found template",
                     {
@@ -2736,7 +2746,7 @@ export module Jsonarch
             }
         }
     );
-    export const validateReturnType = <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType): ResultType =>
+    export const validateReturnType = async <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType): Promise<ResultType> =>
     {
         const parameter = parameterInfo.parameter;
         const parameterType = isIntermediate(parameter) ? parameter.type: typeOfJsonable(parameter);
@@ -2749,7 +2759,7 @@ export module Jsonarch
         }
         else
         {
-            throw new ErrorJson
+            throw await new ErrorJson
             (
                 entry, "Unmatch return type",
                 {
@@ -2766,8 +2776,8 @@ export module Jsonarch
             );
         }
     };
-    export const UnmatchParameterTypeDefineError = (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Error =>
-        new ErrorJson
+    export const UnmatchParameterTypeDefineError = async (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Promise<Error> =>
+        await new ErrorJson
         (
             entry, "Internal Error ( Unmatch parameter type define )",
             {
@@ -2853,7 +2863,7 @@ export module Jsonarch
                     {
                         return ">";
                     }
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "never",
                         {
@@ -3158,7 +3168,7 @@ export module Jsonarch
         }
         else
         {
-            // throw new ErrorJson({ $arch: "error", message: "Unreachable xxx", }); の方が望ましい。
+            // throw await new ErrorJson({ $arch: "error", message: "Unreachable xxx", }); の方が望ましい。
             return "unmatch";
         }
     };
@@ -3856,7 +3866,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unmatch refer path",
                     {
@@ -3956,9 +3966,9 @@ export module Jsonarch
                         );
                         if (undefined === result)
                         {
-                            throw UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
+                            throw await UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
                         }
-                        validateReturnType(nextDepthEntry, parameterInfo, result);
+                        await validateReturnType(nextDepthEntry, parameterInfo, result);
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)
@@ -4003,7 +4013,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unknown refer call",
                     {
@@ -4085,7 +4095,7 @@ export module Jsonarch
                     }
                     else
                     {
-                        throw new ErrorJson
+                        throw await new ErrorJson
                         (
                             entry, "Unmatch parameter type",
                             {
@@ -4103,7 +4113,7 @@ export module Jsonarch
                 }
                 else
                 {
-                    throw new ErrorJson
+                    throw await new ErrorJson
                     (
                         entry, "Not found type define",
                         {
@@ -4114,7 +4124,7 @@ export module Jsonarch
             }
             else
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Not found template",
                     {
@@ -4177,7 +4187,7 @@ export module Jsonarch
                 if (isLazy(json))
                 {
                     console.log(getJsonableErrors(entry, "entry"));
-                    throw new ErrorJson(entry, "never: Lazy in Loading", toJsonable(entry));
+                    throw await new ErrorJson(entry, "never: Lazy in Loading", toJsonable(entry));
                 }
                 else
                 {
@@ -4259,7 +4269,7 @@ export module Jsonarch
                     // else
                     // {
                     //     console.log(getJsonableErrors(entry, "entry"));
-                    //     throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
+                    //     throw await new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
                     // }
                     return json.type;
                 }
@@ -4293,7 +4303,7 @@ export module Jsonarch
             const result = resolveValueRefer(entry);
             if (undefined === result)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unknown refer value",
                     {
@@ -4315,7 +4325,7 @@ export module Jsonarch
             const result = resolveValueRefer(entry);
             if (undefined === result)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Unknown refer value",
                     {
@@ -4353,7 +4363,7 @@ export module Jsonarch
                     return result;
                 }
             }
-            throw new ErrorJson
+            throw await new ErrorJson
             (
                 entry, "Unknown Jsonarch Type",
                 {
@@ -4389,7 +4399,7 @@ export module Jsonarch
                     return result;
                 }
             }
-            throw new ErrorJson
+            throw await new ErrorJson
             (
                 entry, "Unknown Jsonarch Type",
                 {
@@ -4449,7 +4459,7 @@ export module Jsonarch
             const elapsed = now - entry.context.profile.startAt;
             if (processTimeout < elapsed)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Process Timeout",
                     {
@@ -4465,7 +4475,7 @@ export module Jsonarch
             const nestDepth = entry.context.nestDepth ?? 0;
             if (maxObjectNestDepth < nestDepth)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Too Deep Object Nest",
                     {
@@ -4481,7 +4491,7 @@ export module Jsonarch
             const callDepth = entry.callStack.length;
             if (maxCallNestDepth < callDepth)
             {
-                throw new ErrorJson
+                throw await new ErrorJson
                 (
                     entry, "Too Deep Call Nest",
                     {
@@ -4547,7 +4557,7 @@ export module Jsonarch
                         const maxArrayLength = Limit.getMaxArrayLength(entry);
                         if (maxArrayLength < value.length)
                         {
-                            throw new ErrorJson
+                            throw await new ErrorJson
                             (
                                 entry, "Too Long Array Length",
                                 {
@@ -4588,7 +4598,7 @@ export module Jsonarch
                         const maxObjectMembers = Limit.getMaxObjectMembers(entry);
                         if (maxObjectMembers < objectKeys(value).length)
                         {
-                            throw new ErrorJson
+                            throw await new ErrorJson
                             (
                                 entry, "Too Many Object Members",
                                 {
