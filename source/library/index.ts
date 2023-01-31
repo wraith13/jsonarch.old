@@ -1326,19 +1326,19 @@ export module Jsonarch
             endProfileScope(context, entry);
         }
     };
-    export const makeError = <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): JsonarchError<DetailType> =>
+    export const makeError = <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): JsonarchError<DetailType> =>
     ({
         $arch: "error",
         message,
         detail,
-        status: undefinedable(toErrorStatusFromEvaluateEntry)(entry),
+        status: undefinedable(toErrorStatusFromEvaluateEntry)(isEvaluateEntry(isAny)(entry) ? entry: undefined),
     });
-    export const ErrorJson = function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType)
+    export const ErrorJson = function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType)
     {
         return new Error(`json:${jsonStringify(makeError(entry, message, detail))}`);
     } as {
-        new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
-        <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | undefined, message: string, detail?: DetailType): Error;
+        new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Error;
+        <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Error;
     };
     export const parseErrorJson = (error: unknown): JsonarchError<Jsonable> =>
     {
@@ -1391,7 +1391,7 @@ export module Jsonarch
             case "default-setting.json":
                 return settingJson as any;
             }
-            throw new ErrorJson(undefined, "never");
+            throw new ErrorJson(entry, "never");
         }
     );
     export const loadNetFile = (entry: LoadEntry<NetFileContext>) =>
@@ -4177,7 +4177,7 @@ export module Jsonarch
                 if (isLazy(json))
                 {
                     console.log(getJsonableErrors(entry, "entry"));
-                    throw new ErrorJson(undefined, "never: Lazy in Loading", toJsonable(entry));
+                    throw new ErrorJson(entry, "never: Lazy in Loading", toJsonable(entry));
                 }
                 else
                 {
