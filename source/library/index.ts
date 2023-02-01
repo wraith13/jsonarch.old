@@ -1122,7 +1122,7 @@ export module Jsonarch
         (
             undefined !== lazy.thisPath ?
             {
-                template:<IntermediateTarget<Template>>turnRefer<JsonableValue>
+                template:<IntermediateTarget<Template>>await turnRefer<JsonableValue>
                 (
                     entry,
                     <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.thisPath.root.path],
@@ -2654,7 +2654,7 @@ export module Jsonarch
         {
             const refer = makeSolid(entry.template.value.refer);
             await makeSureIntermediateLibrarygJson(entry);
-            const template = turnRefer<JsonableValue | Function>
+            const template = await turnRefer<JsonableValue | Function>
             (
                 entry,
                 {
@@ -2847,7 +2847,7 @@ export module Jsonarch
         },
         number:
         {
-            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            compare: async (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Promise<Jsonable | undefined> =>
             {
                 if (isArray(isNumber)(parameter) && 2 === parameter.length)
                 {
@@ -3836,7 +3836,7 @@ export module Jsonarch
             return compositeType;
         }
     };
-    export const turnRefer = <Element extends JsonableValue | Function>(entry: EvaluateEntry<Jsonable>, root: Structure<Element>, refer: Refer, sourceMap?: OriginMap): Structure<Element> | undefined =>
+    export const turnRefer = async <Element extends JsonableValue | Function>(entry: EvaluateEntry<Jsonable>, root: Structure<Element>, refer: Refer, sourceMap?: OriginMap): Promise<Structure<Element> | undefined> =>
     {
         let rest = refer.map(i => i);
         let current: Structure<Element> | undefined = root;
@@ -3878,9 +3878,9 @@ export module Jsonarch
             }
         }
     };
-    export const resolveValueRefer = (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer }>): Jsonable | undefined =>
+    export const resolveValueRefer = async (entry: EvaluateEntry<AlphaJsonarch & { refer: Refer }>): Promise<Jsonable | undefined> =>
     {
-        return turnRefer<JsonableValue>
+        return await turnRefer<JsonableValue>
         (
             entry,
             {
@@ -3901,7 +3901,7 @@ export module Jsonarch
     (
         entry, "evaluateCall", async () =>
         {
-            Limit.throwIfOverTheCallDepth(entry);
+            await Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry);
             const refer = makeSolid(entry.template.value.refer);
             const path = resolveThisPath
@@ -3933,7 +3933,7 @@ export module Jsonarch
                 //     originMap: entry.originMap,
                 // },
             };
-            const target = turnRefer<JsonableValue | Function>
+            const target = await turnRefer<JsonableValue | Function>
             (
                 entry,
                 {
@@ -4029,7 +4029,7 @@ export module Jsonarch
     (
         entry, "evaluateCallResultType", async () =>
         {
-            Limit.throwIfOverTheCallDepth(entry);
+            await Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry) ?? null;
             const path = resolveThisPath
             (
@@ -4062,7 +4062,7 @@ export module Jsonarch
             };
             const refer = makeSolid(entry.template.value.refer);
             await makeSureIntermediateLibrarygJson(entry);
-            const functionTemplate = turnRefer<JsonableValue | Function>
+            const functionTemplate = await turnRefer<JsonableValue | Function>
             (
                 entry,
                 {
@@ -4300,7 +4300,7 @@ export module Jsonarch
     (
         entry, "evaluateValue", async () =>
         {
-            const result = resolveValueRefer(entry);
+            const result = await resolveValueRefer(entry);
             if (undefined === result)
             {
                 throw await new ErrorJson
@@ -4322,7 +4322,7 @@ export module Jsonarch
             {
                 return entry.template.type;
             }
-            const result = resolveValueRefer(entry);
+            const result = await resolveValueRefer(entry);
             if (undefined === result)
             {
                 throw await new ErrorJson
@@ -4416,7 +4416,7 @@ export module Jsonarch
             return <IntermediateTarget<AlphaJsonarch>> await makeInputIntermediate
             (
                 entry,
-                <AlphaJsonarch>turnRefer<JsonableValue>
+                <AlphaJsonarch> await turnRefer<JsonableValue>
                 (
                     entry,
                     <StructureObject<JsonableValue>>entry.cache.json?.[<string>lazy.path.root.path],
@@ -4452,7 +4452,7 @@ export module Jsonarch
             entry.setting.limit?.maxObjectMembers ??
             settingJson.limit.maxObjectMembers ??
             32;
-        export const throwIfOverTheProcessTimeout = (entry: EvaluateEntry<Jsonable>) =>
+        export const throwIfOverTheProcessTimeout = async (entry: EvaluateEntry<Jsonable>) =>
         {
             const processTimeout = getProcessTimeout(entry);
             const now = getTicks();
@@ -4469,7 +4469,7 @@ export module Jsonarch
                 );
             }
         };
-        export const throwIfOverTheNestDepth = (entry: EvaluateEntry<Jsonable>) =>
+        export const throwIfOverTheNestDepth = async (entry: EvaluateEntry<Jsonable>) =>
         {
             const maxObjectNestDepth = getMaxObjectNestDepth(entry);
             const nestDepth = entry.context.nestDepth ?? 0;
@@ -4485,7 +4485,7 @@ export module Jsonarch
                 );
             }
         };
-        export const throwIfOverTheCallDepth = (entry: EvaluateEntry<Jsonable>) =>
+        export const throwIfOverTheCallDepth = async (entry: EvaluateEntry<Jsonable>) =>
         {
             const maxCallNestDepth = getMaxCallNestDepth(entry);
             const callDepth = entry.callStack.length;
@@ -4517,8 +4517,8 @@ export module Jsonarch
     (
         entry, "apply", async () =>
         {
-            Limit.throwIfOverTheProcessTimeout(entry);
-            Limit.throwIfOverTheNestDepth(entry);
+            await Limit.throwIfOverTheProcessTimeout(entry);
+            await Limit.throwIfOverTheNestDepth(entry);
             const template = entry.template;
             const value = template.value;
             if (null === value || "object" !== typeof value)
