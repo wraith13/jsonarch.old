@@ -122,7 +122,8 @@ export declare module Jsonarch {
     };
     export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
     export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
-    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable>, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable> | ContextOrEntry, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const makeErrorIntermediate: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, target: JsonarchError<DetailType>) => Promise<IntermediateTarget<JsonarchError<DetailType>>>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     export interface ProfileScore extends JsonableObject {
         count: number;
@@ -173,8 +174,8 @@ export declare module Jsonarch {
             scope: string;
         }[];
     };
-    export type SystemFileType = "boot-setting.json" | "default-setting.json" | "library.json";
-    export const isSystemFileType: IsType<"boot-setting.json" | "default-setting.json" | "library.json">;
+    export type SystemFileType = "jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType: IsType<"jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json">;
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject {
         category: "system";
@@ -347,7 +348,7 @@ export declare module Jsonarch {
             path: FullRefer;
         };
         template: IntermediateTarget<TemplateType>;
-        parameter: Jsonable | undefined;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
         originMap?: OriginMap;
@@ -361,7 +362,7 @@ export declare module Jsonarch {
         $arch: "lazy";
         type: Type;
         thisPath?: FullRefer;
-        parameter: Jsonable | undefined;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
         originMap?: OriginMap;
@@ -416,16 +417,17 @@ export declare module Jsonarch {
         status?: ErrorStatus;
     }
     export const isError: (template: unknown) => template is JsonarchError<Jsonable>;
+    export const isIntermediateError: (template: unknown) => template is IntermediateTarget<JsonarchError<Jsonable>>;
     export const getTicks: () => number;
     export const getPathFromContextOrEntry: (contextOrEntry: ContextOrEntry) => FullRefer | undefined;
     export const getParameterOriginFromContextOrEntry: (_contextOrEntry: ContextOrEntry) => FullRefer[];
     export const profile: <ResultT>(contextOrEntry: ContextOrEntry, scope: string, target: () => Promise<ResultT>) => Promise<ResultT>;
-    export const makeError: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined) => JsonarchError<DetailType>;
+    export const makeError: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, message: string, detail?: DetailType | undefined) => JsonarchError<DetailType>;
     export const ErrorJson: {
-        <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType_1> | undefined, message: string, detail?: DetailType | undefined): Error;
-        new <TemplateType_2 extends Jsonable, DetailType_1 extends Jsonable>(entry: EvaluateEntry<TemplateType_2> | undefined, message: string, detail?: DetailType_1 | undefined): Error;
+        <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, message: string, detail?: DetailType | undefined): Promise<Error>;
+        new <TemplateType_2 extends Jsonable, DetailType_1 extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_2>, message: string, detail?: DetailType_1 | undefined): Promise<Error>;
     };
-    export const parseErrorJson: (error: unknown) => JsonarchError<Jsonable>;
+    export const parseErrorJson: (entry: EvaluateEntry<Jsonable> | ContextOrEntry, error: unknown) => Promise<IntermediateTarget<JsonarchError<Jsonable>>>;
     export const loadSystemJson: <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>) => Promise<DataType>;
     export const loadNetFile: (entry: LoadEntry<NetFileContext>) => Promise<string>;
     export const loadLocalFile: (entry: LoadEntry<LocalFileContext>) => Promise<string>;
@@ -766,12 +768,12 @@ export declare module Jsonarch {
     export interface CallTemplateRegular extends JsonableObject {
         template: IntermediateTarget<Template>;
         type: CallTypeInterface;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey?: string;
     }
     export interface CallTemplateCache extends JsonableObject {
         template: IntermediateTarget<Template>;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
         result: Jsonable;
     }
@@ -1111,9 +1113,9 @@ export declare module Jsonarch {
             };
         };
     }>>;
-    export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: Jsonable) => Promise<CallTemplate>;
-    export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => ResultType;
-    export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Error;
+    export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: IntermediateTarget<Jsonable> | undefined) => Promise<CallTemplate>;
+    export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => Promise<ResultType>;
+    export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Promise<Error>;
     export const library: {
         object: {
             typeOf: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Type;
@@ -1129,7 +1131,7 @@ export declare module Jsonarch {
             xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         number: {
-            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Promise<Jsonable | undefined>;
             sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
             remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
@@ -1201,10 +1203,10 @@ export declare module Jsonarch {
     export const andIfMatch: <TargetType extends Type>(isMatch: (type: Type) => type is TargetType, mergeTarget: (a: TargetType, b: TargetType) => NeverType | TargetType) => (a: Type, b: Type) => NeverType | TargetType | undefined;
     export const andType: (list: Type[]) => Type;
     export const regulateType: (compositeType: Type) => Type;
-    export const turnRefer: <Element_1 extends Function | JsonableValue>(entry: EvaluateEntry<Jsonable>, root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Structure<Element_1> | undefined;
+    export const turnRefer: <Element_1 extends Function | JsonableValue>(entry: EvaluateEntry<Jsonable>, root: Structure<Element_1>, refer: Refer, sourceMap?: OriginMap) => Promise<Structure<Element_1> | undefined>;
     export const resolveValueRefer: (entry: EvaluateEntry<AlphaJsonarch & {
         refer: Refer;
-    }>) => Jsonable | undefined;
+    }>) => Promise<Jsonable | undefined>;
     export const evaluateCall: (entry: EvaluateEntry<Call>) => Promise<IntermediateTarget<Jsonable>>;
     export const evaluateCallResultType: (entry: EvaluateEntry<Call>) => Promise<Type>;
     export const typeOfInput: (entry: ContextOrEntry, json: Jsonable | undefined) => Promise<Type>;
@@ -1224,15 +1226,23 @@ export declare module Jsonarch {
         const getMaxArrayLength: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxObjectNestDepth: (entry: EvaluateEntry<Jsonable>) => number;
         const getMaxObjectMembers: (entry: EvaluateEntry<Jsonable>) => number;
-        const throwIfOverTheProcessTimeout: (entry: EvaluateEntry<Jsonable>) => void;
-        const throwIfOverTheNestDepth: (entry: EvaluateEntry<Jsonable>) => void;
-        const throwIfOverTheCallDepth: (entry: EvaluateEntry<Jsonable>) => void;
+        const throwIfOverTheProcessTimeout: (entry: EvaluateEntry<Jsonable>) => Promise<void>;
+        const throwIfOverTheNestDepth: (entry: EvaluateEntry<Jsonable>) => Promise<void>;
+        const throwIfOverTheCallDepth: (entry: EvaluateEntry<Jsonable>) => Promise<void>;
         const resetNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry, nestDepth?: number) => Entry;
         const incrementNestDepth: <Entry extends EvaluateEntry<Jsonable>>(entry: Entry) => Entry;
     }
     export const apply: (entry: EvaluateEntry<Jsonable>, lazyable?: boolean) => Promise<IntermediateTarget<Jsonable>>;
     export const lazyableApply: (entry: EvaluateEntry<Jsonable>) => Promise<IntermediateTarget<Jsonable>>;
-    export const applyRoot: (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: Jsonable | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<Result>;
+    export interface ApplyRootResult extends JsonableObject {
+        process: Process;
+        intermediateResult: IntermediateTarget<Jsonable>;
+        profile: Profile;
+        cache: Cache;
+        setting: Setting;
+    }
+    export const applyRoot: (entry: CompileEntry, template: IntermediateTarget<Jsonable>, parameter: IntermediateTarget<Jsonable> | undefined, cache: Cache, setting: Setting, lazy?: "resolveLazy") => Promise<ApplyRootResult>;
+    export const applyRootResultToProcessResult: (root: ApplyRootResult) => Result;
     export const process: (entry: CompileEntry) => Promise<Result>;
     export const encode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;
     export const decode: (value: Structure<JsonableValue>, key?: number | string) => Structure<JsonableValue>;

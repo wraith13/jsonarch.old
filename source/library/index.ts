@@ -1232,6 +1232,7 @@ export module Jsonarch
         status?: ErrorStatus;
     }
     export const isError = isJsonarch<JsonarchError<Jsonable>>("error");
+    export const isIntermediateError =     isIntermediateJsonarchTarget<JsonarchError<Jsonable>>("error");
     // export const getTicks = () => new Date().getTime();
     export const getTicks = () => performance.now();
     const beginProfileScope = (context: Context, scope: string, template: string, parameter: string[]): ProfileEntry =>
@@ -1353,6 +1354,11 @@ export module Jsonarch
     export const parseErrorJson = async (entry: EvaluateEntry<Jsonable> | ContextOrEntry, error: unknown): Promise<IntermediateTarget<JsonarchError<Jsonable>>> =>
     {
         if (isError(error))
+        {
+            return await makeErrorIntermediate(entry, error);
+        }
+        else
+        if (isIntermediateError(error))
         {
             return error;
         }
