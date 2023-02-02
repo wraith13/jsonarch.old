@@ -1350,7 +1350,7 @@ export module Jsonarch
         new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;
         <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;
     };
-    export const parseErrorJson = (error: unknown): JsonarchError<Jsonable> =>
+    export const parseErrorJson = async (entry: EvaluateEntry<Jsonable> | ContextOrEntry, error: unknown): Promise<IntermediateTarget<JsonarchError<Jsonable>>> =>
     {
         if (isError(error))
         {
@@ -1361,7 +1361,7 @@ export module Jsonarch
         {
             if (error.message.startsWith("json:"))
             {
-                return jsonParse(error.message.replace(/^json\:/, ""));
+                return jsonParse<IntermediateTarget<JsonarchError<Jsonable>>>(error.message.replace(/^json\:/, ""));
             }
             else
             {
@@ -1376,7 +1376,7 @@ export module Jsonarch
                         stack: undefinedable(toLineArrayOrAsIs)(error.stack),
                     }
                 };
-                return result;
+                return await makeErrorIntermediate(entry, result);
             }
         }
         else
@@ -1387,7 +1387,7 @@ export module Jsonarch
                 message: "Unknown Error",
                 detail: toJsonable(error),
             };
-            return result;
+            return await makeErrorIntermediate(entry, result);
         }
     };
     export const loadSystemJson = <DataType extends Jsonable = Jsonable>(entry: LoadEntry<SystemFileContext>): Promise<DataType> => profile
@@ -4693,7 +4693,7 @@ export module Jsonarch
             }
             catch(error: any)
             {
-                const intermediateResult = parseErrorJson(error);
+                const intermediateResult = await parseErrorJson(entry, error);
                 const result: ApplyRootResult =
                 {
                     process,
