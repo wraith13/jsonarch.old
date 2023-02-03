@@ -244,8 +244,12 @@ var Jsonarch;
         };
         return self;
     };
-    Jsonarch.jsonStringify = function (source, replacer, space) { return JSON.stringify(source, replacer, space); };
-    Jsonarch.jsonParse = function (text, reviver) { return JSON.parse(text, reviver); };
+    Jsonarch.jsonStringify = function (source, replacer, space) {
+        return JSON.stringify(source, replacer, space);
+    };
+    Jsonarch.jsonParse = function (text, reviver) {
+        return JSON.parse(text, reviver);
+    };
     Jsonarch.isJsonableValue = function (value) {
         return null === value || ["boolean", "number", "string"].includes(typeof value);
     };
@@ -253,7 +257,7 @@ var Jsonarch;
         return null !== value &&
             "object" === typeof value &&
             !Array.isArray(value) &&
-            Jsonarch.objectValues(value).every(function (i) { return Jsonarch.isJsonable(i); });
+            Jsonarch.objectValues(value).every(function (i) { return undefined === i || Jsonarch.isJsonable(i); });
     };
     Jsonarch.isJsonableArray = function (value) {
         return Array.isArray(value) && value.every(function (i) { return Jsonarch.isJsonable(i); });

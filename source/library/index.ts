@@ -172,15 +172,17 @@ export module Jsonarch
     export type JsonableObject = StructureObject<JsonableValue>;
     export type Jsonable = Structure<JsonableValue>;
     export type JsonablePartial<Target> = { [key in keyof Target]?: Target[key] } & JsonableObject;
-    export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => JSON.stringify(source, replacer, space);
-    export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) => JSON.parse(text, reviver) as T;
+    export const jsonStringify = <T extends Jsonable>(source: T, replacer?: (this: any, key: string, value: any) => any, space?: string | number) =>
+        JSON.stringify(source, replacer, space);
+    export const jsonParse = <T extends Jsonable = Jsonable>(text: string, reviver?: (this: any, key: string, value: any) => any) =>
+        JSON.parse(text, reviver) as T;
     export const isJsonableValue = (value: unknown): value is JsonableValue =>
         null === value || [ "boolean", "number", "string" ].includes(typeof value);
     export const isJsonableObject = (value: unknown): value is JsonableObject =>
         null !== value &&
         "object" === typeof value &&
         ! Array.isArray(value) &&
-        objectValues(value).every(i => isJsonable(i));
+        objectValues(value).every(i => undefined === i || isJsonable(i));
     export const isJsonableArray = (value: unknown): value is Jsonable[] =>
         Array.isArray(value) && value.every(i => isJsonable(i));
     export const isJsonable = (value: unknown): value is Jsonable =>
