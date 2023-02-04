@@ -4719,7 +4719,7 @@ export module Jsonarch
         const profile = makeProfileReport(root.profile);
         const { output, originMap, } = makeOutput
         (
-            root,
+            root.intermediateResult,
             root.process.template
         );
         const result: Result =

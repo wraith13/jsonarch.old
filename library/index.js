@@ -3851,7 +3851,7 @@ var Jsonarch;
     }); }); };
     Jsonarch.applyRootResultToProcessResult = function (root) {
         var profile = Jsonarch.makeProfileReport(root.profile);
-        var _c = Jsonarch.makeOutput(root, root.process.template), output = _c.output, originMap = _c.originMap;
+        var _c = Jsonarch.makeOutput(root.intermediateResult, root.process.template), output = _c.output, originMap = _c.originMap;
         var result = {
             $arch: "result",
             process: root.process,
