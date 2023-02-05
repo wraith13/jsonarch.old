@@ -2810,11 +2810,12 @@ export module Jsonarch
         },
         array:
         {
-            contain: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            contain: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isTuple<any[], any>(isArray(isAny), isAny)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isTuple<any[], any>(isArray(isAny), isAny)(solid))
                 {
-                    return parameter[0].includes(parameter[1]);
+                    return solid[0].includes(solid[1]);
                 }
                 return undefined;
             }
@@ -2883,35 +2884,38 @@ export module Jsonarch
                 }
                 return undefined;
             },
-            sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            sum: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isNumber)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isNumber)(solid))
                 {
-                    return parameter.reduce((a, b) => a +b, 0);
+                    return solid.reduce((a, b) => a +b, 0);
                 }
                 return undefined;
             },
-            remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            remainder: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isTuple<number, number>(isNumber, isNumber)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isTuple<number, number>(isNumber, isNumber)(solid))
                 {
-                    return parameter[0] % parameter[1];
+                    return solid[0] % solid[1];
                 }
                 return undefined;
             }
         },
         string:
         {
-            join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            join: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isString)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isString)(solid))
                 {
-                    return parameter.join("");
+                    return solid.join("");
                 }
                 else
-                if (isObject({ list: isArray(isString), separator: isString, })(parameter))
+                if (isObject({ list: isArray(isString), separator: isString, })(solid))
                 {
-                    return parameter.list.join(parameter.separator);
+                    return solid.list.join(solid.separator);
                 }
                 return undefined;
             },

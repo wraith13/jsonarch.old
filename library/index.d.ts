@@ -1122,7 +1122,7 @@ export declare module Jsonarch {
             equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         array: {
-            contain: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            contain: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
         boolean: {
             not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
@@ -1132,11 +1132,11 @@ export declare module Jsonarch {
         };
         number: {
             compare: (entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Promise<Jsonable | undefined>;
-            sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            sum: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
+            remainder: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
         string: {
-            join: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            join: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
     };
     export type CompareTypeResult = "unmatch" | "base" | "equal" | "extended";

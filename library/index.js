@@ -2200,8 +2200,9 @@ var Jsonarch;
         },
         array: {
             contain: function (_entry, parameter) {
-                if (isTuple(Jsonarch.isArray(Jsonarch.isAny), Jsonarch.isAny)(parameter)) {
-                    return parameter[0].includes(parameter[1]);
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (isTuple(Jsonarch.isArray(Jsonarch.isAny), Jsonarch.isAny)(solid)) {
+                    return solid[0].includes(solid[1]);
                 }
                 return undefined;
             }
@@ -2258,25 +2259,28 @@ var Jsonarch;
                 });
             }); },
             sum: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isNumber)(parameter)) {
-                    return parameter.reduce(function (a, b) { return a + b; }, 0);
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isNumber)(solid)) {
+                    return solid.reduce(function (a, b) { return a + b; }, 0);
                 }
                 return undefined;
             },
             remainder: function (_entry, parameter) {
-                if (isTuple(Jsonarch.isNumber, Jsonarch.isNumber)(parameter)) {
-                    return parameter[0] % parameter[1];
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (isTuple(Jsonarch.isNumber, Jsonarch.isNumber)(solid)) {
+                    return solid[0] % solid[1];
                 }
                 return undefined;
             }
         },
         string: {
             join: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isString)(parameter)) {
-                    return parameter.join("");
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isString)(solid)) {
+                    return solid.join("");
                 }
-                else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(parameter)) {
-                    return parameter.list.join(parameter.separator);
+                else if (Jsonarch.isObject({ list: Jsonarch.isArray(Jsonarch.isString), separator: Jsonarch.isString, })(solid)) {
+                    return solid.list.join(solid.separator);
                 }
                 return undefined;
             },
