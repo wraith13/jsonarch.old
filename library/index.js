@@ -2175,10 +2175,11 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.UnmatchParameterTypeDefineError = function (entry, parameter) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.UnmatchParameterTypeDefineError = function (entry, refer, parameter) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0: return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Internal Error ( Unmatch parameter type define )", {
+                        refer: refer,
                         parameter: parameter,
                     })];
                 case 1: return [2 /*return*/, _c.sent()];
@@ -2233,17 +2234,19 @@ var Jsonarch;
         },
         number: {
             compare: function (entry, parameter) { return __awaiter(_this, void 0, void 0, function () {
+                var solid;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0:
-                            if (!(Jsonarch.isArray(Jsonarch.isNumber)(parameter) && 2 === parameter.length)) return [3 /*break*/, 2];
-                            if (parameter[0] < parameter[1]) {
+                            solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                            if (!(Jsonarch.isArray(Jsonarch.isNumber)(solid) && 2 === solid.length)) return [3 /*break*/, 2];
+                            if (solid[0] < solid[1]) {
                                 return [2 /*return*/, "<"];
                             }
-                            if (parameter[0] === parameter[1]) {
+                            if (solid[0] === solid[1]) {
                                 return [2 /*return*/, "="];
                             }
-                            if (parameter[0] > parameter[1]) {
+                            if (solid[0] > solid[1]) {
                                 return [2 /*return*/, ">"];
                             }
                             return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "never", {
@@ -3078,7 +3081,7 @@ var Jsonarch;
                                     case 2:
                                         result = _c.sent();
                                         if (!(undefined === result)) return [3 /*break*/, 4];
-                                        return [4 /*yield*/, Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter)];
+                                        return [4 /*yield*/, Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, refer, parameterInfo.parameter)];
                                     case 3: throw _c.sent();
                                     case 4: return [4 /*yield*/, Jsonarch.validateReturnType(nextDepthEntry, parameterInfo, result)];
                                     case 5:

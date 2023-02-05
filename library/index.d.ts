@@ -1115,7 +1115,7 @@ export declare module Jsonarch {
     }>>;
     export const getTemplate: (entry: EvaluateEntry<Call>, systemOrTemplate: "system" | "template", parameter: IntermediateTarget<Jsonable> | undefined) => Promise<CallTemplate>;
     export const validateReturnType: <ResultType extends Jsonable>(entry: EvaluateEntry<Call>, parameterInfo: CallTemplateRegular, result: ResultType) => Promise<ResultType>;
-    export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Promise<Error>;
+    export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, refer: Refer, parameter: Jsonable | undefined) => Promise<Error>;
     export const library: {
         object: {
             typeOf: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Type;
@@ -1131,7 +1131,7 @@ export declare module Jsonarch {
             xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };
         number: {
-            compare: (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Promise<Jsonable | undefined>;
+            compare: (entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Promise<Jsonable | undefined>;
             sum: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
             remainder: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
         };

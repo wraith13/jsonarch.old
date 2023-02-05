@@ -2784,12 +2784,13 @@ export module Jsonarch
             );
         }
     };
-    export const UnmatchParameterTypeDefineError = async (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Promise<Error> =>
+    export const UnmatchParameterTypeDefineError = async (entry: EvaluateEntry<Call>, refer: Refer, parameter: Jsonable | undefined): Promise<Error> =>
         await new ErrorJson
         (
             entry, "Internal Error ( Unmatch parameter type define )",
             {
-                parameter: parameter,
+                refer,
+                parameter,
             }
         );
     export const library =
@@ -2855,19 +2856,20 @@ export module Jsonarch
         },
         number:
         {
-            compare: async (entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Promise<Jsonable | undefined> =>
+            compare: async (entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Promise<Jsonable | undefined> =>
             {
-                if (isArray(isNumber)(parameter) && 2 === parameter.length)
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isNumber)(solid) && 2 === solid.length)
                 {
-                    if (parameter[0] < parameter[1])
+                    if (solid[0] < solid[1])
                     {
                         return "<";
                     }
-                    if (parameter[0] === parameter[1])
+                    if (solid[0] === solid[1])
                     {
                         return "=";
                     }
-                    if (parameter[0] > parameter[1])
+                    if (solid[0] > solid[1])
                     {
                         return ">";
                     }
@@ -3974,7 +3976,7 @@ export module Jsonarch
                         );
                         if (undefined === result)
                         {
-                            throw await UnmatchParameterTypeDefineError(nextDepthEntry, parameterInfo.parameter);
+                            throw await UnmatchParameterTypeDefineError(nextDepthEntry, refer, parameterInfo.parameter);
                         }
                         await validateReturnType(nextDepthEntry, parameterInfo, result);
                         if (undefined !== parameterInfo.cacheKey)
