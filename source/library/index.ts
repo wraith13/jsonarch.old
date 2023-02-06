@@ -639,6 +639,30 @@ export module Jsonarch
             }
         }
     );
+    export const makeCallResultIntermediate = async <TargetType extends Jsonable>(entry: EvaluateEntry<Call>, refer: Refer, parameter: IntermediateTarget<Jsonable> | undefined, target: TargetType | IntermediateTarget<TargetType>): Promise<IntermediateTarget<TargetType>> => profile
+    (
+        entry, "makeCallResultIntermediate", async () =>
+        {
+            if (isIntermediate(target))
+            {
+                return target;
+                // throw await new ErrorJson(entry, "never", { target, origin, });
+            }
+            else
+            {
+                return await makeOutputIntermediate
+                (
+                    entry,
+                    target,
+                    {
+                        root: entry.path.root,
+                        template: refer,
+                        parameter,
+                    }
+                );
+            }
+        }
+    );
     export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
         isEvaluateEntry(isAny)(entry) ?
             await makeOutputIntermediate(entry, target, entry.path):
@@ -927,7 +951,7 @@ export module Jsonarch
         template?: { [key: string]: Jsonable; };
         type?: { [key: string]: Jsonable; };
         value?: { [key: string]: Jsonable; };
-        call?: { [key: string]: Jsonable; };
+        call?: { [key: string]: IntermediateTarget<Jsonable>; };
     }
     export const isCache = isJsonarch<Cache>("cache");
     export interface Setting extends AlphaJsonarch
@@ -998,11 +1022,11 @@ export module Jsonarch
     {
         root: OriginRoot;
         template: Refer;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         originMap?: OriginMap;
     }
     export const isReturnOrigin = (value: unknown): value is ReturnOrigin =>
-        isObject<ReturnOrigin>({ root: isOriginRoot, template: isRefer, parameter: isJsonable, originMap: isUndefinedOr(isOriginMap), })(value);
+        isObject<ReturnOrigin>({ root: isOriginRoot, template: isRefer, parameter: isIntermediate, originMap: isUndefinedOr(isOriginMap), })(value);
     export interface ValueOrigin extends JsonableObject
     {
         root: OriginRoot;
@@ -2642,9 +2666,9 @@ export module Jsonarch
         template: IntermediateTarget<Template>;
         parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
-        result: Jsonable;
+        result: IntermediateTarget<Jsonable>;
     }
-    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isIntermediate, cacheKey: isString, result: isJsonable, });
+    export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isIntermediate, cacheKey: isString, result: isIntermediate, });
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
     export const makeCallCacheKey = (template: Refer, parameter: Jsonable) => jsonStringify({ template, parameter, });
     export let intermediateLibrarygJson: IntermediateTarget<typeof librarygJson>;
@@ -3913,7 +3937,7 @@ export module Jsonarch
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<IntermediateTarget<Jsonable>> => profile
     (
-        entry, "evaluateCall", async () =>
+        entry, "evaluateCall", async (): Promise<IntermediateTarget<Jsonable>> =>
         {
             await Limit.throwIfOverTheCallDepth(entry);
             const parameter = await makeParameter(entry);
@@ -3965,18 +3989,24 @@ export module Jsonarch
             {
                 return await profile
                 (
-                    nextDepthEntry, "evaluateCall.library", async () =>
+                    nextDepthEntry, "evaluateCall.library", async (): Promise<IntermediateTarget<Jsonable>> =>
                     {
                         const parameterInfo = await getTemplate(nextDepthEntry, "system", parameter);
                         if (isCallTemplateCache(parameterInfo))
                         {
                             return parameterInfo.result;
                         }
-                        const result = await profile
+                        const result = await makeCallResultIntermediate
                         (
                             nextDepthEntry,
-                            `library.${entry.template.value.refer.value.map(i => i.value).join(".")}`,
-                            async () => await target(nextDepthEntry, parameterInfo.parameter)
+                            refer,
+                            parameterInfo.parameter,
+                            await profile
+                            (
+                                nextDepthEntry,
+                                `library.${entry.template.value.refer.value.map(i => i.value).join(".")}`,
+                                async () => await target(nextDepthEntry, parameterInfo.parameter)
+                            )
                         );
                         if (undefined === result)
                         {
@@ -4007,12 +4037,18 @@ export module Jsonarch
                         {
                             return parameterInfo.result;
                         }
-                        const result = await evaluateTemplate
-                        ({
-                            ...nextDepthEntry,
-                            template: target,
-                            parameter: parameterInfo.parameter,
-                        });
+                        const result = await makeCallResultIntermediate
+                        (
+                            nextDepthEntry,
+                            refer,
+                            parameterInfo.parameter,
+                            await evaluateTemplate
+                            ({
+                                ...nextDepthEntry,
+                                template: target,
+                                parameter: parameterInfo.parameter,
+                            })
+                        );
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)

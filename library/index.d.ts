@@ -123,6 +123,7 @@ export declare module Jsonarch {
     export const makeSolid: <TargetType extends Jsonable>(intermediate: IntermediateTarget<TargetType>) => TargetType;
     export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable> | ContextOrEntry, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
+    export const makeCallResultIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Call>, refer: Refer, parameter: IntermediateTarget<Jsonable> | undefined, target: TargetType | IntermediateTarget<TargetType>) => Promise<IntermediateTarget<TargetType>>;
     export const makeErrorIntermediate: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, target: JsonarchError<DetailType>) => Promise<IntermediateTarget<JsonarchError<DetailType>>>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     export interface ProfileScore extends JsonableObject {
@@ -246,7 +247,7 @@ export declare module Jsonarch {
             [key: string]: Jsonable;
         };
         call?: {
-            [key: string]: Jsonable;
+            [key: string]: IntermediateTarget<Jsonable>;
         };
     }
     export const isCache: (template: unknown) => template is Cache;
@@ -296,7 +297,7 @@ export declare module Jsonarch {
     export interface ReturnOrigin extends JsonableObject {
         root: OriginRoot;
         template: Refer;
-        parameter: Jsonable;
+        parameter: IntermediateTarget<Jsonable> | undefined;
         originMap?: OriginMap;
     }
     export const isReturnOrigin: (value: unknown) => value is ReturnOrigin;
@@ -775,7 +776,7 @@ export declare module Jsonarch {
         template: IntermediateTarget<Template>;
         parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
-        result: Jsonable;
+        result: IntermediateTarget<Jsonable>;
     }
     export const isCallTemplateCache: (value: unknown) => value is CallTemplateCache;
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;

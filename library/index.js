@@ -677,6 +677,26 @@ var Jsonarch;
                 }); })];
         });
     }); };
+    Jsonarch.makeCallResultIntermediate = function (entry, refer, parameter, target) { return __awaiter(_this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, Jsonarch.profile(entry, "makeCallResultIntermediate", function () { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_c) {
+                        switch (_c.label) {
+                            case 0:
+                                if (!Jsonarch.isIntermediate(target)) return [3 /*break*/, 1];
+                                return [2 /*return*/, target];
+                            case 1: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, {
+                                    root: entry.path.root,
+                                    template: refer,
+                                    parameter: parameter,
+                                })];
+                            case 2: return [2 /*return*/, _c.sent()];
+                        }
+                    });
+                }); })];
+        });
+    }); };
     Jsonarch.makeErrorIntermediate = function (entry, target) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
         return __generator(this, function (_d) {
@@ -863,7 +883,7 @@ var Jsonarch;
     };
     Jsonarch.makeCallStack = function (callStack, next) { return __spreadArray(__spreadArray([], callStack, true), [next,], false); };
     Jsonarch.isReturnOrigin = function (value) {
-        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isJsonable, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
+        return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, template: Jsonarch.isRefer, parameter: Jsonarch.isIntermediate, originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap), })(value);
     };
     Jsonarch.isValueOrigin = function (value) {
         return Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer, })(value);
@@ -2040,7 +2060,7 @@ var Jsonarch;
             }
         });
     }); };
-    Jsonarch.isCallTemplateCache = Jsonarch.isObject({ template: Jsonarch.isIntermediateTemplateData, parameter: Jsonarch.isIntermediate, cacheKey: Jsonarch.isString, result: Jsonarch.isJsonable, });
+    Jsonarch.isCallTemplateCache = Jsonarch.isObject({ template: Jsonarch.isIntermediateTemplateData, parameter: Jsonarch.isIntermediate, cacheKey: Jsonarch.isString, result: Jsonarch.isIntermediate, });
     Jsonarch.makeCallCacheKey = function (template, parameter) { return Jsonarch.jsonStringify({ template: template, parameter: parameter, }); };
     Jsonarch.makeSureIntermediateLibrarygJson = function (entry) { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_c) {
@@ -3066,30 +3086,35 @@ var Jsonarch;
                     target = _e.sent();
                     if (!("function" === typeof target)) return [3 /*break*/, 5];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.library", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var parameterInfo, result;
+                            var parameterInfo, result, _c, _d;
                             var _this = this;
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
+                            return __generator(this, function (_e) {
+                                switch (_e.label) {
                                     case 0: return [4 /*yield*/, Jsonarch.getTemplate(nextDepthEntry, "system", parameter)];
                                     case 1:
-                                        parameterInfo = _c.sent();
+                                        parameterInfo = _e.sent();
                                         if (Jsonarch.isCallTemplateCache(parameterInfo)) {
                                             return [2 /*return*/, parameterInfo.result];
                                         }
+                                        _c = Jsonarch.makeCallResultIntermediate;
+                                        _d = [nextDepthEntry,
+                                            refer,
+                                            parameterInfo.parameter];
                                         return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "library.".concat(entry.template.value.refer.value.map(function (i) { return i.value; }).join(".")), function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
                                                 switch (_c.label) {
                                                     case 0: return [4 /*yield*/, target(nextDepthEntry, parameterInfo.parameter)];
                                                     case 1: return [2 /*return*/, _c.sent()];
                                                 }
                                             }); }); })];
-                                    case 2:
-                                        result = _c.sent();
-                                        if (!(undefined === result)) return [3 /*break*/, 4];
+                                    case 2: return [4 /*yield*/, _c.apply(void 0, _d.concat([_e.sent()]))];
+                                    case 3:
+                                        result = _e.sent();
+                                        if (!(undefined === result)) return [3 /*break*/, 5];
                                         return [4 /*yield*/, Jsonarch.UnmatchParameterTypeDefineError(nextDepthEntry, refer, parameterInfo.parameter)];
-                                    case 3: throw _c.sent();
-                                    case 4: return [4 /*yield*/, Jsonarch.validateReturnType(nextDepthEntry, parameterInfo, result)];
-                                    case 5:
-                                        _c.sent();
+                                    case 4: throw _e.sent();
+                                    case 5: return [4 /*yield*/, Jsonarch.validateReturnType(nextDepthEntry, parameterInfo, result)];
+                                    case 6:
+                                        _e.sent();
                                         if (undefined !== parameterInfo.cacheKey) {
                                             if (undefined === entry.cache.call) {
                                                 entry.cache.call = {};
@@ -3104,18 +3129,23 @@ var Jsonarch;
                 case 5:
                     if (!Jsonarch.isIntermediateTemplateData(target)) return [3 /*break*/, 7];
                     return [4 /*yield*/, Jsonarch.profile(nextDepthEntry, "evaluateCall.template", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var parameterInfo, result;
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
+                            var parameterInfo, result, _c, _d;
+                            return __generator(this, function (_e) {
+                                switch (_e.label) {
                                     case 0: return [4 /*yield*/, Jsonarch.getTemplate(nextDepthEntry, "template", parameter)];
                                     case 1:
-                                        parameterInfo = _c.sent();
+                                        parameterInfo = _e.sent();
                                         if (Jsonarch.isCallTemplateCache(parameterInfo)) {
                                             return [2 /*return*/, parameterInfo.result];
                                         }
+                                        _c = Jsonarch.makeCallResultIntermediate;
+                                        _d = [nextDepthEntry,
+                                            refer,
+                                            parameterInfo.parameter];
                                         return [4 /*yield*/, Jsonarch.evaluateTemplate(__assign(__assign({}, nextDepthEntry), { template: target, parameter: parameterInfo.parameter }))];
-                                    case 2:
-                                        result = _c.sent();
+                                    case 2: return [4 /*yield*/, _c.apply(void 0, _d.concat([_e.sent()]))];
+                                    case 3:
+                                        result = _e.sent();
                                         if (undefined !== parameterInfo.cacheKey) {
                                             if (undefined === entry.cache.call) {
                                                 entry.cache.call = {};
