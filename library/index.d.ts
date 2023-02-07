@@ -1126,10 +1126,10 @@ export declare module Jsonarch {
             contain: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
         boolean: {
-            not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
-            xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            not: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
+            or: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
+            and: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
+            xor: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
         number: {
             compare: (entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Promise<Jsonable | undefined>;

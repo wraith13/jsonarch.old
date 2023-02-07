@@ -2230,26 +2230,30 @@ var Jsonarch;
         },
         boolean: {
             not: function (_entry, parameter) {
-                if (Jsonarch.isBoolean(parameter)) {
-                    return !parameter;
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isBoolean(solid)) {
+                    return !solid;
                 }
                 return undefined;
             },
             or: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter)) {
-                    return parameter.some(function (i) { return i; });
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isBoolean)(solid)) {
+                    return solid.some(function (i) { return i; });
                 }
                 return undefined;
             },
             and: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter)) {
-                    return parameter.every(function (i) { return i; });
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isBoolean)(solid)) {
+                    return solid.every(function (i) { return i; });
                 }
                 return undefined;
             },
             xor: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isBoolean)(parameter) && 2 === parameter.length) {
-                    return parameter[0] !== parameter[1];
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isBoolean)(solid) && 2 === solid.length) {
+                    return solid[0] !== solid[1];
                 }
                 return undefined;
             },

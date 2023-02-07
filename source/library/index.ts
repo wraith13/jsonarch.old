@@ -2847,35 +2847,39 @@ export module Jsonarch
         },
         boolean:
         {
-            not: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            not: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isBoolean(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isBoolean(solid))
                 {
-                    return ! parameter;
+                    return ! solid;
                 }
                 return undefined;
             },
-            or: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            or: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isBoolean)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isBoolean)(solid))
                 {
-                    return parameter.some(i => i);
+                    return solid.some(i => i);
                 }
                 return undefined;
             },
-            and: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            and: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isBoolean)(parameter))
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isBoolean)(solid))
                 {
-                    return parameter.every(i => i);
+                    return solid.every(i => i);
                 }
                 return undefined;
             },
-            xor: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            xor: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isBoolean)(parameter) && 2 === parameter.length)
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isBoolean)(solid) && 2 === solid.length)
                 {
-                    return parameter[0] !== parameter[1];
+                    return solid[0] !== solid[1];
                 }
                 return undefined;
             },
