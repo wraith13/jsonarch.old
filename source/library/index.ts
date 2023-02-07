@@ -2821,13 +2821,14 @@ export module Jsonarch
     {
         object:
         {
-            typeOf: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Type =>
-                typeOfJsonable(parameter),
-            equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined): Jsonable | undefined =>
+            typeOf: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Type =>
+                typeOfJsonable(undefinedable(makeSolid)(parameter)),
+            equal: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined): Jsonable | undefined =>
             {
-                if (isArray(isAny)(parameter) && 2 === parameter.length)
+                const solid = undefinedable(makeSolid)(parameter);
+                if (isArray(isAny)(solid) && 2 === solid.length)
                 {
-                    return parameter[0] === parameter[1];
+                    return solid[0] === solid[1];
                 }
                 return undefined;
             }

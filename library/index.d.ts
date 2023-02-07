@@ -1119,8 +1119,8 @@ export declare module Jsonarch {
     export const UnmatchParameterTypeDefineError: (entry: EvaluateEntry<Call>, refer: Refer, parameter: Jsonable | undefined) => Promise<Error>;
     export const library: {
         object: {
-            typeOf: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Type;
-            equal: (_entry: EvaluateEntry<Call>, parameter: Jsonable | undefined) => Jsonable | undefined;
+            typeOf: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Type;
+            equal: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;
         };
         array: {
             contain: (_entry: EvaluateEntry<Call>, parameter: IntermediateTarget<Jsonable> | undefined) => Jsonable | undefined;

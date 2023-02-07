@@ -2209,11 +2209,12 @@ var Jsonarch;
     Jsonarch.library = {
         object: {
             typeOf: function (_entry, parameter) {
-                return Jsonarch.typeOfJsonable(parameter);
+                return Jsonarch.typeOfJsonable(undefinedable(Jsonarch.makeSolid)(parameter));
             },
             equal: function (_entry, parameter) {
-                if (Jsonarch.isArray(Jsonarch.isAny)(parameter) && 2 === parameter.length) {
-                    return parameter[0] === parameter[1];
+                var solid = undefinedable(Jsonarch.makeSolid)(parameter);
+                if (Jsonarch.isArray(Jsonarch.isAny)(solid) && 2 === solid.length) {
+                    return solid[0] === solid[1];
                 }
                 return undefined;
             }
