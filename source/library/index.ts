@@ -951,7 +951,7 @@ export module Jsonarch
         template?: { [key: string]: Jsonable; };
         type?: { [key: string]: Jsonable; };
         value?: { [key: string]: Jsonable; };
-        call?: { [key: string]: IntermediateTarget<Jsonable>; };
+        call?: { [key: string]: Jsonable; };
     }
     export const isCache = isJsonarch<Cache>("cache");
     export interface Setting extends AlphaJsonarch
@@ -4001,17 +4001,11 @@ export module Jsonarch
                         {
                             return parameterInfo.result;
                         }
-                        const result = await makeCallResultIntermediate
+                        const result = await profile
                         (
                             nextDepthEntry,
-                            refer,
-                            parameterInfo.parameter,
-                            await profile
-                            (
-                                nextDepthEntry,
-                                `library.${entry.template.value.refer.value.map(i => i.value).join(".")}`,
-                                async () => await target(nextDepthEntry, parameterInfo.parameter)
-                            )
+                            `library.${entry.template.value.refer.value.map(i => i.value).join(".")}`,
+                            async () => await target(nextDepthEntry, parameterInfo.parameter)
                         );
                         if (undefined === result)
                         {
@@ -4026,7 +4020,13 @@ export module Jsonarch
                             }
                             entry.cache.call[parameterInfo.cacheKey] = result;
                         }
-                        return result;
+                        return await makeCallResultIntermediate
+                        (
+                            nextDepthEntry,
+                            refer,
+                            parameterInfo.parameter,
+                            result
+                        );
                     }
                 );
             }
@@ -4042,18 +4042,12 @@ export module Jsonarch
                         {
                             return parameterInfo.result;
                         }
-                        const result = await makeCallResultIntermediate
-                        (
-                            nextDepthEntry,
-                            refer,
-                            parameterInfo.parameter,
-                            await evaluateTemplate
-                            ({
-                                ...nextDepthEntry,
-                                template: target,
-                                parameter: parameterInfo.parameter,
-                            })
-                        );
+                        const result = await evaluateTemplate
+                        ({
+                            ...nextDepthEntry,
+                            template: target,
+                            parameter: parameterInfo.parameter,
+                        });
                         if (undefined !== parameterInfo.cacheKey)
                         {
                             if (undefined === entry.cache.call)
@@ -4062,7 +4056,13 @@ export module Jsonarch
                             }
                             entry.cache.call[parameterInfo.cacheKey] = result;
                         }
-                        return result;
+                        return await makeCallResultIntermediate
+                        (
+                            nextDepthEntry,
+                            refer,
+                            parameterInfo.parameter,
+                            result
+                        );
                     }
                 );
             }
