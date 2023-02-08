@@ -247,7 +247,7 @@ export declare module Jsonarch {
             [key: string]: Jsonable;
         };
         call?: {
-            [key: string]: IntermediateTarget<Jsonable>;
+            [key: string]: Jsonable;
         };
     }
     export const isCache: (template: unknown) => template is Cache;
@@ -776,7 +776,7 @@ export declare module Jsonarch {
         template: IntermediateTarget<Template>;
         parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
-        result: IntermediateTarget<Jsonable>;
+        result: Jsonable;
     }
     export const isCallTemplateCache: (value: unknown) => value is CallTemplateCache;
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;

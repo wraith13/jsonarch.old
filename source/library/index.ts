@@ -2666,7 +2666,7 @@ export module Jsonarch
         template: IntermediateTarget<Template>;
         parameter: IntermediateTarget<Jsonable> | undefined;
         cacheKey: string;
-        result: IntermediateTarget<Jsonable>;
+        result: Jsonable;
     }
     export const isCallTemplateCache = isObject<CallTemplateCache>({ template: isIntermediateTemplateData, parameter: isIntermediate, cacheKey: isString, result: isIntermediate, });
     export type CallTemplate = CallTemplateRegular | CallTemplateCache;
@@ -3999,7 +3999,13 @@ export module Jsonarch
                         const parameterInfo = await getTemplate(nextDepthEntry, "system", parameter);
                         if (isCallTemplateCache(parameterInfo))
                         {
-                            return parameterInfo.result;
+                            return await makeCallResultIntermediate
+                            (
+                                nextDepthEntry,
+                                refer,
+                                parameterInfo.parameter,
+                                parameterInfo.result
+                            );
                         }
                         const result = await profile
                         (
@@ -4040,7 +4046,13 @@ export module Jsonarch
                         const parameterInfo = await getTemplate(nextDepthEntry, "template", parameter);
                         if (isCallTemplateCache(parameterInfo))
                         {
-                            return parameterInfo.result;
+                            return await makeCallResultIntermediate
+                            (
+                                nextDepthEntry,
+                                refer,
+                                parameterInfo.parameter,
+                                parameterInfo.result
+                            );
                         }
                         const result = await evaluateTemplate
                         ({
