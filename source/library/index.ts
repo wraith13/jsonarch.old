@@ -666,7 +666,7 @@ export module Jsonarch
     export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
         isEvaluateEntry(isAny)(entry) ?
             await makeOutputIntermediate(entry, target, entry.path):
-            await makeOutputIntermediate(entry, target, { root: { category: "system", id: "jsonarch.json", }, refer: "root", });
+            await makeOutputIntermediate(entry, target, { root: getSystemFileContext("jsonarch.json"), refer: "root", });
     export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
         isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     

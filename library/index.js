@@ -707,7 +707,7 @@ var Jsonarch;
                 case 1:
                     _c = _d.sent();
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, { root: { category: "system", id: "jsonarch.json", }, refer: "root", })];
+                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, { root: Jsonarch.getSystemFileContext("jsonarch.json"), refer: "root", })];
                 case 3:
                     _c = _d.sent();
                     _d.label = 4;
