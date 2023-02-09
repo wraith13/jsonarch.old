@@ -697,7 +697,13 @@ var Jsonarch;
                 }); })];
         });
     }); };
-    Jsonarch.makeErrorIntermediate = function (entry, target) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.makeSystemOrigin = function (systemLocation) {
+        return ({
+            root: Jsonarch.getSystemFileContext("jsonarch.json"),
+            refer: systemLocation !== null && systemLocation !== void 0 ? systemLocation : ["unknown"],
+        });
+    };
+    Jsonarch.makeErrorIntermediate = function (entry, target, systemLocation) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
         return __generator(this, function (_d) {
             switch (_d.label) {
@@ -707,7 +713,7 @@ var Jsonarch;
                 case 1:
                     _c = _d.sent();
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, { root: Jsonarch.getSystemFileContext("jsonarch.json"), refer: "root", })];
+                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, Jsonarch.makeSystemOrigin(systemLocation))];
                 case 3:
                     _c = _d.sent();
                     _d.label = 4;
@@ -870,6 +876,9 @@ var Jsonarch;
     });
     Jsonarch.getContext = function (contextOrEntry) {
         return Jsonarch.isContext(contextOrEntry) ? contextOrEntry : contextOrEntry.context;
+    };
+    Jsonarch.getReferFromSystemCallStack = function (context) {
+        return context.profile.stack.map(function (i) { return i.scope; });
     };
     Jsonarch.isCache = Jsonarch.isJsonarch("cache");
     Jsonarch.isSetting = Jsonarch.isJsonarch("setting");
@@ -1180,7 +1189,7 @@ var Jsonarch;
                         _c = Error.bind;
                         _d = "json:".concat;
                         _e = Jsonarch.jsonStringify;
-                        return [4 /*yield*/, Jsonarch.makeErrorIntermediate(entry, Jsonarch.makeError(entry, message, detail))];
+                        return [4 /*yield*/, Jsonarch.makeErrorIntermediate(entry, Jsonarch.makeError(entry, message, detail), Jsonarch.getReferFromSystemCallStack(Jsonarch.getContext(entry)))];
                     case 1: return [2 /*return*/, new (_c.apply(Error, [void 0, _d.apply("json:", [_e.apply(void 0, [_f.sent()])])]))()];
                 }
             });

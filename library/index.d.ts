@@ -124,7 +124,8 @@ export declare module Jsonarch {
     export const makeInputIntermediate: <TargetType extends Jsonable>(entry: ContextOrEntry, target: TargetType, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const makeOutputIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Jsonable> | ContextOrEntry, target: TargetType | IntermediateTarget<TargetType>, origin: Origin) => Promise<IntermediateTarget<TargetType>>;
     export const makeCallResultIntermediate: <TargetType extends Jsonable>(entry: EvaluateEntry<Call>, refer: Refer, parameter: IntermediateTarget<Jsonable> | undefined, target: TargetType | IntermediateTarget<TargetType>) => Promise<IntermediateTarget<TargetType>>;
-    export const makeErrorIntermediate: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, target: JsonarchError<DetailType>) => Promise<IntermediateTarget<JsonarchError<DetailType>>>;
+    export const makeSystemOrigin: (systemLocation?: Refer | "root") => Origin;
+    export const makeErrorIntermediate: <TemplateType_1 extends Jsonable, DetailType extends Jsonable>(entry: ContextOrEntry | EvaluateEntry<TemplateType_1>, target: JsonarchError<DetailType>, systemLocation?: Refer | "root") => Promise<IntermediateTarget<JsonarchError<DetailType>>>;
     export const getValueFromIntermediateOrValue: <ValueType_1>(intermediateOrValue: Intermediate | ValueType_1) => ValueType_1;
     export interface ProfileScore extends JsonableObject {
         count: number;
@@ -232,6 +233,7 @@ export declare module Jsonarch {
         context: Context;
     };
     export const getContext: (contextOrEntry: ContextOrEntry) => Context;
+    export const getReferFromSystemCallStack: (context: Context) => Refer;
     export interface Cache extends AlphaJsonarch {
         $arch: "cache";
         json?: {
