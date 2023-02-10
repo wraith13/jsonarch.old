@@ -665,7 +665,7 @@ export module Jsonarch
     );
     export const makeSystemOrigin = (systemLocation?: Refer | "root"): Origin =>
     ({
-        root: getSystemFileContext("jsonarch.json"),
+        root: getSystemFileContext("jsonarch.arch.json"),
         refer: systemLocation ?? [ "unknown" ],
     });
     export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
@@ -790,10 +790,10 @@ export module Jsonarch
         };
         return result;
     };
-    export type SystemFileType = "jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
-    export const isSystemFileType = isEnum<"jsonarch.json", "boot-setting.json", "default-setting.json", "library.json">
+    export type SystemFileType = "jsonarch.arch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType = isEnum<"jsonarch.arch.json", "boot-setting.json", "default-setting.json", "library.json">
     ([
-        "jsonarch.json",
+        "jsonarch.arch.json",
         "boot-setting.json",
         "default-setting.json",
         "library.json"

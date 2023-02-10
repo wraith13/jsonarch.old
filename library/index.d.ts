@@ -176,8 +176,8 @@ export declare module Jsonarch {
             scope: string;
         }[];
     };
-    export type SystemFileType = "jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
-    export const isSystemFileType: IsType<"jsonarch.json" | "boot-setting.json" | "default-setting.json" | "library.json">;
+    export type SystemFileType = "jsonarch.arch.json" | "boot-setting.json" | "default-setting.json" | "library.json";
+    export const isSystemFileType: IsType<"jsonarch.arch.json" | "boot-setting.json" | "default-setting.json" | "library.json">;
     export type HashType = string;
     export interface SystemFileContext extends JsonableObject {
         category: "system";

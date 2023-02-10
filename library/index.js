@@ -699,7 +699,7 @@ var Jsonarch;
     }); };
     Jsonarch.makeSystemOrigin = function (systemLocation) {
         return ({
-            root: Jsonarch.getSystemFileContext("jsonarch.json"),
+            root: Jsonarch.getSystemFileContext("jsonarch.arch.json"),
             refer: systemLocation !== null && systemLocation !== void 0 ? systemLocation : ["unknown"],
         });
     };
@@ -782,7 +782,7 @@ var Jsonarch;
         return result;
     };
     Jsonarch.isSystemFileType = isEnum([
-        "jsonarch.json",
+        "jsonarch.arch.json",
         "boot-setting.json",
         "default-setting.json",
         "library.json"
