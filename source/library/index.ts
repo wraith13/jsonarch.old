@@ -668,10 +668,10 @@ export module Jsonarch
         root: getSystemFileContext("jsonarch.json"),
         refer: systemLocation ?? [ "unknown" ],
     });
-    export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>, systemLocation?: Refer | "root"): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
+    export const makeErrorIntermediate = async <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, target: JsonarchError<DetailType>): Promise<IntermediateTarget<JsonarchError<DetailType>>> =>
         isEvaluateEntry(isAny)(entry) ?
             await makeOutputIntermediate(entry, target, entry.path):
-            await makeOutputIntermediate(entry, target, makeSystemOrigin(systemLocation));
+            await makeOutputIntermediate(entry, target, makeSystemOrigin(getReferFromSystemCallStack(getContext(entry))));
     export const getValueFromIntermediateOrValue = <ValueType>(intermediateOrValue: ValueType | Intermediate): ValueType =>
         isIntermediate(intermediateOrValue) ? <ValueType>intermediateOrValue.value: intermediateOrValue;
     
@@ -1379,7 +1379,7 @@ export module Jsonarch
     });
     export const ErrorJson = async function<TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType)
     {
-        return new Error(`json:${jsonStringify(await makeErrorIntermediate(entry, makeError(entry, message, detail), getReferFromSystemCallStack(getContext(entry))))}`);
+        return new Error(`json:${jsonStringify(await makeErrorIntermediate(entry, makeError(entry, message, detail)))}`);
     } as {
         new <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;
         <TemplateType extends Jsonable, DetailType extends Jsonable>(entry: EvaluateEntry<TemplateType> | ContextOrEntry, message: string, detail?: DetailType): Promise<Error>;

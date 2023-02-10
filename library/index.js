@@ -703,7 +703,7 @@ var Jsonarch;
             refer: systemLocation !== null && systemLocation !== void 0 ? systemLocation : ["unknown"],
         });
     };
-    Jsonarch.makeErrorIntermediate = function (entry, target, systemLocation) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.makeErrorIntermediate = function (entry, target) { return __awaiter(_this, void 0, void 0, function () {
         var _c;
         return __generator(this, function (_d) {
             switch (_d.label) {
@@ -713,7 +713,7 @@ var Jsonarch;
                 case 1:
                     _c = _d.sent();
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, Jsonarch.makeSystemOrigin(systemLocation))];
+                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, Jsonarch.makeSystemOrigin(Jsonarch.getReferFromSystemCallStack(Jsonarch.getContext(entry))))];
                 case 3:
                     _c = _d.sent();
                     _d.label = 4;
@@ -1189,7 +1189,7 @@ var Jsonarch;
                         _c = Error.bind;
                         _d = "json:".concat;
                         _e = Jsonarch.jsonStringify;
-                        return [4 /*yield*/, Jsonarch.makeErrorIntermediate(entry, Jsonarch.makeError(entry, message, detail), Jsonarch.getReferFromSystemCallStack(Jsonarch.getContext(entry)))];
+                        return [4 /*yield*/, Jsonarch.makeErrorIntermediate(entry, Jsonarch.makeError(entry, message, detail))];
                     case 1: return [2 /*return*/, new (_c.apply(Error, [void 0, _d.apply("json:", [_e.apply(void 0, [_f.sent()])])]))()];
                 }
             });
