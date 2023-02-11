@@ -471,10 +471,15 @@ export module Jsonarch
             type === getIntermediateJsonarchType(template);
     export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
     {
-        const originMap: OriginMap = { };
+        const originMap: OriginMap = [ ];
         if (isIntermediate(intermediate))
         {
-            originMap[jsonStringify(base)] = intermediate.origin;
+            originMap.push
+            ({
+                origin: intermediate.origin,
+                derivative: base,
+            });
+            // originMap[jsonStringify(base)] = intermediate.origin;
         }
         const value = getValueFromIntermediateOrValue(intermediate);
         if (Array.isArray(value))
@@ -737,56 +742,56 @@ export module Jsonarch
         const result =
         {
             parameter: objectKeys(profile.parameter).map
-            (
-                path =>
-                ({
-                    parameter: jsonParse(path),
-                    ...makeData(profile.template[path]),
-                })
-            )
-            .sort
-            (
-                Comparer.make<{ parameter: Jsonable, count: number, time: number, }>
-                ([
-                    item => -item.time,
-                    item => -item.count,
-                    item => jsonStringify(item.parameter),
-                ])
-            ),
+                (
+                    path =>
+                    ({
+                        parameter: jsonParse(path),
+                        ...makeData(profile.template[path]),
+                    })
+                )
+                .sort
+                (
+                    Comparer.make<{ parameter: Jsonable, count: number, time: number, }>
+                    ([
+                        item => -item.time,
+                        item => -item.count,
+                        item => jsonStringify(item.parameter),
+                    ])
+                ),
             template: objectKeys(profile.template).map
-            (
-                path =>
-                ({
-                    template: jsonParse(path),
-                    ...makeData(profile.template[path]),
-                })
-            )
-            .sort
-            (
-                Comparer.make<{ template: Jsonable, count: number, time: number, }>
-                ([
-                    item => -item.time,
-                    item => -item.count,
-                    item => jsonStringify(item.template),
-                ])
-            ),
+                (
+                    path =>
+                    ({
+                        template: jsonParse(path),
+                        ...makeData(profile.template[path]),
+                    })
+                )
+                .sort
+                (
+                    Comparer.make<{ template: Jsonable, count: number, time: number, }>
+                    ([
+                        item => -item.time,
+                        item => -item.count,
+                        item => jsonStringify(item.template),
+                    ])
+                ),
             system: objectKeys(profile.score).map
-            (
-                scope =>
-                ({
-                    scope,
-                    ...makeData(profile.score[scope]),
-                })
-            )
-            .sort
-            (
-                Comparer.make<{ scope: string, count: number, time: number, }>
-                ([
-                    item => -item.time,
-                    item => -item.count,
-                    item => item.scope,
-                ])
-            ),
+                (
+                    scope =>
+                    ({
+                        scope,
+                        ...makeData(profile.score[scope]),
+                    })
+                )
+                .sort
+                (
+                    Comparer.make<{ scope: string, count: number, time: number, }>
+                    ([
+                        item => -item.time,
+                        item => -item.count,
+                        item => item.scope,
+                    ])
+                ),
         };
         return result;
     };
@@ -1047,9 +1052,15 @@ export module Jsonarch
     export type Origin = OriginRoot | ValueOrigin | FullRefer;
     export const isOrigin = (value: unknown): value is Origin =>
         isTypeOr<OriginRoot, ValueOrigin>(isOriginRoot, isValueOrigin)(value);
-    export type OriginMap = { [key: string | number]: Origin | OriginMap };
+    // export type OriginMap = { [key: string | number]: Origin | OriginMap };
+    // export const isOriginMap = (value: unknown): value is OriginMap =>
+    //     isMapObject(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
+    export type OriginMapEntry = { origin: Origin | OriginMap, derivative:Origin, };
+    export const isOriginMapEntry = (value: unknown): value is OriginMapEntry =>
+        isObject<OriginMapEntry>({ origin: isTypeOr(isOrigin, isOriginMap), derivative: isOrigin, })(value);
+    export type OriginMap = OriginMapEntry[];
     export const isOriginMap = (value: unknown): value is OriginMap =>
-        isMapObject(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
+        isArray<OriginMapEntry>(isOriginMapEntry)(value);
     export const getRootOrigin = (origin: Origin): OriginRoot => isOriginRoot(origin) ? origin: origin.root;
     export const getOriginPath = (origin: Origin): Refer => isOriginRoot(origin) ? []: toLeafFullRefer(origin).refer;
     export const makeOrigin = (parent: Origin, refer: ReferElement): ValueOrigin =>
