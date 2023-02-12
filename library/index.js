@@ -451,9 +451,13 @@ var Jsonarch;
         };
     };
     Jsonarch.makeOutput = function (intermediate, base) {
-        var originMap = {};
+        var originMap = [];
         if (Jsonarch.isIntermediate(intermediate)) {
-            originMap[Jsonarch.jsonStringify(base)] = intermediate.origin;
+            originMap.push({
+                origin: intermediate.origin,
+                derivative: base,
+            });
+            // originMap[jsonStringify(base)] = intermediate.origin;
         }
         var value = Jsonarch.getValueFromIntermediateOrValue(intermediate);
         if (Array.isArray(value)) {
@@ -903,8 +907,11 @@ var Jsonarch;
     Jsonarch.isOrigin = function (value) {
         return isTypeOr(Jsonarch.isOriginRoot, Jsonarch.isValueOrigin)(value);
     };
+    Jsonarch.isOriginMapEntry = function (value) {
+        return Jsonarch.isObject({ origin: isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap), derivative: Jsonarch.isOrigin, })(value);
+    };
     Jsonarch.isOriginMap = function (value) {
-        return Jsonarch.isMapObject(isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap))(value);
+        return Jsonarch.isArray(Jsonarch.isOriginMapEntry)(value);
     };
     Jsonarch.getRootOrigin = function (origin) { return Jsonarch.isOriginRoot(origin) ? origin : origin.root; };
     Jsonarch.getOriginPath = function (origin) { return Jsonarch.isOriginRoot(origin) ? [] : Jsonarch.toLeafFullRefer(origin).refer; };
@@ -928,7 +935,6 @@ var Jsonarch;
             parameter: Jsonarch.isUndefinedOr(Jsonarch.isIntermediate),
             callStack: Jsonarch.isArray(Jsonarch.isCallStackEntry),
             path: Jsonarch.isFullRefer,
-            originMap: Jsonarch.isUndefinedOr(Jsonarch.isOriginMap),
             scope: Jsonarch.isUndefinedOr(Jsonarch.isJsonableObject),
             cache: Jsonarch.isCache,
             setting: Jsonarch.isSetting,
@@ -954,7 +960,6 @@ var Jsonarch;
                             _d.parameter = entry.parameter,
                             _d.callStack = entry.callStack,
                             _d.path = entry.path,
-                            _d.originMap = entry.originMap,
                             _d.scope = entry.scope,
                             _d), "shallow"])];
             }
@@ -1059,7 +1064,6 @@ var Jsonarch;
                 template: entry.callStack,
                 system: entry.context.profile.stack.map(function (i) { return ({ scope: i.scope, template: Jsonarch.jsonParse(i.template), }); }),
             },
-            orignMap: entry.originMap,
             scope: entry.scope,
         });
     };
@@ -2098,11 +2102,7 @@ var Jsonarch;
                                 return [4 /*yield*/, Jsonarch.makeSureIntermediateLibrarygJson(entry)];
                             case 1:
                                 _q.sent();
-                                return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_j = entry.this) === null || _j === void 0 ? void 0 : _j.template }) }), refer, {
-                                        template: entry.path,
-                                    }
-                                    // entry.originMap
-                                    )];
+                                return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_j = entry.this) === null || _j === void 0 ? void 0 : _j.template }) }), refer)];
                             case 2:
                                 template = _q.sent();
                                 if (!Jsonarch.isIntermediateTemplateData(template)) return [3 /*break*/, 16];
@@ -3013,7 +3013,7 @@ var Jsonarch;
             return compositeType;
         }
     };
-    Jsonarch.turnRefer = function (entry, root, refer, sourceMap) { return __awaiter(_this, void 0, void 0, function () {
+    Jsonarch.turnRefer = function (entry, root, refer) { return __awaiter(_this, void 0, void 0, function () {
         var rest, current, key;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -3042,7 +3042,6 @@ var Jsonarch;
                     return [3 /*break*/, 5];
                 case 3: return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Unmatch refer path", {
                         refer: refer,
-                        sourceMap: sourceMap,
                         root: Jsonarch.toJsonable(root),
                     })];
                 case 4: throw _c.sent();
@@ -3060,11 +3059,7 @@ var Jsonarch;
                         value: entry.cache.value,
                         scope: entry.scope,
                         parameter: entry.parameter,
-                    }, Jsonarch.makeSolid(entry.template.value.refer), {
-                        template: entry.path,
-                    }
-                    // entry.originMap
-                    )];
+                    }, Jsonarch.makeSolid(entry.template.value.refer))];
                 case 1: return [2 /*return*/, _c.sent()];
             }
         });
@@ -3091,9 +3086,7 @@ var Jsonarch;
                             parameter: parameter,
                             caller: entry.path,
                         }), path: path });
-                    return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_d = entry.this) === null || _d === void 0 ? void 0 : _d.template, template: entry.cache.template }), refer, {
-                            template: entry.path,
-                        }
+                    return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.library), { this: (_d = entry.this) === null || _d === void 0 ? void 0 : _d.template, template: entry.cache.template }), refer
                         // entry.originMap
                         )];
                 case 3:
@@ -3196,11 +3189,7 @@ var Jsonarch;
                     return [4 /*yield*/, Jsonarch.makeSureIntermediateLibrarygJson(entry)];
                 case 3:
                     _f.sent();
-                    return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }) }), refer, {
-                            template: entry.path,
-                        }
-                        // entry.originMap
-                        )];
+                    return [4 /*yield*/, Jsonarch.turnRefer(entry, __assign(__assign({}, Jsonarch.intermediateLibrarygJson), { value: __assign(__assign({}, Jsonarch.intermediateLibrarygJson.value), { this: (_e = entry.this) === null || _e === void 0 ? void 0 : _e.template, template: entry.cache.template }) }), refer)];
                 case 4:
                     functionTemplate = _f.sent();
                     if (!Jsonarch.isIntermediateTemplateData(functionTemplate)) return [3 /*break*/, 12];
@@ -3841,14 +3830,6 @@ var Jsonarch;
                         cache: cache,
                         setting: setting,
                         handler: handler,
-                        originMap: (process.parameter ?
-                            ({
-                                paremter: {
-                                    root: process.parameter,
-                                    refer: "root",
-                                },
-                            }) :
-                            undefined),
                     };
                     _f.label = 1;
                 case 1:

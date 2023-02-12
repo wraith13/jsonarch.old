@@ -1109,8 +1109,6 @@ export module Jsonarch
         parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
-        // origin: Origin;
-        originMap?: OriginMap;
         scope?: JsonableObject | undefined;
         cache: Cache;
         setting: Setting;
@@ -1125,7 +1123,6 @@ export module Jsonarch
             parameter: isUndefinedOr(isIntermediate),
             callStack: isArray(isCallStackEntry),
             path: isFullRefer,
-            originMap: isUndefinedOr(isOriginMap),
             scope: isUndefinedOr(isJsonableObject),
             cache: isCache,
             setting: isSetting,
@@ -1154,7 +1151,6 @@ export module Jsonarch
             parameter: entry.parameter,
             callStack: entry.callStack,
             path: entry.path,
-            originMap: entry.originMap,
             scope: entry.scope,
         },
         "shallow"
@@ -1234,7 +1230,6 @@ export module Jsonarch
             template: entry.callStack,
             system: entry.context.profile.stack.map(i => ({ scope: i.scope, template: jsonParse(i.template), })),
         },
-        orignMap: entry.originMap,
         scope: entry.scope,
     });
     interface CompileEntry extends Context
@@ -2715,11 +2710,7 @@ export module Jsonarch
                         this: entry.this?.template,
                     }
                 },
-                refer,
-                {
-                    template: entry.path,
-                }
-                // entry.originMap
+                refer
             );
             if (isIntermediateTemplateData(template))
             {
@@ -3897,7 +3888,7 @@ export module Jsonarch
             return compositeType;
         }
     };
-    export const turnRefer = async <Element extends JsonableValue | Function>(entry: EvaluateEntry<Jsonable>, root: Structure<Element>, refer: Refer, sourceMap?: OriginMap): Promise<Structure<Element> | undefined> =>
+    export const turnRefer = async <Element extends JsonableValue | Function>(entry: EvaluateEntry<Jsonable>, root: Structure<Element>, refer: Refer): Promise<Structure<Element> | undefined> =>
     {
         let rest = refer.map(i => i);
         let current: Structure<Element> | undefined = root;
@@ -3932,7 +3923,6 @@ export module Jsonarch
                     entry, "Unmatch refer path",
                     {
                         refer,
-                        sourceMap,
                         root: toJsonable(root),
                     }
                 );
@@ -3951,11 +3941,7 @@ export module Jsonarch
                 scope: entry.scope,
                 parameter: entry.parameter,
             },
-            makeSolid(entry.template.value.refer),
-            {
-                template: entry.path,
-            }
-            // entry.originMap
+            makeSolid(entry.template.value.refer)
         );
     };
     export const evaluateCall = (entry: EvaluateEntry<Call>): Promise<IntermediateTarget<Jsonable>> => profile
@@ -4002,10 +3988,7 @@ export module Jsonarch
                     this: entry.this?.template,
                     template: entry.cache.template,
                 },
-                refer,
-                {
-                    template: entry.path,
-                }
+                refer
                 // entry.originMap
             );
             if ("function" === typeof target)
@@ -4159,11 +4142,7 @@ export module Jsonarch
                         template: entry.cache.template,
                     },
                 },
-                refer,
-                {
-                    template: entry.path,
-                }
-                // entry.originMap
+                refer
             );
             if (isIntermediateTemplateData(functionTemplate))
             {
@@ -4748,18 +4727,6 @@ export module Jsonarch
                 cache,
                 setting,
                 handler,
-                originMap: <OriginMap>
-                (
-                    process.parameter ?
-                    ({
-                        paremter: <Origin>
-                        {
-                            root: process.parameter,
-                            refer: "root",
-                        },
-                    }):
-                    undefined
-                ),
             };
             try
             {
