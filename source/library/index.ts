@@ -1136,8 +1136,6 @@ export module Jsonarch
         parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
-        // origin: Origin;
-        originMap?: OriginMap;
         scope?: JsonableObject | undefined;
     }
     export const isLazy = isJsonarch<Lazy>("lazy");

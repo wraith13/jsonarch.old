@@ -370,7 +370,6 @@ export declare module Jsonarch {
         parameter: IntermediateTarget<Jsonable> | undefined;
         callStack: CallStackEntry[];
         path: FullRefer;
-        originMap?: OriginMap;
         scope?: JsonableObject | undefined;
     }
     export const isLazy: (template: unknown) => template is Lazy;
