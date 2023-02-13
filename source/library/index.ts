@@ -491,7 +491,7 @@ export module Jsonarch
                 const v = value[ix];
                 const r = makeOutput(v, makeOrigin(base, ix));
                 output.push(r.output);
-                Object.assign(originMap, r.originMap);
+                originMap.push(...r.originMap);
             }
             return { output, originMap, };
         }
@@ -508,7 +508,7 @@ export module Jsonarch
                 {
                     const r = makeOutput(v, makeOrigin(base, key));
                     output[key] = r.output;
-                    Object.assign(originMap, r.originMap);
+                    originMap.push(...r.originMap);
                 }
             }
             return { output, originMap, };

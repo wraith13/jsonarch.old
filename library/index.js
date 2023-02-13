@@ -467,7 +467,7 @@ var Jsonarch;
                 var v = value[ix];
                 var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, ix));
                 output.push(r.output);
-                Object.assign(originMap, r.originMap);
+                originMap.push.apply(originMap, r.originMap);
             }
             return { output: output, originMap: originMap, };
         }
@@ -480,7 +480,7 @@ var Jsonarch;
                 if (undefined !== v) {
                     var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, key));
                     output[key] = r.output;
-                    Object.assign(originMap, r.originMap);
+                    originMap.push.apply(originMap, r.originMap);
                 }
             }
             return { output: output, originMap: originMap, };
