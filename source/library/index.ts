@@ -469,7 +469,7 @@ export module Jsonarch
     export const isIntermediateJsonarchTarget = <Type extends AlphaJsonarch>(type: Type["$arch"]) =>
         (template: unknown): template is IntermediateTarget<Type> =>
             type === getIntermediateJsonarchType(template);
-    export const makeOutput = (intermediate: Intermediate | Jsonable, base: Origin): { output: Jsonable; originMap: OriginMap; } =>
+    export const makeOutput = (intermediate: Intermediate | Jsonable, base: Refer): { output: Jsonable; originMap: OriginMap; } =>
     {
         const originMap: OriginMap = [ ];
         if (isIntermediate(intermediate))
@@ -489,7 +489,7 @@ export module Jsonarch
             {
                 const ix = parseInt(i);
                 const v = value[ix];
-                const r = makeOutput(v, makeOrigin(base, ix));
+                const r = makeOutput(v, makeRefer(base, ix));
                 output.push(r.output);
                 originMap.push(...r.originMap);
             }
@@ -506,7 +506,7 @@ export module Jsonarch
                 const v = value[key];
                 if (undefined !== v)
                 {
-                    const r = makeOutput(v, makeOrigin(base, key));
+                    const r = makeOutput(v, makeRefer(base, key));
                     output[key] = r.output;
                     originMap.push(...r.originMap);
                 }
@@ -1055,9 +1055,9 @@ export module Jsonarch
     // export type OriginMap = { [key: string | number]: Origin | OriginMap };
     // export const isOriginMap = (value: unknown): value is OriginMap =>
     //     isMapObject(isTypeOr<Origin, OriginMap>(isOrigin, isOriginMap))(value);
-    export type OriginMapEntry = { origin: Origin | OriginMap, derivative:Origin, };
+    export type OriginMapEntry = { origin: Origin | OriginMap, derivative:Refer, };
     export const isOriginMapEntry = (value: unknown): value is OriginMapEntry =>
-        isObject<OriginMapEntry>({ origin: isTypeOr(isOrigin, isOriginMap), derivative: isOrigin, })(value);
+        isObject<OriginMapEntry>({ origin: isTypeOr(isOrigin, isOriginMap), derivative: isRefer, })(value);
     export type OriginMap = OriginMapEntry[];
     export const isOriginMap = (value: unknown): value is OriginMap =>
         isArray<OriginMapEntry>(isOriginMapEntry)(value);
@@ -1563,6 +1563,7 @@ export module Jsonarch
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
+    export const makeRefer = (base: Refer, leaf: ReferElement) => base.concat(leaf);
     export const isRefer = isArray(isTypeOr<string, number>(isString, isNumber));
     export interface RootFullRefer extends JsonableObject
     {
@@ -4762,7 +4763,7 @@ export module Jsonarch
         const { output, originMap, } = makeOutput
         (
             root.intermediateResult,
-            root.process.template
+            [ ]
         );
         const result: Result =
         {

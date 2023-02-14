@@ -465,7 +465,7 @@ var Jsonarch;
             for (var i in value) {
                 var ix = parseInt(i);
                 var v = value[ix];
-                var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, ix));
+                var r = Jsonarch.makeOutput(v, Jsonarch.makeRefer(base, ix));
                 output.push(r.output);
                 originMap.push.apply(originMap, r.originMap);
             }
@@ -478,7 +478,7 @@ var Jsonarch;
                 var key = keys[i];
                 var v = value[key];
                 if (undefined !== v) {
-                    var r = Jsonarch.makeOutput(v, Jsonarch.makeOrigin(base, key));
+                    var r = Jsonarch.makeOutput(v, Jsonarch.makeRefer(base, key));
                     output[key] = r.output;
                     originMap.push.apply(originMap, r.originMap);
                 }
@@ -908,7 +908,7 @@ var Jsonarch;
         return isTypeOr(Jsonarch.isOriginRoot, Jsonarch.isValueOrigin)(value);
     };
     Jsonarch.isOriginMapEntry = function (value) {
-        return Jsonarch.isObject({ origin: isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap), derivative: Jsonarch.isOrigin, })(value);
+        return Jsonarch.isObject({ origin: isTypeOr(Jsonarch.isOrigin, Jsonarch.isOriginMap), derivative: Jsonarch.isRefer, })(value);
     };
     Jsonarch.isOriginMap = function (value) {
         return Jsonarch.isArray(Jsonarch.isOriginMapEntry)(value);
@@ -1369,6 +1369,7 @@ var Jsonarch;
             }
         });
     }); }); };
+    Jsonarch.makeRefer = function (base, leaf) { return base.concat(leaf); };
     Jsonarch.isRefer = Jsonarch.isArray(isTypeOr(Jsonarch.isString, Jsonarch.isNumber));
     Jsonarch.isRootFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isJustValue("root"), });
     Jsonarch.isLeafFullRefer = Jsonarch.isObject({ root: Jsonarch.isOriginRoot, refer: Jsonarch.isRefer, });
@@ -3875,7 +3876,7 @@ var Jsonarch;
     }); }); };
     Jsonarch.applyRootResultToProcessResult = function (root) {
         var profile = Jsonarch.makeProfileReport(root.profile);
-        var _c = Jsonarch.makeOutput(root.intermediateResult, root.process.template), output = _c.output, originMap = _c.originMap;
+        var _c = Jsonarch.makeOutput(root.intermediateResult, []), output = _c.output, originMap = _c.originMap;
         var result = {
             $arch: "result",
             process: root.process,

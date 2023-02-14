@@ -116,7 +116,7 @@ export declare module Jsonarch {
     export const isIntermediateJsonarch: (template: unknown) => template is IntermediateTarget<AlphaJsonarch>;
     export const getIntermediateJsonarchType: (template: unknown) => JsonarchType | undefined;
     export const isIntermediateJsonarchTarget: <Type_1 extends AlphaJsonarch>(type: Type_1["$arch"]) => (template: unknown) => template is IntermediateTarget<Type_1>;
-    export const makeOutput: (intermediate: Intermediate | Jsonable, base: Origin) => {
+    export const makeOutput: (intermediate: Intermediate | Jsonable, base: Refer) => {
         output: Jsonable;
         originMap: OriginMap;
     };
@@ -314,7 +314,7 @@ export declare module Jsonarch {
     export const isOrigin: (value: unknown) => value is Origin;
     export type OriginMapEntry = {
         origin: Origin | OriginMap;
-        derivative: Origin;
+        derivative: Refer;
     };
     export const isOriginMapEntry: (value: unknown) => value is OriginMapEntry;
     export type OriginMap = OriginMapEntry[];
@@ -457,6 +457,7 @@ export declare module Jsonarch {
     type ReferIndextElement = number;
     type ReferElement = ReferKeyElement | ReferIndextElement;
     type Refer = ReferElement[];
+    export const makeRefer: (base: Refer, leaf: ReferElement) => ReferElement[];
     export const isRefer: (value: unknown) => value is (string | number)[];
     export interface RootFullRefer extends JsonableObject {
         root: OriginRoot;
