@@ -707,24 +707,18 @@ var Jsonarch;
             refer: systemLocation !== null && systemLocation !== void 0 ? systemLocation : ["unknown"],
         });
     };
-    Jsonarch.makeErrorIntermediate = function (entry, target) { return __awaiter(_this, void 0, void 0, function () {
-        var _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    if (!Jsonarch.isEvaluateEntry(Jsonarch.isAny)(entry)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, entry.path)];
-                case 1:
-                    _c = _d.sent();
-                    return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, Jsonarch.makeSystemOrigin(Jsonarch.getReferFromSystemCallStack(Jsonarch.getContext(entry))))];
-                case 3:
-                    _c = _d.sent();
-                    _d.label = 4;
-                case 4: return [2 /*return*/, _c];
-            }
-        });
-    }); };
+    Jsonarch.makeErrorIntermediate = function (entry, target) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0: 
+            // isEvaluateEntry(isAny)(entry) ?
+            //     await makeOutputIntermediate(entry, target, entry.path):
+            return [4 /*yield*/, Jsonarch.makeOutputIntermediate(entry, target, Jsonarch.makeSystemOrigin(Jsonarch.getReferFromSystemCallStack(Jsonarch.getContext(entry))))];
+            case 1: 
+            // isEvaluateEntry(isAny)(entry) ?
+            //     await makeOutputIntermediate(entry, target, entry.path):
+            return [2 /*return*/, _c.sent()];
+        }
+    }); }); };
     Jsonarch.getValueFromIntermediateOrValue = function (intermediateOrValue) {
         return Jsonarch.isIntermediate(intermediateOrValue) ? intermediateOrValue.value : intermediateOrValue;
     };
