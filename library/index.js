@@ -3590,39 +3590,49 @@ var Jsonarch;
             return (_e = (_d = (_c = entry.setting.limit) === null || _c === void 0 ? void 0 : _c.maxObjectMembers) !== null && _d !== void 0 ? _d : setting_json_1.default.limit.maxObjectMembers) !== null && _e !== void 0 ? _e : 32;
         };
         Limit.throwIfOverTheProcessTimeout = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-            var processTimeout, now, elapsed;
+            var _this = this;
             return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        processTimeout = Limit.getProcessTimeout(entry);
-                        now = Jsonarch.getTicks();
-                        elapsed = now - entry.context.profile.startAt;
-                        if (!(processTimeout < elapsed)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Process Timeout", {
-                                processTimeout: processTimeout,
-                                elapsed: elapsed,
-                            })];
-                    case 1: throw _c.sent();
-                    case 2: return [2 /*return*/];
-                }
+                return [2 /*return*/, Jsonarch.profile(entry, "throwIfOverTheProcessTimeout", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var processTimeout, now, elapsed;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    processTimeout = Limit.getProcessTimeout(entry);
+                                    now = Jsonarch.getTicks();
+                                    elapsed = now - entry.context.profile.startAt;
+                                    if (!(processTimeout < elapsed)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Process Timeout", {
+                                            processTimeout: processTimeout,
+                                            elapsed: elapsed,
+                                        })];
+                                case 1: throw _c.sent();
+                                case 2: return [2 /*return*/];
+                            }
+                        });
+                    }); })];
             });
         }); };
         Limit.throwIfOverTheNestDepth = function (entry) { return __awaiter(_this, void 0, void 0, function () {
-            var maxObjectNestDepth, nestDepth;
-            var _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
-                    case 0:
-                        maxObjectNestDepth = Limit.getMaxObjectNestDepth(entry);
-                        nestDepth = (_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0;
-                        if (!(maxObjectNestDepth < nestDepth)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Too Deep Object Nest", {
-                                maxObjectNestDepth: maxObjectNestDepth,
-                                nestDepth: nestDepth,
-                            })];
-                    case 1: throw _d.sent();
-                    case 2: return [2 /*return*/];
-                }
+            var _this = this;
+            return __generator(this, function (_c) {
+                return [2 /*return*/, Jsonarch.profile(entry, "throwIfOverTheNestDepth", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var maxObjectNestDepth, nestDepth;
+                        var _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
+                                case 0:
+                                    maxObjectNestDepth = Limit.getMaxObjectNestDepth(entry);
+                                    nestDepth = (_c = entry.context.nestDepth) !== null && _c !== void 0 ? _c : 0;
+                                    if (!(maxObjectNestDepth < nestDepth)) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, new Jsonarch.ErrorJson(entry, "Too Deep Object Nest", {
+                                            maxObjectNestDepth: maxObjectNestDepth,
+                                            nestDepth: nestDepth,
+                                        })];
+                                case 1: throw _d.sent();
+                                case 2: return [2 /*return*/];
+                            }
+                        });
+                    }); })];
             });
         }); };
         Limit.throwIfOverTheCallDepth = function (entry) { return __awaiter(_this, void 0, void 0, function () {

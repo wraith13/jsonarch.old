@@ -4515,39 +4515,45 @@ export module Jsonarch
             entry.setting.limit?.maxObjectMembers ??
             settingJson.limit.maxObjectMembers ??
             32;
-        export const throwIfOverTheProcessTimeout = async (entry: EvaluateEntry<Jsonable>) =>
-        {
-            const processTimeout = getProcessTimeout(entry);
-            const now = getTicks();
-            const elapsed = now - entry.context.profile.startAt;
-            if (processTimeout < elapsed)
+        export const throwIfOverTheProcessTimeout = async (entry: EvaluateEntry<Jsonable>) => profile
+        (
+            entry, "throwIfOverTheProcessTimeout", async () =>
             {
-                throw await new ErrorJson
-                (
-                    entry, "Process Timeout",
-                    {
-                        processTimeout,
-                        elapsed,
-                    }
-                );
+                const processTimeout = getProcessTimeout(entry);
+                const now = getTicks();
+                const elapsed = now - entry.context.profile.startAt;
+                if (processTimeout < elapsed)
+                {
+                    throw await new ErrorJson
+                    (
+                        entry, "Process Timeout",
+                        {
+                            processTimeout,
+                            elapsed,
+                        }
+                    );
+                }
             }
-        };
-        export const throwIfOverTheNestDepth = async (entry: EvaluateEntry<Jsonable>) =>
-        {
-            const maxObjectNestDepth = getMaxObjectNestDepth(entry);
-            const nestDepth = entry.context.nestDepth ?? 0;
-            if (maxObjectNestDepth < nestDepth)
+        );
+        export const throwIfOverTheNestDepth = async (entry: EvaluateEntry<Jsonable>) => profile
+        (
+            entry, "throwIfOverTheNestDepth", async () =>
             {
-                throw await new ErrorJson
-                (
-                    entry, "Too Deep Object Nest",
-                    {
-                        maxObjectNestDepth,
-                        nestDepth,
-                    }
-                );
+                const maxObjectNestDepth = getMaxObjectNestDepth(entry);
+                const nestDepth = entry.context.nestDepth ?? 0;
+                if (maxObjectNestDepth < nestDepth)
+                {
+                    throw await new ErrorJson
+                    (
+                        entry, "Too Deep Object Nest",
+                        {
+                            maxObjectNestDepth,
+                            nestDepth,
+                        }
+                    );
+                }
             }
-        };
+        );
         export const throwIfOverTheCallDepth = async (entry: EvaluateEntry<Jsonable>) =>
         {
             const maxCallNestDepth = getMaxCallNestDepth(entry);
