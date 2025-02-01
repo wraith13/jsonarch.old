@@ -15,7 +15,7 @@
         "url": "https://github.com/wraith13/jsonarch.git"
     },
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "generate type": "node ./evil-type.ts ./resource/template.json"
     },
     "author": "wraith13",
     "license": "BSL-1.0",

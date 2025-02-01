@@ -1,0 +1,37 @@
+{
+    "$schema": "https://raw.githubusercontent.com/wraith13/evil-type.ts/master/generated/schema/type.json#",
+    "imports": [
+        {
+            "import": "{ EvilType }",
+            "from": "../evil-type.ts/common/evil-type"
+        }
+    ],
+    "defines": {
+        "export": {
+            "type": "code",
+            "export": true,
+            "tokens": [
+                "{",
+                "EvilType",
+                "}"
+            ]
+        },
+        "Type": {
+        }
+    },
+    "options": {
+        "outputFile": "../generated/type.ts",
+        "indentUnit": 4,
+        "indentStyle": "allman",
+        "validatorOption": "full",
+        "default": {
+            "export": true,
+            "additionalProperties": false
+        },
+        "schema": {
+            "outputFile": "../generated/schema.json",
+            "$id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/generated/schema/template.json#",
+            "$ref": "Type.Arguments"
+        }
+    }
+}
