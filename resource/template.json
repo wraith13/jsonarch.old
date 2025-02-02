@@ -17,6 +17,45 @@
             ]
         },
         "Type": {
+            "type": "namespace",
+            "members": {
+                "Arch": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.PathValue"
+                            },
+                            {
+                                "$ref": "Type.JsonValue"
+                            },
+                            {
+                                "$ref": "Type.CallValue"
+                            },
+                            {
+                                "$ref": "Type.ResourceValue"
+                            },
+                            {
+                                "$ref": "Type.Type"
+                            }
+                        ]
+                    }
+                },
+                "Root": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.Arch"
+                            },
+                            {
+                                "$ref": "Type.Json"
+                            }
+                        ]
+                    }
+            }
         }
     },
     "options": {
@@ -31,7 +70,7 @@
         "schema": {
             "outputFile": "../generated/schema.json",
             "$id": "https://raw.githubusercontent.com/wraith13/jsonarch/master/generated/schema/template.json#",
-            "$ref": "Type.Arguments"
+            "$ref": "Type.Root"
         }
     }
 }
