@@ -5,7 +5,7 @@ import settingJson from "./setting.json";
 import librarygJson from "./library.json";
 import * as Locale from "./locale";
 export * as Locale from "./locale";
-export module Jsonarch
+export namespace Jsonarch
 {
     export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
     export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult: DefaultType): (parameter: ParameterType | undefined) => ReturnType | DefaultType;

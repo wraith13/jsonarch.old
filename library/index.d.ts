@@ -1,6 +1,6 @@
 import librarygJson from "./library.json";
 export * as Locale from "./locale";
-export declare module Jsonarch {
+export declare namespace Jsonarch {
     export function undefinedable<ParameterType, ReturnType>(target: (parameter: ParameterType) => ReturnType): (parameter: ParameterType | undefined) => ReturnType | undefined;
     export function undefinedable<ParameterType, ReturnType, DefaultType>(target: (parameter: ParameterType) => ReturnType, defaultResult: DefaultType): (parameter: ParameterType | undefined) => ReturnType | DefaultType;
     export interface StructureObject<Element> {
