@@ -19,6 +19,76 @@
         "Type": {
             "type": "namespace",
             "members": {
+                "SystemType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "type": "enum-type",
+                            "members": [
+                                "never",
+                                "unknown",
+                                "any",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "ValueType":
+                {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.NullType"
+                            },
+                            {
+                                "$ref": "Type.BooleanType"
+                            },
+                            {
+                                "$ref": "Type.NumberType"
+                            },
+                            {
+                                "$ref": "Type.StringType"
+                            }
+                        ]
+                    }
+                },
+                "Type": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.SystemType"
+                            },
+                            {
+                                "$ref": "Type.ValueType"
+                            },
+                            {
+                                "$ref": "Type.ArrayType"
+                            },
+                            {
+                                "$ref": "Type.TupleType"
+                            },
+                            {
+                                "$ref": "Type.ObjectType"
+                            },
+                            {
+                                "$ref": "Type.CompositeType"
+                            },
+                            {
+                                "$ref": "Type.TemplateType"
+                            },
+                            {
+                                "$ref": "Type.MetaType"
+                            }
+                        ]
+                    }
+                },
                 "Arch": {
                     "type": "type",
                     "define": {
@@ -55,6 +125,7 @@
                             }
                         ]
                     }
+                }
             }
         }
     },
