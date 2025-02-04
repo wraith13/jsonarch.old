@@ -36,6 +36,40 @@
                         }
                     }
                 },
+                "NullType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "null"
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "BooleanType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "boolean"
+                        },
+                        "enum?": {
+                            "type": "array",
+                            "items": {
+                                "type": "boolean"
+                            }
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "ValueType":
                 {
                     "type": "type",
