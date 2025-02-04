@@ -70,6 +70,63 @@
                         }
                     }
                 },
+                "NumberType": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.RegularNumberType"
+                            },
+                            {
+                                "$ref": "Type.EnumNumberType"
+                            }
+                        ]
+                    }
+                },
+                "RegularNumberType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "number"
+                        },
+                        "integerOnly?": {
+                            "type": "boolean"
+                        },
+                        "minValue?": {
+                            "type": "number"
+                        },
+                        "maxValue?": {
+                            "type": "number"
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "EnumNumberType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "number"
+                        },
+                        "enum": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            }
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "ValueType":
                 {
                     "type": "type",
