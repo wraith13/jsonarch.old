@@ -205,6 +205,23 @@
                         ]
                     }
                 },
+                "ArrayType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "array"
+                        },
+                        "itemType": {
+                            "$ref": "Type.Type"
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "Type": {
                     "type": "type",
                     "define": {
