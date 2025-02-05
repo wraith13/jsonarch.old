@@ -127,6 +127,63 @@
                         }
                     }
                 },
+                "RegularStringType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "string"
+                        },
+                        "minLength?": {
+                            "type": "number"
+                        },
+                        "maxLength?": {
+                            "type": "number"
+                        },
+                        "pattern?": {
+                            "type": "string"
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "EnumStringType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "string"
+                        },
+                        "enum": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "optional?": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "StringType": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.RegularStringType"
+                            },
+                            {
+                                "$ref": "Type.EnumStringType"
+                            }
+                        ]
+                    }
+                },
                 "ValueType":
                 {
                     "type": "type",
