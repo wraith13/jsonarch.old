@@ -19,6 +19,14 @@
         "Type": {
             "type": "namespace",
             "members": {
+                "AlphaJsonarch": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "SystemType": {
                     "type": "interface",
                     "members": {
@@ -219,6 +227,23 @@
                         },
                         "optional?": {
                             "type": "boolean"
+                        }
+                    }
+                },
+                "TupleType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "tuple"
+                        },
+                        "list": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "Type.Type"
+                            }
                         }
                     }
                 },
