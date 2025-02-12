@@ -247,6 +247,23 @@
                         }
                     }
                 },
+                "ObjectType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "tuple"
+                        },
+                        "member": {
+                            "type": "dictionary",
+                            "valueType": {
+                                "$ref": "Type.Type"
+                            }
+                        }
+                    }
+                },
                 "Type": {
                     "type": "type",
                     "define": {
