@@ -264,6 +264,23 @@
                         }
                     }
                 },
+                "OrCompositeType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "or"
+                        },
+                        "list": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "Type.Type"
+                            }
+                        }
+                    }
+                },
                 "Type": {
                     "type": "type",
                     "define": {
