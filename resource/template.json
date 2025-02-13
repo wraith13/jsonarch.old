@@ -281,6 +281,23 @@
                         }
                     }
                 },
+                "AndCompositeType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "and"
+                        },
+                        "list": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "Type.Type"
+                            }
+                        }
+                    }
+                },
                 "Type": {
                     "type": "type",
                     "define": {
