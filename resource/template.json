@@ -312,6 +312,23 @@
                         ]
                     }
                 },
+                "TemplateType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "template"
+                        },
+                        "template": {
+                            "$ref": "Type.Type"
+                        },
+                        "return": {
+                            "$ref": "Type.Type"
+                        }
+                    }
+                },
                 "Type": {
                     "type": "type",
                     "define": {
