@@ -321,7 +321,24 @@
                         "type": {
                             "const": "template"
                         },
-                        "template": {
+                        "parameter": {
+                            "$ref": "Type.Type"
+                        },
+                        "return": {
+                            "$ref": "Type.Type"
+                        }
+                    }
+                },
+                "MetaType": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "const": "type"
+                        },
+                        "type": {
+                            "const": "meta"
+                        },
+                        "parameter": {
                             "$ref": "Type.Type"
                         },
                         "return": {
