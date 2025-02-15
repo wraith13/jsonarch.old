@@ -87,6 +87,26 @@
                         ]
                     }
                 },
+                "RawJsonable": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.JsonableValue"
+                            },
+                            {
+                                "$ref": "Type.JsonbleObjectBody"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "Type.RawJsonable"
+                                }
+                            }
+                        ]
+                    }
+                },
                 "AlphaJsonarch": {
                     "type": "interface",
                     "members": {
