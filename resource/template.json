@@ -19,6 +19,74 @@
         "Type": {
             "type": "namespace",
             "members": {
+                "JsonableValue": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                "JsonbleObjectBody": {
+                    "type": "dictionary",
+                    "valueType": {
+                        "$ref": "Type.Jsonable"
+                    }
+                },
+                "JsonbleObjectConstraint": {
+                    "type": "interface",
+                    "members": {
+                        "$arch": {
+                            "type": "never"
+                        }
+                    }
+                },
+                "JsonableObject": {
+                    "type": "type",
+                    "define": {
+                        "type": "and",
+                        "types": [
+                            {
+                                "$ref": "Type.JsonbleObjectBody"
+                            },
+                            {
+                                "$ref": "Type.JsonbleObjectConstraint"
+                            }
+                        ]
+                    }
+                },
+                "Jsonable": {
+                    "type": "type",
+                    "define": {
+                        "type": "or",
+                        "types": [
+                            {
+                                "$ref": "Type.JsonableValue"
+                            },
+                            {
+                                "$ref": "Type.JsonableObject"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "Type.Jsonable"
+                                }
+                            }
+                        ]
+                    }
+                },
                 "AlphaJsonarch": {
                     "type": "interface",
                     "members": {
@@ -410,7 +478,7 @@
                                 "$ref": "Type.Arch"
                             },
                             {
-                                "$ref": "Type.Json"
+                                "$ref": "Type.Jsonable"
                             }
                         ]
                     }
