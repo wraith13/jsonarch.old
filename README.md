@@ -1,5 +1,8 @@
 # Jsonarch
 
+> [!WARNING]
+> **This repository is old.** New repository is [jsonarch](https://github.com/wraith13/jsonarch)
+
 Jsonarch is JSON to JSON processor for JavaScript/TypeScript, Commandline.
 
 Requires: [Node.js](https://nodejs.org/)
